@@ -22,6 +22,8 @@ export function CombatCalculator({ onClose }: Props) {
   const [lastRound, setLastRound] = useState<CombatRound | null>(null)
   const [simulationRounds, setSimulationRounds] = useState<CombatRound[]>([])
   const [showSim, setShowSim] = useState(false)
+  const [victory, setVictory] = useState(false)
+  const [defeat, setDefeat] = useState(false)
 
   function handleRoll() {
     const rn = rollD10()
@@ -37,6 +39,20 @@ export function CombatCalculator({ onClose }: Props) {
     setEnduranceCurrent(newPlayerEP)
     setEnemyCurrentEP(newEnemyEP)
     setLastRound(null)
+    if (lastRound.enemyKilled || newEnemyEP <= 0) {
+      setTimeout(() => setVictory(true), 150)
+    } else if (newPlayerEP <= 0) {
+      setTimeout(() => setDefeat(true), 150)
+    }
+  }
+
+  function handleNewCombat() {
+    setVictory(false)
+    setDefeat(false)
+    setEnemyCurrentEP(enemyEP)
+    setLastRound(null)
+    setSimulationRounds([])
+    setShowSim(false)
   }
 
   function handleSimulate() {
@@ -48,6 +64,12 @@ export function CombatCalculator({ onClose }: Props) {
 
   const ratio = playerCS - enemyCS
   const ratioColor = ratio > 0 ? 'text-green-400' : ratio < 0 ? 'text-red-400' : 'text-slate-400'
+
+  const enemyEPPercent = enemyEP > 0 ? enemyCurrentEP / enemyEP : 0
+  const enemyBarColor =
+    enemyEPPercent > 0.66 ? 'bg-green-500' :
+    enemyEPPercent > 0.33 ? 'bg-orange-500' :
+    'bg-red-500'
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
@@ -63,7 +85,69 @@ export function CombatCalculator({ onClose }: Props) {
           </button>
         </div>
 
-        <div className="p-5 flex flex-col gap-4">
+        {/* Victory screen */}
+        {victory && (
+          <div className="p-8 flex flex-col items-center gap-5 animate-victory">
+            <div className="relative flex items-center justify-center">
+              <div className="absolute w-24 h-24 rounded-full bg-amber-500/10 animate-ping-slow" />
+              <div className="w-16 h-16 rounded-full bg-amber-900/40 border border-amber-700/60 flex items-center justify-center">
+                <Swords size={28} className="text-amber-400" />
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-serif font-semibold text-amber-100 mb-1">{t('combat.victory')}</div>
+              <div className="text-sm text-slate-400">
+                {t('combat.epAfter')} : <span className="text-green-400 font-medium">{character.endurance.current}</span>
+              </div>
+            </div>
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={handleNewCombat}
+                className="flex-1 py-2 rounded-lg border border-slate-600 text-slate-300 hover:border-slate-500 hover:text-slate-100 text-sm transition-colors"
+              >
+                {t('combat.newCombat')}
+              </button>
+              <button
+                onClick={onClose}
+                className="flex-1 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium transition-colors"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Defeat screen */}
+        {defeat && (
+          <div className="p-8 flex flex-col items-center gap-5 animate-victory">
+            <div className="relative flex items-center justify-center">
+              <div className="absolute w-24 h-24 rounded-full bg-red-500/10 animate-ping-slow" />
+              <div className="w-16 h-16 rounded-full bg-red-900/40 border border-red-800/60 flex items-center justify-center">
+                <span className="text-3xl">☠</span>
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-serif font-semibold text-red-300 mb-1">{t('combat.defeat')}</div>
+              <div className="text-sm text-slate-400">{t('combat.defeatSub')}</div>
+            </div>
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={handleNewCombat}
+                className="flex-1 py-2 rounded-lg border border-slate-600 text-slate-300 hover:border-slate-500 hover:text-slate-100 text-sm transition-colors"
+              >
+                {t('combat.replay')}
+              </button>
+              <button
+                onClick={onClose}
+                className="flex-1 py-2 rounded-lg bg-red-800 hover:bg-red-700 text-white text-sm font-medium transition-colors"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className={`p-5 flex flex-col gap-4 ${victory || defeat ? 'hidden' : ''}`}>
           {/* CS display */}
           <div className="grid grid-cols-3 gap-3 text-center bg-slate-800/40 rounded-xl p-4">
             <div>
@@ -82,32 +166,43 @@ export function CombatCalculator({ onClose }: Props) {
                 type="number"
                 value={enemyCS}
                 onChange={e => setEnemyCS(Number(e.target.value))}
+                onFocus={e => e.target.select()}
                 className="w-full bg-slate-900 border border-slate-700 rounded-lg text-center text-3xl font-bold text-red-400 focus:outline-none focus:border-amber-600 py-0"
               />
             </div>
           </div>
 
           {/* Enemy EP */}
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-400 shrink-0">{t('combat.enemyEP')}:</span>
-            <div className="flex items-center gap-2 flex-1">
-              <button
-                onClick={() => { setEnemyEP(Number(enemyCS)); setEnemyCurrentEP(Number(enemyCS)) }}
-                className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
-                title="Réinitialiser"
-              >↺</button>
-              <input
-                type="number"
-                value={enemyCurrentEP}
-                onChange={e => setEnemyCurrentEP(Math.max(0, Number(e.target.value)))}
-                className="w-20 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-center text-lg font-bold text-red-400 focus:outline-none focus:border-amber-600"
-              />
-              <span className="text-slate-500 text-sm">/ </span>
-              <input
-                type="number"
-                value={enemyEP}
-                onChange={e => { setEnemyEP(Number(e.target.value)); setEnemyCurrentEP(Number(e.target.value)) }}
-                className="w-20 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-center text-sm text-slate-400 focus:outline-none focus:border-amber-600"
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-slate-400 shrink-0">{t('combat.enemyEP')}:</span>
+              <div className="flex items-center gap-2 flex-1">
+                <button
+                  onClick={() => { setEnemyEP(Number(enemyCS)); setEnemyCurrentEP(Number(enemyCS)) }}
+                  className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                  title="Réinitialiser"
+                >↺</button>
+                <input
+                  type="number"
+                  value={enemyCurrentEP}
+                  onChange={e => setEnemyCurrentEP(Math.max(0, Number(e.target.value)))}
+                  onFocus={e => e.target.select()}
+                  className="w-20 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-center text-lg font-bold text-slate-100 focus:outline-none focus:border-amber-600"
+                />
+                <span className="text-slate-500 text-sm">/</span>
+                <input
+                  type="number"
+                  value={enemyEP}
+                  onChange={e => { setEnemyEP(Number(e.target.value)); setEnemyCurrentEP(Number(e.target.value)) }}
+                  onFocus={e => e.target.select()}
+                  className="w-20 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-center text-lg font-bold text-slate-400 focus:outline-none focus:border-amber-600"
+                />
+              </div>
+            </div>
+            <div className="h-2 rounded-full bg-slate-700 overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-300 ${enemyBarColor}`}
+                style={{ width: `${Math.max(0, Math.min(100, enemyEPPercent * 100))}%` }}
               />
             </div>
           </div>

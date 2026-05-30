@@ -99,7 +99,12 @@
     "simulate": "Simuler",
     "roundsResult": "Résultat sur {{rounds}} round(s)",
     "close": "Fermer",
-    "epAfter": "PE restants"
+    "epAfter": "PE restants",
+    "victory": "Ennemi vaincu !",
+    "defeat": "Vous êtes mort.",
+    "defeatSub": "Votre aventure s'achève ici.",
+    "newCombat": "Nouveau combat",
+    "replay": "Rejouer"
   },
   "transition": {
     "title": "Transition de Cycle",
