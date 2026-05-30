@@ -62,11 +62,15 @@ export type LoreCircleId = 'fire' | 'light' | 'solaris' | 'spirit'
 
 export type MagnakaiRank =
   | 'kaiMaster'
+  | 'kaiMasterSenior'
   | 'kaiMasterSuperior'
-  | 'principalKaiMaster'
-  | 'mentorKaiMaster'
-  | 'scion'
+  | 'primate'
+  | 'tutelary'
+  | 'principalin'
+  | 'mentora'
+  | 'scionMaster'
   | 'archmaster'
+  | 'grandMasterKai'
 
 // --- Grand Master ---
 export type GrandMasterDiscipline =
@@ -84,6 +88,9 @@ export type GrandMasterDiscipline =
   | 'kaiAlchemy'
 
 export type GrandMasterRank =
+  | 'kaiGrandMasterSenior'
+  | 'kaiGrandMasterSuperior'
+  | 'kaiGrandSentinel'
   | 'kaiGrandDefender'
   | 'kaiGrandGuardian'
   | 'sunKnight'

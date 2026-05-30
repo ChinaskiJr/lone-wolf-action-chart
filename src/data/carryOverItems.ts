@@ -1,9 +1,9 @@
 // The 10 Special Items officially allowed to carry over from Magnakai → Grand Master cycle
 export const CARRY_OVER_SPECIAL_ITEMS = [
-  { key: 'sommerswerd', fr: 'Sommerswerd (Épée du Soleil)', en: 'Sommerswerd (Sword of the Sun)' },
+  { key: 'sommerswerd', fr: 'Glaive de Sommer', en: 'Sommerswerd (Sword of the Sun)' },
   { key: 'silverHelm', fr: 'Casque d\'Argent', en: 'Silver Helm' },
   { key: 'crystalStarPendant', fr: 'Pendentif Étoile de Cristal', en: 'Crystal Star Pendant' },
-  { key: 'daggerOfVashna', fr: 'Dague de Vashna', en: 'Dagger of Vashna' },
+  { key: 'daggerOfVashna', fr: 'Poignard de Vashna', en: 'Dagger of Vashna' },
   { key: 'silverBracers', fr: 'Bracelets d\'Argent', en: 'Silver Bracers' },
   { key: 'jewelledMace', fr: 'Masse Ornée de Joyaux', en: 'Jewelled Mace' },
   { key: 'silverBowOfDuadon', fr: 'Arc d\'Argent de Duadon', en: 'Silver Bow of Duadon' },

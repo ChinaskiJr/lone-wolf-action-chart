@@ -93,7 +93,7 @@ export function GoldPanel() {
         )}
         {character.disciplines && character.disciplines.includes('grandHuntmastery' as never) && (
           <div className="mt-3 text-xs text-green-500 text-center">
-            ✓ Grand Art de la Chasse — aucune ration nécessaire
+            ✓ G.D. de l'Art de la Chasse — aucune ration nécessaire
           </div>
         )}
       </div>
