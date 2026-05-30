@@ -1,0 +1,20 @@
+interface Props {
+  className?: string
+}
+
+export function WolfIcon({ className }: Props) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path d="M4.5 2 L2 7 L5 9 L3 13 L7 11 L9 15 L12 10 L15 15 L17 11 L21 13 L19 9 L22 7 L19.5 2 L17 5 L12 3 L7 5 Z" />
+      <circle cx="8.5" cy="7" r="1" fill="#0f0f1a" />
+      <circle cx="15.5" cy="7" r="1" fill="#0f0f1a" />
+      <path d="M10 10 Q12 12 14 10" stroke="#0f0f1a" strokeWidth="0.5" fill="none" />
+    </svg>
+  )
+}
