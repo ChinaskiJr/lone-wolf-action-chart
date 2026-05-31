@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Upload } from 'lucide-react'
 import { useSavesStore } from '@/store/savesStore'
 import { useCharacterStore } from '@/store/characterStore'
 import { SaveCard } from './SaveCard'
+import { Toast } from '@/components/layout/Toast'
 import type { Character } from '@/types/character'
 
 export function HomePage() {
@@ -11,6 +13,7 @@ export function HomePage() {
   const navigate = useNavigate()
   const { saves, addSave, deleteSave } = useSavesStore()
   const { setCharacter } = useCharacterStore()
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   function handleContinue(char: Character) {
     setCharacter(char)
@@ -42,7 +45,7 @@ export function HomePage() {
           if (!char.id || !char.cycle) throw new Error('Invalid save file')
           addSave(char)
         } catch {
-          alert(t('common.error'))
+          setErrorMsg('Fichier invalide — les champs id ou cycle sont manquants.')
         }
       }
       reader.readAsText(file)
@@ -51,6 +54,7 @@ export function HomePage() {
   }
 
   return (
+    <>
     <div className="flex-1 max-w-4xl mx-auto w-full px-4 py-8">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-serif font-semibold text-amber-100">{t('home.title')}</h1>
@@ -101,5 +105,15 @@ export function HomePage() {
         </div>
       )}
     </div>
+
+    {errorMsg && (
+      <Toast
+        message={errorMsg}
+        variant="error"
+        onDismiss={() => setErrorMsg(null)}
+        duration={6000}
+      />
+    )}
+    </>
   )
 }

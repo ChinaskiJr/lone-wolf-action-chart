@@ -15,6 +15,7 @@ import { GoldPanel } from './GoldPanel'
 import { NotesPanel } from './NotesPanel'
 import { CombatCalculator } from './CombatCalculator'
 import { DeathModal } from './DeathModal'
+import { CompleteBookModal } from './CompleteBookModal'
 import { PersistentStatBar } from './PersistentStatBar'
 
 type SectionId = 'stats' | 'disciplines' | 'equipment' | 'gold' | 'notes'
@@ -27,6 +28,7 @@ export function AdventureSheet() {
   const { getSave } = useSavesStore()
   const { activeSection, setActiveSection, combatModalOpen, setCombatModalOpen } = useUIStore()
   const [showDeathModal, setShowDeathModal] = useState(false)
+  const [showCompleteModal, setShowCompleteModal] = useState(false)
 
   useAutoSave()
 
@@ -118,7 +120,7 @@ export function AdventureSheet() {
 
           {!character.booksCompleted.includes(character.currentBook) ? (
             <button
-              onClick={handleCompleteBook}
+              onClick={() => setShowCompleteModal(true)}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-green-900/40 border border-green-900/70 text-green-300 hover:bg-green-900/70 text-sm font-medium transition-colors"
             >
               <BookCheck size={14} />
@@ -177,6 +179,15 @@ export function AdventureSheet() {
 
       {/* Death modal (triggered from persistent EP bar) */}
       {showDeathModal && <DeathModal onClose={() => setShowDeathModal(false)} />}
+
+      {/* Complete book confirmation modal */}
+      {showCompleteModal && (
+        <CompleteBookModal
+          isLastBook={isLastBookOfCycle}
+          onConfirm={() => { setShowCompleteModal(false); handleCompleteBook() }}
+          onCancel={() => setShowCompleteModal(false)}
+        />
+      )}
     </div>
   )
 }
