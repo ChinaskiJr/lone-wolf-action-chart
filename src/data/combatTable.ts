@@ -3,7 +3,7 @@
 // Value: array of [playerDamage, enemyDamage] indexed by random number 0-9
 // Format: [playerLoss, enemyLoss]
 
-export const COMBAT_TABLE: Record<number, [number, number][]> = {
+export const COMBAT_TABLE: Record<string, [number, number][]> = {
   '-11': [[8, 0], [8, 0], [7, 1], [7, 1], [6, 2], [6, 2], [5, 3], [5, 3], [4, 4], [4, 4]],
   '-10': [[8, 0], [7, 1], [7, 1], [6, 2], [6, 2], [5, 3], [5, 3], [4, 4], [4, 4], [3, 5]],
   '-9':  [[7, 1], [7, 1], [6, 2], [6, 2], [5, 3], [5, 3], [4, 4], [4, 4], [3, 5], [3, 5]],

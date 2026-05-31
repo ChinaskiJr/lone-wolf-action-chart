@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { Character } from '@/types/character'
-import type { BackpackItem, KaiDiscipline, MagnakaiDiscipline, GrandMasterDiscipline, NewOrderDiscipline, SpecialItem, Weapon } from '@/types/game'
+import type { BackpackItem, SpecialItem, Weapon } from '@/types/game'
 import { useSavesStore } from './savesStore'
 
 interface CharacterState {
@@ -54,7 +54,7 @@ interface CharacterState {
 function updateChar(get: () => CharacterState, updater: (c: Character) => Partial<Character>): { character: Character | null } {
   const char = get().character
   if (!char) return { character: null }
-  return { character: { ...char, ...updater(char), updatedAt: new Date().toISOString() } }
+  return { character: { ...char, ...updater(char), updatedAt: new Date().toISOString() } as Character }
 }
 
 export const useCharacterStore = create<CharacterState>((set, get) => ({

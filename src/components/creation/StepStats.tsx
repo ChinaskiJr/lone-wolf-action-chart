@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Dices } from 'lucide-react'
 import type { Character } from '@/types/character'
-import { rollCombatSkill, rollEndurance } from '@/utils/character'
 import { rollD10 } from '@/utils/rng'
 
 interface Props {

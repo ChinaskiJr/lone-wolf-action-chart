@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, X, Sword, Minus } from 'lucide-react'
+import { Plus, X, Sword } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { useCharacterStore } from '@/store/characterStore'
 import type { BackpackItem, SpecialItem, Weapon } from '@/types/game'
 
 export function EquipmentPanel() {
-  const { t } = useTranslation()
   const {
     character,
     addWeapon, removeWeapon,

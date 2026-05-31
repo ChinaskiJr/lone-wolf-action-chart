@@ -3,7 +3,6 @@ import type {
   GrandMasterDiscipline,
   KaiDiscipline,
   MagnakaiDiscipline,
-  NewOrderDiscipline,
 } from '@/types/game'
 
 export const KAI_DISCIPLINES: Record<KaiDiscipline, DisciplineData> = {

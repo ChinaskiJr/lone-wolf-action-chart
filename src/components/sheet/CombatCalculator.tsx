@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { X, Dices, Swords, SkipForward } from 'lucide-react'
 import { useCharacterStore } from '@/store/characterStore'
 import { getTotalCS } from '@/utils/character'
+import { DeathModal } from './DeathModal'
 import { resolveCombatRound, simulateCombat, type CombatRound } from '@/utils/combat'
 import { rollD10 } from '@/utils/rng'
 
@@ -117,34 +118,8 @@ export function CombatCalculator({ onClose }: Props) {
           </div>
         )}
 
-        {/* Defeat screen */}
         {defeat && (
-          <div className="p-8 flex flex-col items-center gap-5 animate-victory">
-            <div className="relative flex items-center justify-center">
-              <div className="absolute w-24 h-24 rounded-full bg-red-500/10 animate-ping-slow" />
-              <div className="w-16 h-16 rounded-full bg-red-900/40 border border-red-800/60 flex items-center justify-center">
-                <span className="text-3xl">☠</span>
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-xl font-serif font-semibold text-red-300 mb-1">{t('combat.defeat')}</div>
-              <div className="text-sm text-slate-400">{t('combat.defeatSub')}</div>
-            </div>
-            <div className="flex gap-3 w-full">
-              <button
-                onClick={handleNewCombat}
-                className="flex-1 py-2 rounded-lg border border-slate-600 text-slate-300 hover:border-slate-500 hover:text-slate-100 text-sm transition-colors"
-              >
-                {t('combat.replay')}
-              </button>
-              <button
-                onClick={onClose}
-                className="flex-1 py-2 rounded-lg bg-red-800 hover:bg-red-700 text-white text-sm font-medium transition-colors"
-              >
-                Fermer
-              </button>
-            </div>
-          </div>
+          <DeathModal onClose={onClose} onReplay={handleNewCombat} />
         )}
 
         <div className={`p-5 flex flex-col gap-4 ${victory || defeat ? 'hidden' : ''}`}>

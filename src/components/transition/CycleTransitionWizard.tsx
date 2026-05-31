@@ -5,7 +5,7 @@ import { ChevronRight, Check } from 'lucide-react'
 import { useCharacterStore } from '@/store/characterStore'
 import { useSavesStore } from '@/store/savesStore'
 import type { Character } from '@/types/character'
-import type { MagnakaiCharacter, GrandMasterCharacter } from '@/types/character'
+import type { MagnakaiCharacter } from '@/types/character'
 import {
   createNewMagnakaiCharacter,
   createNewGrandMasterCharacter,
@@ -15,11 +15,9 @@ import {
   MAGNAKAI_DISCIPLINES,
   GRAND_MASTER_DISCIPLINES,
   NEW_ORDER_DISCIPLINES,
-  KAI_WEAPONS,
 } from '@/data/disciplines'
 import { CARRY_OVER_SPECIAL_ITEMS } from '@/data/carryOverItems'
 import type { DisciplineData } from '@/types/game'
-import { rollD10 } from '@/utils/rng'
 
 const MAX_DISCIPLINES: Record<string, number> = {
   magnakai: 5,
@@ -36,7 +34,6 @@ export function CycleTransitionWizard() {
   const { getSave, updateSave } = useSavesStore()
 
   const source = character ?? (id ? getSave(id) : null)
-  const [newChar, setNewChar] = useState<Character | null>(null)
   const [step, setStep] = useState<'intro' | 'disciplines' | 'items' | 'stats' | 'done'>('intro')
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([])
   const [selectedCarryOverItems, setSelectedCarryOverItems] = useState<string[]>([])

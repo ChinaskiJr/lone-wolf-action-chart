@@ -1,13 +1,16 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Minus, Plus } from 'lucide-react'
 import { useCharacterStore } from '@/store/characterStore'
 import { getTotalCS, getTotalEPMax, computeRank } from '@/utils/character'
 import { KAI_RANKS, MAGNAKAI_RANKS, GRAND_MASTER_RANKS, NEW_ORDER_RANKS } from '@/data/ranks'
+import { DeathModal } from './DeathModal'
 
 export function StatsPanel() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'fr' | 'en'
   const { character, setEnduranceCurrent, setCombatSkillBonus } = useCharacterStore()
+  const [showDeathModal, setShowDeathModal] = useState(false)
   if (!character) return null
 
   const totalCS = getTotalCS(character)
@@ -26,6 +29,7 @@ export function StatsPanel() {
   const epColor = epPercent > 50 ? 'bg-green-600' : epPercent > 25 ? 'bg-yellow-600' : 'bg-red-600'
 
   return (
+    <>
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-2 text-xs text-amber-400 font-medium">
         <span className="w-2 h-2 rounded-full bg-amber-500" />
@@ -84,7 +88,11 @@ export function StatsPanel() {
         </div>
         <div className="flex items-center justify-center gap-4">
           <button
-            onClick={() => setEnduranceCurrent(character.endurance.current - 1)}
+            onClick={() => {
+              const next = character.endurance.current - 1
+              setEnduranceCurrent(next)
+              if (next <= 0) setTimeout(() => setShowDeathModal(true), 150)
+            }}
             className="w-9 h-9 rounded-full bg-red-900/50 border border-red-800 hover:bg-red-800/70 text-red-300 flex items-center justify-center text-lg font-bold transition-colors"
           >
             −
@@ -100,10 +108,11 @@ export function StatsPanel() {
           </button>
         </div>
         <div className="text-center text-xs text-slate-500 mt-2">{t('sheet.epMax')}: {maxEP}</div>
-        {character.endurance.current <= 0 && (
-          <div className="mt-3 text-center text-red-400 font-bold text-sm animate-pulse">⚠ Mort du héros</div>
-        )}
       </div>
     </div>
+    {showDeathModal && (
+      <DeathModal onClose={() => setShowDeathModal(false)} />
+    )}
+    </>
   )
 }
