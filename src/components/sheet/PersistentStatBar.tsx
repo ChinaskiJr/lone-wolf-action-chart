@@ -19,7 +19,7 @@ export function PersistentStatBar({ character, onDecrement, onIncrement }: Props
   const epTextColor = epPct > 50 ? 'text-green-400' : epPct > 25 ? 'text-yellow-400' : 'text-red-400'
 
   return (
-    <div className="flex items-center gap-3 bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-2.5">
+    <div className="flex items-center gap-3 bg-slate-900/60 border border-amber-900/40 rounded-xl px-4 py-2.5">
       {/* HC */}
       <div className="flex items-center gap-1.5 shrink-0">
         <span className="text-xs text-slate-500 font-medium" title={t('sheet.combatSkill')}>HC</span>

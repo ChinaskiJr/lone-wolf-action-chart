@@ -6,10 +6,10 @@ import { BOOKS } from '@/data/books'
 import { KAI_RANKS, MAGNAKAI_RANKS, GRAND_MASTER_RANKS, NEW_ORDER_RANKS } from '@/data/ranks'
 
 const CYCLE_COLORS: Record<string, string> = {
-  kai: 'border-blue-700 bg-blue-900/20',
-  magnakai: 'border-green-700 bg-green-900/20',
-  grandmaster: 'border-amber-700 bg-amber-900/20',
-  neworder: 'border-red-700 bg-red-900/20',
+  kai: 'border-blue-700/80 bg-blue-900/30',
+  magnakai: 'border-green-700/80 bg-green-900/30',
+  grandmaster: 'border-amber-700/80 bg-amber-900/30',
+  neworder: 'border-red-700/80 bg-red-900/30',
 }
 
 const CYCLE_BADGE: Record<string, string> = {
@@ -68,16 +68,19 @@ export function SaveCard({ character, onContinue, onExport, onDelete }: Props) {
         <span className="truncate">{t('home.book')} {character.currentBook} — {bookTitle}</span>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 text-xs bg-black/20 rounded p-2">
+      <div className="grid grid-cols-2 gap-2 text-xs bg-amber-950/20 rounded p-2">
         <div>
           <span className="text-slate-500">HC</span>{' '}
-          <span className="text-slate-200 font-medium tabular-nums">
+          <span className="text-amber-400 font-medium tabular-nums">
             {character.combatSkill.base + character.combatSkill.bonus}
           </span>
         </div>
         <div>
           <span className="text-slate-500">PE</span>{' '}
-          <span className="text-slate-200 font-medium tabular-nums">
+          <span className={`font-medium tabular-nums ${
+            character.endurance.current / character.endurance.max > 0.5 ? 'text-green-400' :
+            character.endurance.current / character.endurance.max > 0.25 ? 'text-yellow-400' : 'text-red-400'
+          }`}>
             {character.endurance.current}/{character.endurance.max}
           </span>
         </div>

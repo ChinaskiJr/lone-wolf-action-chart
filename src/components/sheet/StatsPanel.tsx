@@ -37,7 +37,7 @@ export function StatsPanel() {
       </div>
 
       {/* Combat Skill */}
-      <div className="bg-slate-800/50 rounded-xl p-5">
+      <div className="bg-slate-800/50 border border-amber-900/25 rounded-xl p-5">
         <p className="text-sm font-semibold text-slate-300 mb-4">{t('sheet.combatSkill')}</p>
         <div className="grid grid-cols-3 gap-3 text-center">
           <div className="bg-slate-900/60 rounded-lg p-3">
@@ -74,7 +74,7 @@ export function StatsPanel() {
       </div>
 
       {/* Endurance Points — display only; ±1 controls live in the persistent bar */}
-      <div className="bg-slate-800/50 rounded-xl p-5">
+      <div className="bg-slate-800/50 border border-amber-900/25 rounded-xl p-5">
         <p className="text-sm font-semibold text-slate-300 mb-4">{t('sheet.endurance')}</p>
         <div className="flex items-end justify-between mb-3">
           <span className={`text-5xl font-bold tabular-nums leading-none ${epTextColor}`}>

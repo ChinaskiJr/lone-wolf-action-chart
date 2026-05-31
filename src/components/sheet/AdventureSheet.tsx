@@ -157,8 +157,8 @@ export function AdventureSheet() {
             onClick={() => setActiveSection(s.id)}
             className={`shrink-0 px-4 py-2 text-sm rounded-t-lg transition-colors whitespace-nowrap
               ${activeSection === s.id
-                ? 'bg-slate-800 text-amber-300 border border-b-0 border-slate-700'
-                : 'text-slate-400 hover:text-slate-200'}`}
+                ? 'bg-amber-950/40 text-amber-300 border border-b-0 border-amber-800/50'
+                : 'text-slate-400 hover:text-amber-200/70 hover:bg-amber-950/10'}`}
           >
             {s.label}
           </button>
@@ -166,7 +166,7 @@ export function AdventureSheet() {
       </div>
 
       {/* Active section */}
-      <div className="flex-1 bg-slate-900/60 rounded-xl border border-slate-800 p-5">
+      <div className="flex-1 bg-slate-900/60 rounded-xl border border-amber-900/30 p-5">
         {activeSection === 'stats' && <StatsPanel />}
         {activeSection === 'disciplines' && <DisciplinesPanel />}
         {activeSection === 'equipment' && <EquipmentPanel />}
