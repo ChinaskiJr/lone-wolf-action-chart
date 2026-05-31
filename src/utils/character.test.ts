@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getTotalCS, getTotalEPMax, computeRank, createCarryOverItems } from './character'
+import { getTotalCS, getTotalEPMax, computeRank, filterCarryOverItems } from './character'
 import { makeKaiChar, makeMagnakaiChar, makeGrandMasterChar, makeNewOrderChar } from '@/test/fixtures'
 import type { SpecialItem } from '@/types/game'
 
@@ -123,57 +123,44 @@ describe('computeRank', () => {
   })
 })
 
-const CATALOGUE = [
-  { key: 'sommerswerd', fr: 'Glaive de Sommer', en: 'Sommerswerd (Sword of the Sun)' },
-  { key: 'silverHelm', fr: "Casque d'Argent", en: 'Silver Helm' },
-  { key: 'daggerOfVashna', fr: 'Poignard de Vashna', en: 'Dagger of Vashna' },
-]
+function makeSpecialItem(id: string, overrides: Partial<{ name: string; hcBonus: number; peBonus: number; effect: string }> = {}) {
+  return { id, name: `Item ${id}`, ...overrides }
+}
 
-describe('createCarryOverItems', () => {
-  it('returns empty array when no keys are selected', () => {
-    expect(createCarryOverItems([], CATALOGUE, 'fr')).toEqual([])
+describe('filterCarryOverItems', () => {
+  const items = [
+    makeSpecialItem('id-1', { name: 'Glaive de Sommer', hcBonus: 8 }),
+    makeSpecialItem('id-2', { name: "Casque d'Argent", peBonus: 4 }),
+    makeSpecialItem('id-3', { name: 'Poignard de Vashna' }),
+  ]
+
+  it('returns empty array when selectedIds is empty', () => {
+    expect(filterCarryOverItems(items, [])).toEqual([])
   })
 
-  it('ignores unknown keys silently', () => {
-    const result = createCarryOverItems(['unknownKey'], CATALOGUE, 'fr')
-    expect(result).toHaveLength(0)
+  it('ignores unknown ids silently', () => {
+    expect(filterCarryOverItems(items, ['unknown-id'])).toHaveLength(0)
   })
 
-  it('creates items with the French name when lang is fr', () => {
-    const result = createCarryOverItems(['sommerswerd'], CATALOGUE, 'fr')
-    expect(result).toHaveLength(1)
-    expect(result[0].name).toBe('Glaive de Sommer')
-  })
-
-  it('creates items with the English name when lang is en', () => {
-    const result = createCarryOverItems(['sommerswerd'], CATALOGUE, 'en')
-    expect(result[0].name).toBe('Sommerswerd (Sword of the Sun)')
-  })
-
-  it('returns only items whose key is in selectedKeys', () => {
-    const result = createCarryOverItems(['sommerswerd', 'daggerOfVashna'], CATALOGUE, 'fr')
+  it('returns only items whose id is in selectedIds', () => {
+    const result = filterCarryOverItems(items, ['id-1', 'id-3'])
     expect(result).toHaveLength(2)
-    expect(result.map(i => i.name)).toContain('Glaive de Sommer')
-    expect(result.map(i => i.name)).toContain('Poignard de Vashna')
-    expect(result.map(i => i.name)).not.toContain("Casque d'Argent")
+    expect(result.map(i => i.id)).toEqual(['id-1', 'id-3'])
   })
 
-  it('truncates to 12 items when more than 12 keys are selected', () => {
-    const bigCatalogue = Array.from({ length: 15 }, (_, i) => ({
-      key: `item${i}`, fr: `Objet ${i}`, en: `Item ${i}`,
-    }))
-    const allKeys = bigCatalogue.map(i => i.key)
-    const result = createCarryOverItems(allKeys, bigCatalogue, 'fr')
-    expect(result).toHaveLength(12)
+  it('preserves all item properties (hcBonus, peBonus, effect)', () => {
+    const result = filterCarryOverItems(items, ['id-1'])
+    expect(result[0]).toEqual(items[0])
   })
 
-  it('assigns a unique id to each created item', () => {
-    const result = createCarryOverItems(
-      ['sommerswerd', 'silverHelm', 'daggerOfVashna'],
-      CATALOGUE,
-      'fr'
-    )
-    const ids = result.map(i => i.id)
-    expect(new Set(ids).size).toBe(ids.length)
+  it('truncates to 12 items when more than 12 ids are selected', () => {
+    const manyItems = Array.from({ length: 15 }, (_, i) => makeSpecialItem(`id-${i}`))
+    const allIds = manyItems.map(i => i.id)
+    expect(filterCarryOverItems(manyItems, allIds)).toHaveLength(12)
+  })
+
+  it('returns items in their original order', () => {
+    const result = filterCarryOverItems(items, ['id-3', 'id-1'])
+    expect(result.map(i => i.id)).toEqual(['id-1', 'id-3'])
   })
 })

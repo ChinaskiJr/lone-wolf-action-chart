@@ -10,7 +10,7 @@ import {
   createNewMagnakaiCharacter,
   createNewGrandMasterCharacter,
   createNewOrderCharacter,
-  createCarryOverItems,
+  filterCarryOverItems,
 } from '@/utils/character'
 import {
   MAGNAKAI_DISCIPLINES,
@@ -68,7 +68,7 @@ export function CycleTransitionWizard() {
       return { ...char, disciplines: selectedDisciplines as any }
     } else if (nextCycle === 'grandmaster') {
       const char = createNewGrandMasterCharacter(source!.cycle === 'magnakai' ? source as MagnakaiCharacter : undefined)
-      const kept = createCarryOverItems(selectedCarryOverItems, CARRY_OVER_SPECIAL_ITEMS, lang)
+      const kept = filterCarryOverItems((source as MagnakaiCharacter).specialItems, selectedCarryOverItems)
       return { ...char, disciplines: selectedDisciplines as any, specialItems: kept }
     } else {
       return { ...createNewOrderCharacter(), disciplines: selectedDisciplines as any }
@@ -153,7 +153,10 @@ export function CycleTransitionWizard() {
                 {t('creation.back')}
               </button>
               <button
-                onClick={() => setStep(nextCycle === 'grandmaster' ? 'items' : 'done')}
+                onClick={() => setStep(
+                nextCycle === 'grandmaster' && (source as MagnakaiCharacter).specialItems.length > 0
+                  ? 'items' : 'done'
+              )}
                 disabled={selectedDisciplines.length < maxD}
                 className="px-6 py-2 rounded bg-amber-600 hover:bg-amber-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-medium transition-colors"
               >
@@ -171,28 +174,53 @@ export function CycleTransitionWizard() {
                 {selectedCarryOverItems.length}/12
               </span>
             </div>
-            <div className="space-y-2 max-h-72 overflow-y-auto">
-              {CARRY_OVER_SPECIAL_ITEMS.map(item => {
-                const itemKey = item.key
-                const isSelected = selectedCarryOverItems.includes(itemKey)
+
+            {/* Canonical reference — informational only */}
+            <div className="text-xs bg-slate-800/40 border border-slate-700/50 rounded-lg p-3">
+              <div className="font-medium text-slate-400 mb-1.5">{t('transition.allowedItems')}</div>
+              <div className="flex flex-wrap gap-1.5">
+                {CARRY_OVER_SPECIAL_ITEMS.map(item => (
+                  <span key={item.key} className="px-2 py-0.5 rounded bg-slate-700/60 text-slate-400">
+                    {lang === 'fr' ? item.fr : item.en}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Player's actual items */}
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {(source as MagnakaiCharacter).specialItems.map(item => {
+                const isSelected = selectedCarryOverItems.includes(item.id)
                 return (
                   <button
-                    key={itemKey}
+                    key={item.id}
                     onClick={() => setSelectedCarryOverItems(prev =>
-                      prev.includes(itemKey) ? prev.filter(k => k !== itemKey) :
-                      prev.length < 12 ? [...prev, itemKey] : prev
+                      prev.includes(item.id) ? prev.filter(id => id !== item.id) :
+                      prev.length < 12 ? [...prev, item.id] : prev
                     )}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-all
+                    className={`w-full flex items-start gap-3 px-3 py-2.5 rounded-lg border text-left transition-all
                       ${isSelected ? 'border-amber-600 bg-amber-900/30 text-amber-100' : 'border-slate-700 bg-slate-800/40 text-slate-300 hover:border-slate-500'}`}
                   >
-                    <span className={`w-5 h-5 shrink-0 rounded border flex items-center justify-center ${isSelected ? 'bg-amber-600 border-amber-500' : 'border-slate-600'}`}>
+                    <span className={`mt-0.5 w-5 h-5 shrink-0 rounded border flex items-center justify-center ${isSelected ? 'bg-amber-600 border-amber-500' : 'border-slate-600'}`}>
                       {isSelected && <Check size={11} />}
                     </span>
-                    <span className="text-sm">{lang === 'fr' ? item.fr : item.en}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-sm font-medium">{item.name}</span>
+                        {item.hcBonus != null && item.hcBonus !== 0 && (
+                          <span className="text-xs font-semibold text-amber-400 bg-amber-900/40 rounded px-1">{item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC</span>
+                        )}
+                        {item.peBonus != null && item.peBonus !== 0 && (
+                          <span className="text-xs font-semibold text-green-400 bg-green-900/40 rounded px-1">{item.peBonus > 0 ? '+' : ''}{item.peBonus} PE</span>
+                        )}
+                      </div>
+                      {item.effect && <div className="text-xs text-slate-400 mt-0.5">{item.effect}</div>}
+                    </div>
                   </button>
                 )
               })}
             </div>
+
             <div className="flex gap-3 justify-between">
               <button onClick={() => setStep('disciplines')} className="px-5 py-2 rounded border border-slate-700 text-slate-400 text-sm hover:text-slate-200 transition-colors">
                 {t('creation.back')}

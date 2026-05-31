@@ -201,16 +201,11 @@ export function createNewOrderCharacter(): NewOrderCharacter {
   }
 }
 
-export function createCarryOverItems(
-  selectedKeys: string[],
-  catalogue: Array<{ key: string; fr: string; en: string }>,
-  lang: 'fr' | 'en'
+export function filterCarryOverItems(
+  items: SpecialItem[],
+  selectedIds: string[]
 ): SpecialItem[] {
-  return selectedKeys
-    .map(key => catalogue.find(i => i.key === key))
-    .filter((item): item is NonNullable<typeof item> => item != null)
-    .map(item => ({ id: uuidv4(), name: lang === 'fr' ? item.fr : item.en }))
-    .slice(0, 12)
+  return items.filter(i => selectedIds.includes(i.id)).slice(0, 12)
 }
 
 export function getBackpackMax(char: Character): number {
