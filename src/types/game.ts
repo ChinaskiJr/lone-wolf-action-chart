@@ -17,6 +17,8 @@ export interface SpecialItem {
   id: string
   name: string
   effect?: string
+  hcBonus?: number
+  peBonus?: number
 }
 
 // --- Kai ---

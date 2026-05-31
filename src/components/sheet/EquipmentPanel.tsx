@@ -286,12 +286,18 @@ function SpecialItemsSection({
   const { t } = useTranslation()
   const [input, setInput] = useState('')
   const [effect, setEffect] = useState('')
+  const [hcBonus, setHcBonus] = useState('')
+  const [peBonus, setPeBonus] = useState('')
 
   function add() {
     if (!input.trim() || items.length >= 12) return
-    onAdd({ id: uuidv4(), name: input.trim(), effect: effect.trim() || undefined })
+    const hc = parseInt(hcBonus) || undefined
+    const pe = parseInt(peBonus) || undefined
+    onAdd({ id: uuidv4(), name: input.trim(), effect: effect.trim() || undefined, hcBonus: hc, peBonus: pe })
     setInput('')
     setEffect('')
+    setHcBonus('')
+    setPeBonus('')
   }
 
   return (
@@ -307,7 +313,15 @@ function SpecialItemsSection({
           <div key={item.id} className="flex gap-2 bg-amber-950/20 border border-amber-900/30 rounded-lg px-3 py-2">
             <span className="text-amber-500 text-xs mt-0.5 shrink-0">★</span>
             <div className="flex-1 min-w-0">
-              <div className="text-sm text-amber-100 font-medium">{item.name}</div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-sm text-amber-100 font-medium">{item.name}</span>
+                {item.hcBonus != null && item.hcBonus !== 0 && (
+                  <span className="text-xs font-semibold text-amber-400 bg-amber-900/40 rounded px-1">{item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC</span>
+                )}
+                {item.peBonus != null && item.peBonus !== 0 && (
+                  <span className="text-xs font-semibold text-green-400 bg-green-900/40 rounded px-1">{item.peBonus > 0 ? '+' : ''}{item.peBonus} PE</span>
+                )}
+              </div>
               {item.effect && <div className="text-xs text-slate-400 mt-0.5">{item.effect}</div>}
             </div>
             <button onClick={() => onRemove(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 mt-0.5 before:absolute before:inset-[-10px]">
@@ -331,11 +345,33 @@ function SpecialItemsSection({
             <input
               value={effect}
               onChange={e => setEffect(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && add()}
               placeholder={t('common.effect') + ' (optionnel)'}
               className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-600"
             />
-            <button onClick={add} aria-label={t('sheet.addSpecialItem')} className="relative p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors before:absolute before:inset-[-6px]">
+          </div>
+          <div className="flex gap-2">
+            <div className="flex-1 bg-slate-800/60 border border-amber-900/30 rounded-lg px-3 py-2">
+              <div className="text-xs font-semibold text-amber-400 mb-1">{t('sheet.hcBonusItem')}</div>
+              <input
+                type="number"
+                value={hcBonus}
+                onChange={e => setHcBonus(e.target.value)}
+                placeholder="0"
+                className="w-full bg-transparent text-sm text-slate-200 focus:outline-none text-center tabular-nums"
+              />
+            </div>
+            <div className="flex-1 bg-slate-800/60 border border-green-900/30 rounded-lg px-3 py-2">
+              <div className="text-xs font-semibold text-green-400 mb-1">{t('sheet.peBonusItem')}</div>
+              <input
+                type="number"
+                value={peBonus}
+                onChange={e => setPeBonus(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && add()}
+                placeholder="0"
+                className="w-full bg-transparent text-sm text-slate-200 focus:outline-none text-center tabular-nums"
+              />
+            </div>
+            <button onClick={add} aria-label={t('sheet.addSpecialItem')} className="self-end relative p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors before:absolute before:inset-[-6px]">
               <Plus size={16} />
             </button>
           </div>

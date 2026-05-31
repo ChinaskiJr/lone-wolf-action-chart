@@ -16,28 +16,30 @@ export function rollEndurance(cycle: Cycle): number {
 
 export function getTotalCS(char: Character): number {
   const base = char.combatSkill.base + char.combatSkill.bonus
+  const itemsHC = char.specialItems.reduce((sum, i) => sum + (i.hcBonus ?? 0), 0)
   if (char.cycle === 'grandmaster') {
     const extraDisciplines = Math.max(0, char.disciplines.length - 4)
-    return base + extraDisciplines
+    return base + extraDisciplines + itemsHC
   }
   if (char.cycle === 'neworder') {
     const extraDisciplines = Math.max(0, char.disciplines.length - 5)
-    return base + extraDisciplines
+    return base + extraDisciplines + itemsHC
   }
-  return base
+  return base + itemsHC
 }
 
 export function getTotalEPMax(char: Character): number {
   const base = char.endurance.max
+  const itemsPE = char.specialItems.reduce((sum, i) => sum + (i.peBonus ?? 0), 0)
   if (char.cycle === 'grandmaster') {
     const extraDisciplines = Math.max(0, char.disciplines.length - 4)
-    return base + extraDisciplines * 2
+    return base + extraDisciplines * 2 + itemsPE
   }
   if (char.cycle === 'neworder') {
     const extraDisciplines = Math.max(0, char.disciplines.length - 5)
-    return base + extraDisciplines * 2
+    return base + extraDisciplines * 2 + itemsPE
   }
-  return base
+  return base + itemsPE
 }
 
 export function computeRank(char: Character): string {

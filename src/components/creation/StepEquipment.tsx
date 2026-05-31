@@ -23,6 +23,8 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
   const [newWeapon, setNewWeapon] = useState('')
   const [newBackpackItem, setNewBackpackItem] = useState('')
   const [newSpecialItem, setNewSpecialItem] = useState('')
+  const [newSpecialItemHC, setNewSpecialItemHC] = useState('')
+  const [newSpecialItemPE, setNewSpecialItemPE] = useState('')
 
   function addWeapon() {
     if (!newWeapon.trim() || weapons.length >= 2) return
@@ -39,8 +41,12 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
 
   function addSpecialItem() {
     if (!newSpecialItem.trim() || specialItems.length >= 12) return
-    setSpecialItems([...specialItems, { id: uuidv4(), name: newSpecialItem.trim() }])
+    const hc = parseInt(newSpecialItemHC) || undefined
+    const pe = parseInt(newSpecialItemPE) || undefined
+    setSpecialItems([...specialItems, { id: uuidv4(), name: newSpecialItem.trim(), hcBonus: hc, peBonus: pe }])
     setNewSpecialItem('')
+    setNewSpecialItemHC('')
+    setNewSpecialItemPE('')
   }
 
   function handleFinish() {
@@ -148,7 +154,15 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
         <div className="space-y-1 mb-2">
           {specialItems.map(item => (
             <div key={item.id} className="flex items-center gap-2 bg-slate-800/60 rounded px-3 py-1.5">
-              <span className="flex-1 text-sm text-slate-200">{item.name}</span>
+              <div className="flex-1 flex items-center gap-1.5 flex-wrap">
+                <span className="text-sm text-slate-200">{item.name}</span>
+                {item.hcBonus != null && item.hcBonus !== 0 && (
+                  <span className="text-xs font-semibold text-amber-400 bg-amber-900/40 rounded px-1">{item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC</span>
+                )}
+                {item.peBonus != null && item.peBonus !== 0 && (
+                  <span className="text-xs font-semibold text-green-400 bg-green-900/40 rounded px-1">{item.peBonus > 0 ? '+' : ''}{item.peBonus} PE</span>
+                )}
+              </div>
               <button onClick={() => setSpecialItems(specialItems.filter(i => i.id !== item.id))} className="text-slate-500 hover:text-red-400 transition-colors">
                 <X size={13} />
               </button>
@@ -156,17 +170,39 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
           ))}
         </div>
         {specialItems.length < 12 && (
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-1.5">
             <input
               value={newSpecialItem}
               onChange={e => setNewSpecialItem(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && addSpecialItem()}
               placeholder={t('sheet.addSpecialItem')}
               className="flex-1 bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-amber-600"
             />
-            <button onClick={addSpecialItem} className="relative p-2 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors before:absolute before:inset-[-6px]">
-              <Plus size={16} />
-            </button>
+            <div className="flex gap-2">
+              <div className="flex-1 bg-slate-800/60 border border-amber-900/30 rounded px-3 py-2">
+                <div className="text-xs font-semibold text-amber-400 mb-1">{t('sheet.hcBonusItem')}</div>
+                <input
+                  type="number"
+                  value={newSpecialItemHC}
+                  onChange={e => setNewSpecialItemHC(e.target.value)}
+                  placeholder="0"
+                  className="w-full bg-transparent text-sm text-slate-200 focus:outline-none text-center tabular-nums"
+                />
+              </div>
+              <div className="flex-1 bg-slate-800/60 border border-green-900/30 rounded px-3 py-2">
+                <div className="text-xs font-semibold text-green-400 mb-1">{t('sheet.peBonusItem')}</div>
+                <input
+                  type="number"
+                  value={newSpecialItemPE}
+                  onChange={e => setNewSpecialItemPE(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && addSpecialItem()}
+                  placeholder="0"
+                  className="w-full bg-transparent text-sm text-slate-200 focus:outline-none text-center tabular-nums"
+                />
+              </div>
+              <button onClick={addSpecialItem} className="self-end relative p-2 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors before:absolute before:inset-[-6px]">
+                <Plus size={16} />
+              </button>
+            </div>
           </div>
         )}
       </div>

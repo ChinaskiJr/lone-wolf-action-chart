@@ -87,7 +87,9 @@
     "epMax": "PE Maximum",
     "base": "Base",
     "bonus": "Bonus",
-    "total": "Total"
+    "total": "Total",
+    "hcBonusItem": "+HC",
+    "peBonusItem": "+PE"
   },
   "combat": {
     "title": "Calculateur de Combat",
