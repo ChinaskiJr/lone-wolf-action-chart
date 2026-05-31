@@ -1,5 +1,5 @@
 import type { Character, GrandMasterCharacter, KaiCharacter, MagnakaiCharacter, NewOrderCharacter } from '@/types/character'
-import type { Cycle } from '@/types/game'
+import type { Cycle, SpecialItem } from '@/types/game'
 import { computeGrandMasterRank, computeKaiRank, computeMagnakaiRank, computeNewOrderRank } from '@/data/ranks'
 import { computeLoreCircleBonuses } from '@/data/loreCircles'
 import { rollD10 } from './rng'
@@ -199,6 +199,18 @@ export function createNewOrderCharacter(): NewOrderCharacter {
     createdAt: now,
     updatedAt: now,
   }
+}
+
+export function createCarryOverItems(
+  selectedKeys: string[],
+  catalogue: Array<{ key: string; fr: string; en: string }>,
+  lang: 'fr' | 'en'
+): SpecialItem[] {
+  return selectedKeys
+    .map(key => catalogue.find(i => i.key === key))
+    .filter((item): item is NonNullable<typeof item> => item != null)
+    .map(item => ({ id: uuidv4(), name: lang === 'fr' ? item.fr : item.en }))
+    .slice(0, 12)
 }
 
 export function getBackpackMax(char: Character): number {

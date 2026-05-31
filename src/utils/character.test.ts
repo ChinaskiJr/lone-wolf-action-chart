@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getTotalCS, getTotalEPMax, computeRank } from './character'
+import { getTotalCS, getTotalEPMax, computeRank, createCarryOverItems } from './character'
 import { makeKaiChar, makeMagnakaiChar, makeGrandMasterChar, makeNewOrderChar } from '@/test/fixtures'
 import type { SpecialItem } from '@/types/game'
 
@@ -120,5 +120,60 @@ describe('computeRank', () => {
   it('returns correct neworder rank', () => {
     const char = makeNewOrderChar({ disciplines: ['a', 'b', 'c', 'd'] as any })
     expect(computeRank(char)).toBe('kaiGrandMasterSenior')
+  })
+})
+
+const CATALOGUE = [
+  { key: 'sommerswerd', fr: 'Glaive de Sommer', en: 'Sommerswerd (Sword of the Sun)' },
+  { key: 'silverHelm', fr: "Casque d'Argent", en: 'Silver Helm' },
+  { key: 'daggerOfVashna', fr: 'Poignard de Vashna', en: 'Dagger of Vashna' },
+]
+
+describe('createCarryOverItems', () => {
+  it('returns empty array when no keys are selected', () => {
+    expect(createCarryOverItems([], CATALOGUE, 'fr')).toEqual([])
+  })
+
+  it('ignores unknown keys silently', () => {
+    const result = createCarryOverItems(['unknownKey'], CATALOGUE, 'fr')
+    expect(result).toHaveLength(0)
+  })
+
+  it('creates items with the French name when lang is fr', () => {
+    const result = createCarryOverItems(['sommerswerd'], CATALOGUE, 'fr')
+    expect(result).toHaveLength(1)
+    expect(result[0].name).toBe('Glaive de Sommer')
+  })
+
+  it('creates items with the English name when lang is en', () => {
+    const result = createCarryOverItems(['sommerswerd'], CATALOGUE, 'en')
+    expect(result[0].name).toBe('Sommerswerd (Sword of the Sun)')
+  })
+
+  it('returns only items whose key is in selectedKeys', () => {
+    const result = createCarryOverItems(['sommerswerd', 'daggerOfVashna'], CATALOGUE, 'fr')
+    expect(result).toHaveLength(2)
+    expect(result.map(i => i.name)).toContain('Glaive de Sommer')
+    expect(result.map(i => i.name)).toContain('Poignard de Vashna')
+    expect(result.map(i => i.name)).not.toContain("Casque d'Argent")
+  })
+
+  it('truncates to 12 items when more than 12 keys are selected', () => {
+    const bigCatalogue = Array.from({ length: 15 }, (_, i) => ({
+      key: `item${i}`, fr: `Objet ${i}`, en: `Item ${i}`,
+    }))
+    const allKeys = bigCatalogue.map(i => i.key)
+    const result = createCarryOverItems(allKeys, bigCatalogue, 'fr')
+    expect(result).toHaveLength(12)
+  })
+
+  it('assigns a unique id to each created item', () => {
+    const result = createCarryOverItems(
+      ['sommerswerd', 'silverHelm', 'daggerOfVashna'],
+      CATALOGUE,
+      'fr'
+    )
+    const ids = result.map(i => i.id)
+    expect(new Set(ids).size).toBe(ids.length)
   })
 })

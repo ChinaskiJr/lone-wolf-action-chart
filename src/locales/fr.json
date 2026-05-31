@@ -122,7 +122,7 @@
     "magnakai_to_gm": "Félicitations ! Vous avez récupéré les 7 Pierres de Savoir. Vous êtes désormais Grand Maître Kaï.",
     "gm_to_neworder": "Lone Wolf a achevé son aventure. Un nouveau Grand Maître Kaï du Second Ordre entre en scène.",
     "selectNewDisciplines": "Choisissez vos nouvelles disciplines",
-    "carryOverItems": "Objets à transférer (max 10 spéciaux autorisés)",
+    "carryOverItems": "Objets spéciaux autorisés à transférer — cochez ceux que vous possédez",
     "statRecalculation": "Recalculer les caractéristiques",
     "keepCurrentStats": "Garder les caractéristiques actuelles",
     "useNewFormula": "Utiliser la nouvelle formule (R10+{{bonus}})",

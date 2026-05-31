@@ -10,6 +10,7 @@ import {
   createNewMagnakaiCharacter,
   createNewGrandMasterCharacter,
   createNewOrderCharacter,
+  createCarryOverItems,
 } from '@/utils/character'
 import {
   MAGNAKAI_DISCIPLINES,
@@ -67,10 +68,8 @@ export function CycleTransitionWizard() {
       return { ...char, disciplines: selectedDisciplines as any }
     } else if (nextCycle === 'grandmaster') {
       const char = createNewGrandMasterCharacter(source!.cycle === 'magnakai' ? source as MagnakaiCharacter : undefined)
-      const kept = (source as MagnakaiCharacter).specialItems.filter(item =>
-        selectedCarryOverItems.includes(item.name.toLowerCase().replace(/\s+/g, '').slice(0, 10))
-      )
-      return { ...char, disciplines: selectedDisciplines as any, specialItems: kept.slice(0, 12) }
+      const kept = createCarryOverItems(selectedCarryOverItems, CARRY_OVER_SPECIAL_ITEMS, lang)
+      return { ...char, disciplines: selectedDisciplines as any, specialItems: kept }
     } else {
       return { ...createNewOrderCharacter(), disciplines: selectedDisciplines as any }
     }
@@ -166,8 +165,12 @@ export function CycleTransitionWizard() {
 
         {step === 'items' && nextCycle === 'grandmaster' && (
           <div className="flex flex-col gap-5">
-            <h2 className="text-xl font-serif font-semibold text-amber-100">{t('transition.carryOverItems')}</h2>
-            <p className="text-sm text-slate-400">Sélectionnez les objets spéciaux à conserver (max 10 parmi la liste autorisée)</p>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-serif font-semibold text-amber-100">{t('transition.carryOverItems')}</h2>
+              <span className={`text-sm px-2.5 py-1 rounded-full ${selectedCarryOverItems.length > 0 ? 'bg-amber-800/50 text-amber-300' : 'bg-slate-800 text-slate-400'}`}>
+                {selectedCarryOverItems.length}/12
+              </span>
+            </div>
             <div className="space-y-2 max-h-72 overflow-y-auto">
               {CARRY_OVER_SPECIAL_ITEMS.map(item => {
                 const itemKey = item.key
@@ -177,7 +180,7 @@ export function CycleTransitionWizard() {
                     key={itemKey}
                     onClick={() => setSelectedCarryOverItems(prev =>
                       prev.includes(itemKey) ? prev.filter(k => k !== itemKey) :
-                      prev.length < 10 ? [...prev, itemKey] : prev
+                      prev.length < 12 ? [...prev, itemKey] : prev
                     )}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-all
                       ${isSelected ? 'border-amber-600 bg-amber-900/30 text-amber-100' : 'border-slate-700 bg-slate-800/40 text-slate-300 hover:border-slate-500'}`}
