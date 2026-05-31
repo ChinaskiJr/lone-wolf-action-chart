@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, X, Sword, Zap } from 'lucide-react'
+import { Plus, X, Sword, FlaskConical } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { useCharacterStore } from '@/store/characterStore'
 import type { BackpackItem, SpecialItem, Weapon } from '@/types/game'
@@ -66,7 +66,7 @@ function WeaponsSection({
             <div className="w-5 h-5 shrink-0 rounded bg-amber-800/40 flex items-center justify-center text-xs text-amber-500">⚔</div>
             <span className="flex-1 text-sm text-slate-200">{w.name}</span>
             {w.bonus && <span className="text-xs text-blue-400">{w.bonus > 0 ? '+' : ''}{w.bonus} HC</span>}
-            <button onClick={() => onRemove(i)} className="text-slate-600 hover:text-red-400 transition-colors">
+            <button onClick={() => onRemove(i)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors before:absolute before:inset-[-10px]">
               <X size={14} />
             </button>
           </div>
@@ -84,7 +84,7 @@ function WeaponsSection({
             placeholder={t('sheet.addWeapon')}
             className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-600"
           />
-          <button onClick={add} className="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors">
+          <button onClick={add} aria-label={t('sheet.addWeapon')} className="relative p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors before:absolute before:inset-[-6px]">
             <Plus size={16} />
           </button>
         </div>
@@ -160,7 +160,7 @@ function BackpackSection({
               <span className="text-xs text-slate-600 w-4 shrink-0">{slotNum}</span>
               <span className="shrink-0">🍖</span>
               <span className="flex-1 text-sm text-amber-200/80">{t('sheet.meals')}</span>
-              <button onClick={removeMeal} className="text-slate-600 hover:text-red-400 transition-colors shrink-0">
+              <button onClick={removeMeal} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
                 <X size={12} />
               </button>
             </div>
@@ -173,12 +173,17 @@ function BackpackSection({
               <span className="text-xs text-green-400 font-medium shrink-0">+{slot.item.epRestore} PE</span>
               <button
                 onClick={() => onUsePotion(slot.item.id)}
+                aria-label={t('sheet.usePotion')}
                 title={t('sheet.usePotion')}
-                className="text-blue-500 hover:text-green-400 transition-colors shrink-0"
+                className="relative text-blue-400 hover:text-green-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
               >
-                <Zap size={13} />
+                <FlaskConical size={13} />
               </button>
-              <button onClick={() => onRemove(slot.item.id)} className="text-slate-600 hover:text-red-400 transition-colors shrink-0">
+              <button
+                onClick={() => onRemove(slot.item.id)}
+                aria-label={t('sheet.removeItem')}
+                className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
+              >
                 <X size={12} />
               </button>
             </div>
@@ -187,7 +192,7 @@ function BackpackSection({
             <div key={slot.item.id} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-slate-700 bg-slate-800/60">
               <span className="text-xs text-slate-600 w-4 shrink-0">{slotNum}</span>
               <span className="flex-1 text-sm text-slate-200 truncate">{slot.item.name}</span>
-              <button onClick={() => onRemove(slot.item.id)} className="text-slate-600 hover:text-red-400 transition-colors shrink-0">
+              <button onClick={() => onRemove(slot.item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
                 <X size={12} />
               </button>
             </div>
@@ -226,7 +231,7 @@ function BackpackSection({
           <button onClick={confirmAddPotion} className="px-2 py-1 rounded bg-blue-700 hover:bg-blue-600 text-white text-xs font-medium transition-colors shrink-0">
             OK
           </button>
-          <button onClick={() => setAddingPotion(false)} className="text-slate-600 hover:text-slate-400 transition-colors shrink-0">
+          <button onClick={() => setAddingPotion(false)} aria-label={t('common.cancel')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
             <X size={14} />
           </button>
         </div>
@@ -244,6 +249,8 @@ function BackpackSection({
           </button>
           <button
             onClick={() => setAddingPotion(v => !v)}
+            aria-label={t('sheet.potion')}
+            aria-pressed={addingPotion}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium transition-colors shrink-0 ${
               addingPotion
                 ? 'border-blue-700 bg-blue-900/30 text-blue-300'
@@ -260,7 +267,7 @@ function BackpackSection({
             placeholder={t('sheet.addItem')}
             className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-600"
           />
-          <button onClick={addItem} className="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors">
+          <button onClick={addItem} aria-label={t('sheet.addItem')} className="relative p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors before:absolute before:inset-[-6px]">
             <Plus size={16} />
           </button>
         </div>
@@ -303,7 +310,7 @@ function SpecialItemsSection({
               <div className="text-sm text-amber-100 font-medium">{item.name}</div>
               {item.effect && <div className="text-xs text-slate-400 mt-0.5">{item.effect}</div>}
             </div>
-            <button onClick={() => onRemove(item.id)} className="text-slate-600 hover:text-red-400 transition-colors shrink-0 mt-0.5">
+            <button onClick={() => onRemove(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 mt-0.5 before:absolute before:inset-[-10px]">
               <X size={13} />
             </button>
           </div>
@@ -328,7 +335,7 @@ function SpecialItemsSection({
               placeholder={t('common.effect') + ' (optionnel)'}
               className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-600"
             />
-            <button onClick={add} className="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors">
+            <button onClick={add} aria-label={t('sheet.addSpecialItem')} className="relative p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors before:absolute before:inset-[-6px]">
               <Plus size={16} />
             </button>
           </div>

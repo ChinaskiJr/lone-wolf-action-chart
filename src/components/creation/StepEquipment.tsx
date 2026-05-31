@@ -82,7 +82,7 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
               placeholder={t('sheet.addWeapon')}
               className="flex-1 bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-amber-600"
             />
-            <button onClick={addWeapon} className="p-1.5 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors">
+            <button onClick={addWeapon} className="relative p-2 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors before:absolute before:inset-[-6px]">
               <Plus size={16} />
             </button>
           </div>
@@ -132,7 +132,7 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
               placeholder={t('sheet.addItem')}
               className="flex-1 bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-amber-600"
             />
-            <button onClick={addBackpackItem} className="p-1.5 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors">
+            <button onClick={addBackpackItem} className="relative p-2 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors before:absolute before:inset-[-6px]">
               <Plus size={16} />
             </button>
           </div>
@@ -164,7 +164,7 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
               placeholder={t('sheet.addSpecialItem')}
               className="flex-1 bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-amber-600"
             />
-            <button onClick={addSpecialItem} className="p-1.5 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors">
+            <button onClick={addSpecialItem} className="relative p-2 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors before:absolute before:inset-[-6px]">
               <Plus size={16} />
             </button>
           </div>

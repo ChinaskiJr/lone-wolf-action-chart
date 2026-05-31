@@ -81,7 +81,7 @@ export function CombatCalculator({ onClose }: Props) {
             <Swords size={18} />
             {t('combat.title')}
           </div>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-300 transition-colors">
+          <button onClick={onClose} aria-label={t('common.close')} className="relative p-1 text-slate-500 hover:text-slate-300 transition-colors before:absolute before:inset-[-8px]">
             <X size={18} />
           </button>
         </div>
