@@ -1,19 +1,16 @@
 import { useTranslation } from 'react-i18next'
-import { Minus, Plus } from 'lucide-react'
 import { useCharacterStore } from '@/store/characterStore'
 
 export function GoldPanel() {
   const { t } = useTranslation()
-  const { character, setGold, setMeals } = useCharacterStore()
+  const { character, setGold } = useCharacterStore()
   if (!character) return null
 
   const gold = character.goldCrowns
-  const meals = character.meals
   const goldPercent = (gold / 50) * 100
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Gold Crowns */}
       <div className="bg-slate-800/50 rounded-xl p-5">
         <div className="text-xs uppercase tracking-widest text-slate-500 mb-4">{t('sheet.goldCrowns')}</div>
         <div className="mb-4">
@@ -63,37 +60,6 @@ export function GoldPanel() {
         {character.cycle === 'magnakai' && (
           <div className="mt-4 text-xs text-slate-500 bg-slate-900/40 rounded p-2 text-center">
             Au-delà de 50 Couronnes, le surplus peut être déposé au Monastère Kaï.
-          </div>
-        )}
-      </div>
-
-      {/* Meals */}
-      <div className="bg-slate-800/50 rounded-xl p-5">
-        <div className="text-xs uppercase tracking-widest text-slate-500 mb-4">{t('sheet.meals')}</div>
-        <div className="flex items-center justify-center gap-5">
-          <button
-            onClick={() => setMeals(meals - 1)}
-            disabled={meals <= 0}
-            className="w-9 h-9 rounded-full bg-slate-700 border border-slate-600 hover:bg-slate-600 disabled:opacity-30 text-slate-300 flex items-center justify-center transition-colors"
-          >
-            <Minus size={14} />
-          </button>
-          <span className="text-4xl font-bold text-slate-200 w-12 text-center">{meals}</span>
-          <button
-            onClick={() => setMeals(meals + 1)}
-            className="w-9 h-9 rounded-full bg-slate-700 border border-slate-600 hover:bg-slate-600 text-slate-300 flex items-center justify-center transition-colors"
-          >
-            <Plus size={14} />
-          </button>
-        </div>
-        {character.disciplines && character.disciplines.includes('hunting' as never) && (
-          <div className="mt-3 text-xs text-green-500 text-center">
-            ✓ Discipline Chasse active — aucune ration nécessaire hors des cités
-          </div>
-        )}
-        {character.disciplines && character.disciplines.includes('grandHuntmastery' as never) && (
-          <div className="mt-3 text-xs text-green-500 text-center">
-            ✓ G.D. de l'Art de la Chasse — aucune ration nécessaire
           </div>
         )}
       </div>

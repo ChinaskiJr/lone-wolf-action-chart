@@ -32,7 +32,7 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
 
   function addBackpackItem() {
     const maxSlots = character.cycle === 'kai' || character.cycle === 'magnakai' ? 8 : 10
-    if (!newBackpackItem.trim() || backpack.length >= maxSlots) return
+    if (!newBackpackItem.trim() || backpack.length + meals >= maxSlots) return
     setBackpack([...backpack, { id: uuidv4(), name: newBackpackItem.trim() }])
     setNewBackpackItem('')
   }
@@ -93,9 +93,20 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
       <div>
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-slate-300">{t('sheet.backpack')}</span>
-          <span className="text-xs text-slate-500">{backpack.length}/{backpackMax}</span>
+          <span className={`text-xs ${backpack.length + meals >= backpackMax ? 'text-red-400' : 'text-slate-500'}`}>
+            {backpack.length + meals}/{backpackMax}
+          </span>
         </div>
         <div className="space-y-1 mb-2">
+          {Array.from({ length: meals }).map((_, i) => (
+            <div key={`meal-${i}`} className="flex items-center gap-2 bg-amber-950/20 border border-amber-900/30 rounded px-3 py-1.5">
+              <span className="text-xs">🍖</span>
+              <span className="flex-1 text-sm text-amber-200/80">{t('sheet.meals')}</span>
+              <button onClick={() => setMeals(meals - 1)} className="text-slate-500 hover:text-red-400 transition-colors">
+                <X size={13} />
+              </button>
+            </div>
+          ))}
           {backpack.map(item => (
             <div key={item.id} className="flex items-center gap-2 bg-slate-800/60 rounded px-3 py-1.5">
               <span className="flex-1 text-sm text-slate-200">{item.name}</span>
@@ -105,8 +116,15 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
             </div>
           ))}
         </div>
-        {backpack.length < backpackMax && (
+        {backpack.length + meals < backpackMax && (
           <div className="flex gap-2">
+            <button
+              onClick={() => setMeals(meals + 1)}
+              className="flex items-center gap-1 px-3 py-1.5 rounded border border-amber-900/50 text-amber-600 hover:bg-amber-950/30 text-xs font-medium transition-colors shrink-0"
+            >
+              <Plus size={12} />
+              {t('sheet.meals')}
+            </button>
             <input
               value={newBackpackItem}
               onChange={e => setNewBackpackItem(e.target.value)}
@@ -153,29 +171,18 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
         )}
       </div>
 
-      {/* Gold & Meals */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1.5">{t('sheet.goldCrowns')} (max 50)</label>
-          <input
-            type="number"
-            value={gold}
-            onChange={e => setGold(Math.max(0, Math.min(50, Number(e.target.value))))}
-            min={0}
-            max={50}
-            className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-slate-200 text-sm focus:outline-none focus:border-amber-600"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1.5">{t('sheet.meals')}</label>
-          <input
-            type="number"
-            value={meals}
-            onChange={e => setMeals(Math.max(0, Number(e.target.value)))}
-            min={0}
-            className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-slate-200 text-sm focus:outline-none focus:border-amber-600"
-          />
-        </div>
+      {/* Gold */}
+      <div>
+        <label className="block text-sm font-medium text-slate-300 mb-1.5">{t('sheet.goldCrowns')} (max 50)</label>
+        <input
+          type="number"
+          value={gold}
+          onChange={e => setGold(Math.max(0, Math.min(50, Number(e.target.value))))}
+          onFocus={e => e.target.select()}
+          min={0}
+          max={50}
+          className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-slate-200 text-sm focus:outline-none focus:border-amber-600"
+        />
       </div>
 
       <div className="flex gap-3 justify-between">

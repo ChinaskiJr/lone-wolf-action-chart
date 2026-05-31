@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, X, Sword } from 'lucide-react'
+import { Plus, X, Sword, Minus } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { useCharacterStore } from '@/store/characterStore'
 import type { BackpackItem, SpecialItem, Weapon } from '@/types/game'
@@ -12,6 +12,7 @@ export function EquipmentPanel() {
     addWeapon, removeWeapon,
     addBackpackItem, removeBackpackItem,
     addSpecialItem, removeSpecialItem,
+    setMeals,
   } = useCharacterStore()
   if (!character) return null
 
@@ -20,7 +21,14 @@ export function EquipmentPanel() {
   return (
     <div className="flex flex-col gap-6">
       <WeaponsSection weapons={character.weapons} onAdd={addWeapon} onRemove={removeWeapon} />
-      <BackpackSection items={character.backpack} max={backpackMax} onAdd={addBackpackItem} onRemove={removeBackpackItem} />
+      <BackpackSection
+        items={character.backpack}
+        meals={character.meals}
+        max={backpackMax}
+        onAdd={addBackpackItem}
+        onRemove={removeBackpackItem}
+        onMealsChange={setMeals}
+      />
       <SpecialItemsSection items={character.specialItems} onAdd={addSpecialItem} onRemove={removeSpecialItem} />
     </div>
   )
@@ -85,65 +93,102 @@ function WeaponsSection({
 }
 
 function BackpackSection({
-  items, max, onAdd, onRemove
+  items, meals, max, onAdd, onRemove, onMealsChange
 }: {
   items: BackpackItem[]
+  meals: number
   max: number
   onAdd: (item: BackpackItem) => void
   onRemove: (id: string) => void
+  onMealsChange: (n: number) => void
 }) {
   const { t } = useTranslation()
   const [input, setInput] = useState('')
 
-  function add() {
-    if (!input.trim() || items.length >= max) return
+  const slotsUsed = items.length + meals
+  const isFull = slotsUsed >= max
+
+  function addItem() {
+    if (!input.trim() || isFull) return
     onAdd({ id: uuidv4(), name: input.trim() })
     setInput('')
   }
+
+  function addMeal() {
+    if (isFull) return
+    onMealsChange(meals + 1)
+  }
+
+  function removeMeal() {
+    if (meals <= 0) return
+    onMealsChange(meals - 1)
+  }
+
+  // Build the slot grid: ration slots first, then regular items, then empty slots
+  const rationSlots = Array.from({ length: meals }, (_, i) => ({ type: 'meal' as const, index: i }))
+  const itemSlots = items.map(item => ({ type: 'item' as const, item }))
+  const emptyCount = max - slotsUsed
+  const emptySlots = Array.from({ length: Math.max(0, emptyCount) }, (_, i) => ({ type: 'empty' as const, index: i }))
+  const allSlots = [...rationSlots, ...itemSlots, ...emptySlots]
 
   return (
     <div>
       <div className="flex items-center justify-between mb-2.5">
         <div className="text-sm font-semibold text-slate-300 uppercase tracking-wide">{t('sheet.backpack')}</div>
-        <span className={`text-xs ${items.length >= max ? 'text-red-400' : 'text-slate-500'}`}>
-          {t('sheet.slotsUsed', { used: items.length, max })}
+        <span className={`text-xs ${isFull ? 'text-red-400' : 'text-slate-500'}`}>
+          {t('sheet.slotsUsed', { used: slotsUsed, max })}
         </span>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-2">
-        {Array.from({ length: max }).map((_, i) => {
-          const item = items[i]
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-3">
+        {allSlots.map((slot, i) => {
+          const slotNum = i + 1
+          if (slot.type === 'meal') return (
+            <div key={`meal-${slot.index}`} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-amber-900/40 bg-amber-950/20">
+              <span className="text-xs text-slate-600 w-4 shrink-0">{slotNum}</span>
+              <span className="text-xs text-amber-600 shrink-0">🍖</span>
+              <span className="flex-1 text-sm text-amber-200/80">{t('sheet.meals')}</span>
+              <button onClick={removeMeal} className="text-slate-600 hover:text-red-400 transition-colors shrink-0">
+                <X size={12} />
+              </button>
+            </div>
+          )
+          if (slot.type === 'item') return (
+            <div key={slot.item.id} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-slate-700 bg-slate-800/60">
+              <span className="text-xs text-slate-600 w-4 shrink-0">{slotNum}</span>
+              <span className="flex-1 text-sm text-slate-200 truncate">{slot.item.name}</span>
+              <button onClick={() => onRemove(slot.item.id)} className="text-slate-600 hover:text-red-400 transition-colors shrink-0">
+                <X size={12} />
+              </button>
+            </div>
+          )
           return (
-            <div
-              key={i}
-              className={`flex items-center gap-2 rounded-lg px-3 py-2 border ${
-                item ? 'border-slate-700 bg-slate-800/60' : 'border-slate-800/60 bg-slate-900/30'
-              }`}
-            >
-              <span className="text-xs text-slate-600 w-4 shrink-0">{i + 1}</span>
-              {item ? (
-                <>
-                  <span className="flex-1 text-sm text-slate-200 truncate">{item.name}</span>
-                  <button onClick={() => onRemove(item.id)} className="text-slate-600 hover:text-red-400 transition-colors shrink-0">
-                    <X size={12} />
-                  </button>
-                </>
-              ) : (
-                <span className="text-sm text-slate-700 italic">—</span>
-              )}
+            <div key={`empty-${slot.index}`} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-slate-800/60 bg-slate-900/30">
+              <span className="text-xs text-slate-600 w-4 shrink-0">{slotNum}</span>
+              <span className="text-sm text-slate-700 italic">—</span>
             </div>
           )
         })}
       </div>
-      {items.length < max && (
+
+      {/* Add controls */}
+      {!isFull && (
         <div className="flex gap-2">
+          <button
+            onClick={addMeal}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-amber-900/50 text-amber-600 hover:bg-amber-950/30 hover:text-amber-400 text-xs font-medium transition-colors shrink-0"
+          >
+            <Plus size={12} />
+            {t('sheet.meals')}
+          </button>
           <input
             value={input}
             onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && add()}
+            onKeyDown={e => e.key === 'Enter' && addItem()}
             placeholder={t('sheet.addItem')}
             className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-600"
           />
-          <button onClick={add} className="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors">
+          <button onClick={addItem} className="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors">
             <Plus size={16} />
           </button>
         </div>
