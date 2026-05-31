@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, X, Sword } from 'lucide-react'
+import { Plus, X, Sword, Zap } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { useCharacterStore } from '@/store/characterStore'
 import type { BackpackItem, SpecialItem, Weapon } from '@/types/game'
@@ -12,6 +12,7 @@ export function EquipmentPanel() {
     addBackpackItem, removeBackpackItem,
     addSpecialItem, removeSpecialItem,
     setMeals,
+    usePotion,
   } = useCharacterStore()
   if (!character) return null
 
@@ -27,6 +28,7 @@ export function EquipmentPanel() {
         onAdd={addBackpackItem}
         onRemove={removeBackpackItem}
         onMealsChange={setMeals}
+        onUsePotion={usePotion}
       />
       <SpecialItemsSection items={character.specialItems} onAdd={addSpecialItem} onRemove={removeSpecialItem} />
     </div>
@@ -92,7 +94,7 @@ function WeaponsSection({
 }
 
 function BackpackSection({
-  items, meals, max, onAdd, onRemove, onMealsChange
+  items, meals, max, onAdd, onRemove, onMealsChange, onUsePotion
 }: {
   items: BackpackItem[]
   meals: number
@@ -100,9 +102,13 @@ function BackpackSection({
   onAdd: (item: BackpackItem) => void
   onRemove: (id: string) => void
   onMealsChange: (n: number) => void
+  onUsePotion: (id: string) => void
 }) {
   const { t } = useTranslation()
   const [input, setInput] = useState('')
+  const [addingPotion, setAddingPotion] = useState(false)
+  const [potionName, setPotionName] = useState('')
+  const [potionEP, setPotionEP] = useState(5)
 
   const slotsUsed = items.length + meals
   const isFull = slotsUsed >= max
@@ -123,9 +129,16 @@ function BackpackSection({
     onMealsChange(meals - 1)
   }
 
-  // Build the slot grid: ration slots first, then regular items, then empty slots
+  function confirmAddPotion() {
+    if (isFull) return
+    onAdd({ id: uuidv4(), name: potionName.trim() || t('sheet.potion'), epRestore: potionEP })
+    setPotionName('')
+    setPotionEP(5)
+    setAddingPotion(false)
+  }
+
   const rationSlots = Array.from({ length: meals }, (_, i) => ({ type: 'meal' as const, index: i }))
-  const itemSlots = items.map(item => ({ type: 'item' as const, item }))
+  const itemSlots = items.map(item => ({ type: item.epRestore ? 'potion' as const : 'item' as const, item }))
   const emptyCount = max - slotsUsed
   const emptySlots = Array.from({ length: Math.max(0, emptyCount) }, (_, i) => ({ type: 'empty' as const, index: i }))
   const allSlots = [...rationSlots, ...itemSlots, ...emptySlots]
@@ -145,9 +158,27 @@ function BackpackSection({
           if (slot.type === 'meal') return (
             <div key={`meal-${slot.index}`} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-amber-900/40 bg-amber-950/20">
               <span className="text-xs text-slate-600 w-4 shrink-0">{slotNum}</span>
-              <span className="text-xs text-amber-600 shrink-0">🍖</span>
+              <span className="shrink-0">🍖</span>
               <span className="flex-1 text-sm text-amber-200/80">{t('sheet.meals')}</span>
               <button onClick={removeMeal} className="text-slate-600 hover:text-red-400 transition-colors shrink-0">
+                <X size={12} />
+              </button>
+            </div>
+          )
+          if (slot.type === 'potion') return (
+            <div key={slot.item.id} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-blue-900/50 bg-blue-950/20">
+              <span className="text-xs text-slate-600 w-4 shrink-0">{slotNum}</span>
+              <span className="shrink-0">🧪</span>
+              <span className="flex-1 text-sm text-blue-200 truncate">{slot.item.name}</span>
+              <span className="text-xs text-green-400 font-medium shrink-0">+{slot.item.epRestore} PE</span>
+              <button
+                onClick={() => onUsePotion(slot.item.id)}
+                title={t('sheet.usePotion')}
+                className="text-blue-500 hover:text-green-400 transition-colors shrink-0"
+              >
+                <Zap size={13} />
+              </button>
+              <button onClick={() => onRemove(slot.item.id)} className="text-slate-600 hover:text-red-400 transition-colors shrink-0">
                 <X size={12} />
               </button>
             </div>
@@ -162,13 +193,44 @@ function BackpackSection({
             </div>
           )
           return (
-            <div key={`empty-${slot.index}`} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-slate-800/60 bg-slate-900/30">
+            <div key={`empty-${i}`} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-slate-800/60 bg-slate-900/30">
               <span className="text-xs text-slate-600 w-4 shrink-0">{slotNum}</span>
               <span className="text-sm text-slate-700 italic">—</span>
             </div>
           )
         })}
       </div>
+
+      {/* Potion add form (inline) */}
+      {addingPotion && !isFull && (
+        <div className="flex gap-2 mb-2 p-2.5 rounded-lg border border-blue-900/40 bg-blue-950/10">
+          <span className="text-lg shrink-0">🧪</span>
+          <input
+            value={potionName}
+            onChange={e => setPotionName(e.target.value)}
+            placeholder={t('sheet.potion')}
+            className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-blue-600"
+          />
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="text-xs text-green-400">+</span>
+            <input
+              type="number"
+              value={potionEP}
+              onChange={e => setPotionEP(Math.max(1, Number(e.target.value)))}
+              onFocus={e => e.target.select()}
+              min={1}
+              className="w-14 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-green-400 font-bold text-center focus:outline-none focus:border-blue-600"
+            />
+            <span className="text-xs text-slate-500">PE</span>
+          </div>
+          <button onClick={confirmAddPotion} className="px-2 py-1 rounded bg-blue-700 hover:bg-blue-600 text-white text-xs font-medium transition-colors shrink-0">
+            OK
+          </button>
+          <button onClick={() => setAddingPotion(false)} className="text-slate-600 hover:text-slate-400 transition-colors shrink-0">
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       {/* Add controls */}
       {!isFull && (
@@ -179,6 +241,17 @@ function BackpackSection({
           >
             <Plus size={12} />
             {t('sheet.meals')}
+          </button>
+          <button
+            onClick={() => setAddingPotion(v => !v)}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium transition-colors shrink-0 ${
+              addingPotion
+                ? 'border-blue-700 bg-blue-900/30 text-blue-300'
+                : 'border-blue-900/50 text-blue-500 hover:bg-blue-950/30 hover:text-blue-400'
+            }`}
+          >
+            <Plus size={12} />
+            🧪
           </button>
           <input
             value={input}

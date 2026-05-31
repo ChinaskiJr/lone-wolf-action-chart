@@ -72,6 +72,8 @@
     "addWeapon": "Add weapon",
     "addItem": "Add item",
     "addSpecialItem": "Add special item",
+    "potion": "Endurance Potion",
+    "usePotion": "Use potion",
     "removeItem": "Remove",
     "slotsUsed": "{{used}}/{{max}} slots",
     "lorestones": "Lorestones",

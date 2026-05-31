@@ -26,6 +26,7 @@ interface CharacterState {
   addBackpackItem: (item: BackpackItem) => void
   removeBackpackItem: (id: string) => void
   updateBackpackItem: (id: string, item: BackpackItem) => void
+  usePotion: (id: string) => void
 
   // Special items
   addSpecialItem: (item: SpecialItem) => void
@@ -116,6 +117,18 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     set(updateChar(get, c => ({
       backpack: c.backpack.map(i => (i.id === id ? item : i)),
     }))),
+
+  usePotion: (id) =>
+    set(updateChar(get, c => {
+      const potion = c.backpack.find(i => i.id === id)
+      if (!potion?.epRestore) return {}
+      const maxEP = c.endurance.max
+      const newEP = Math.min(maxEP, c.endurance.current + potion.epRestore)
+      return {
+        backpack: c.backpack.filter(i => i.id !== id),
+        endurance: { ...c.endurance, current: newEP },
+      }
+    })),
 
   addSpecialItem: (item) =>
     set(updateChar(get, c => {

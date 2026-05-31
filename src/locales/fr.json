@@ -72,6 +72,8 @@
     "addWeapon": "Ajouter une arme",
     "addItem": "Ajouter un objet",
     "addSpecialItem": "Ajouter un objet spécial",
+    "potion": "Potion d'Endurance",
+    "usePotion": "Utiliser la potion",
     "removeItem": "Retirer",
     "slotsUsed": "{{used}}/{{max}} emplacements",
     "lorestones": "Pierres de Savoir",

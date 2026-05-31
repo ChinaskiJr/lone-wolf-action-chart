@@ -10,6 +10,7 @@ export interface BackpackItem {
   id: string
   name: string
   notes?: string
+  epRestore?: number  // if set, item is a potion
 }
 
 export interface SpecialItem {
