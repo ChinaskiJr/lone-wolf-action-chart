@@ -71,13 +71,13 @@ export function SaveCard({ character, onContinue, onExport, onDelete }: Props) {
       <div className="grid grid-cols-2 gap-2 text-xs bg-black/20 rounded p-2">
         <div>
           <span className="text-slate-500">HC</span>{' '}
-          <span className="text-slate-200 font-medium">
+          <span className="text-slate-200 font-medium tabular-nums">
             {character.combatSkill.base + character.combatSkill.bonus}
           </span>
         </div>
         <div>
           <span className="text-slate-500">PE</span>{' '}
-          <span className="text-slate-200 font-medium">
+          <span className="text-slate-200 font-medium tabular-nums">
             {character.endurance.current}/{character.endurance.max}
           </span>
         </div>

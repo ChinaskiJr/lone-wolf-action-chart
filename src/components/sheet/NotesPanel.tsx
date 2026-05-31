@@ -1,14 +1,11 @@
-import { useTranslation } from 'react-i18next'
 import { useCharacterStore } from '@/store/characterStore'
 
 export function NotesPanel() {
-  const { t } = useTranslation()
   const { character, setNotes } = useCharacterStore()
   if (!character) return null
 
   return (
     <div className="flex flex-col h-full gap-3">
-      <div className="text-xs uppercase tracking-widest text-slate-500">{t('sheet.notes')}</div>
       <textarea
         value={character.notes}
         onChange={e => setNotes(e.target.value)}

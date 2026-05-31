@@ -12,7 +12,7 @@ export function GoldPanel() {
   return (
     <div className="flex flex-col gap-6">
       <div className="bg-slate-800/50 rounded-xl p-5">
-        <div className="text-xs uppercase tracking-widest text-slate-500 mb-4">{t('sheet.goldCrowns')}</div>
+        <p className="text-sm font-semibold text-slate-200 mb-4">{t('sheet.goldCrowns')}</p>
         <div className="mb-4">
           <div className="flex justify-between text-xs text-slate-400 mb-1.5">
             <span>{gold} / 50</span>

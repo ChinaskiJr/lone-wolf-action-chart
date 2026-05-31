@@ -6,6 +6,16 @@ body {
   color: #e2e8f0;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
+  /* Light-on-dark compensation: slightly looser leading + subtle tracking */
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  font-kerning: normal;
+}
+
+h1, h2, h3 {
+  text-wrap: balance;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
 #root {

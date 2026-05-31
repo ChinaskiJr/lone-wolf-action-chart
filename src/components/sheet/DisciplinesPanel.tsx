@@ -35,7 +35,7 @@ export function DisciplinesPanel() {
       {/* Main disciplines list */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wide">{t('sheet.disciplines')}</h3>
+          <h3 className="text-sm font-semibold text-slate-200">{t('sheet.disciplines')}</h3>
           <span className="text-xs text-slate-500">{selected.length} / {disciplines.length}</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -86,7 +86,7 @@ export function DisciplinesPanel() {
       {/* Lore circles (Magnakai) */}
       {character.cycle === 'magnakai' && (
         <div>
-          <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wide mb-3">{t('sheet.loreCircles')}</h3>
+          <h3 className="text-sm font-semibold text-slate-200 mb-3">{t('sheet.loreCircles')}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {LORE_CIRCLES.map(circle => {
               const isComplete = completedCircles.some(c => c.id === circle.id)
@@ -110,7 +110,7 @@ export function DisciplinesPanel() {
       {/* Lorestones (Magnakai) */}
       {character.cycle === 'magnakai' && (
         <div>
-          <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wide mb-3">{t('sheet.lorestones')} (7)</h3>
+          <h3 className="text-sm font-semibold text-slate-200 mb-3">{t('sheet.lorestones')} (7)</h3>
           <div className="flex gap-2">
             {[1, 2, 3, 4, 5, 6, 7].map(n => {
               const owned = (character as any).lorestones?.includes(n)

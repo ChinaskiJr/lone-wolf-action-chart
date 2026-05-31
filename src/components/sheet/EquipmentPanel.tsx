@@ -54,7 +54,7 @@ function WeaponsSection({
   return (
     <div>
       <div className="flex items-center justify-between mb-2.5">
-        <div className="flex items-center gap-2 text-sm font-semibold text-slate-300 uppercase tracking-wide">
+        <div className="flex items-center gap-2 text-sm font-semibold text-slate-200">
           <Sword size={14} />
           {t('sheet.weapons')}
         </div>
@@ -146,7 +146,7 @@ function BackpackSection({
   return (
     <div>
       <div className="flex items-center justify-between mb-2.5">
-        <div className="text-sm font-semibold text-slate-300 uppercase tracking-wide">{t('sheet.backpack')}</div>
+        <div className="text-sm font-semibold text-slate-200">{t('sheet.backpack')}</div>
         <span className={`text-xs ${isFull ? 'text-red-400' : 'text-slate-500'}`}>
           {t('sheet.slotsUsed', { used: slotsUsed, max })}
         </span>
@@ -290,7 +290,7 @@ function SpecialItemsSection({
   return (
     <div>
       <div className="flex items-center justify-between mb-2.5">
-        <div className="text-sm font-semibold text-slate-300 uppercase tracking-wide">{t('sheet.specialItems')}</div>
+        <div className="text-sm font-semibold text-slate-200">{t('sheet.specialItems')}</div>
         <span className={`text-xs ${items.length >= 12 ? 'text-red-400' : 'text-slate-500'}`}>
           {items.length}/12
         </span>
