@@ -10,6 +10,7 @@ export interface BackpackItem {
   id: string
   name: string
   notes?: string
+  slots?: number      // defaults to 1; set to 2 for bulky items (rope, etc.)
   epRestore?: number  // if set, item is a potion
 }
 

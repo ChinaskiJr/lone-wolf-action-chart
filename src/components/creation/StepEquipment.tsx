@@ -22,6 +22,7 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
 
   const [newWeapon, setNewWeapon] = useState('')
   const [newBackpackItem, setNewBackpackItem] = useState('')
+  const [newBackpackItemTwoSlots, setNewBackpackItemTwoSlots] = useState(false)
   const [newSpecialItem, setNewSpecialItem] = useState('')
   const [newSpecialItemHC, setNewSpecialItemHC] = useState('')
   const [newSpecialItemPE, setNewSpecialItemPE] = useState('')
@@ -34,9 +35,16 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
 
   function addBackpackItem() {
     const maxSlots = character.cycle === 'kai' || character.cycle === 'magnakai' ? 8 : 10
-    if (!newBackpackItem.trim() || backpack.length + meals >= maxSlots) return
-    setBackpack([...backpack, { id: uuidv4(), name: newBackpackItem.trim() }])
+    const usedSlots = backpack.reduce((sum, i) => sum + (i.slots ?? 1), 0) + meals
+    const itemSlots = newBackpackItemTwoSlots ? 2 : 1
+    if (!newBackpackItem.trim() || usedSlots + itemSlots > maxSlots) return
+    setBackpack([...backpack, {
+      id: uuidv4(),
+      name: newBackpackItem.trim(),
+      slots: newBackpackItemTwoSlots ? 2 : undefined,
+    }])
     setNewBackpackItem('')
+    setNewBackpackItemTwoSlots(false)
   }
 
   function addSpecialItem() {
@@ -99,8 +107,8 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
       <div>
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-slate-300">{t('sheet.backpack')}</span>
-          <span className={`text-xs ${backpack.length + meals >= backpackMax ? 'text-red-400' : 'text-slate-500'}`}>
-            {backpack.length + meals}/{backpackMax}
+          <span className={`text-xs ${backpack.reduce((s, i) => s + (i.slots ?? 1), 0) + meals >= backpackMax ? 'text-red-400' : 'text-slate-500'}`}>
+            {backpack.reduce((s, i) => s + (i.slots ?? 1), 0) + meals}/{backpackMax}
           </span>
         </div>
         <div className="space-y-1 mb-2">
@@ -115,32 +123,48 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
           ))}
           {backpack.map(item => (
             <div key={item.id} className="flex items-center gap-2 bg-slate-800/60 rounded px-3 py-1.5">
-              <span className="flex-1 text-sm text-slate-200">{item.name}</span>
-              <button onClick={() => setBackpack(backpack.filter(i => i.id !== item.id))} className="text-slate-500 hover:text-red-400 transition-colors">
+              <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                <span className="text-sm text-slate-200 truncate">{item.name}</span>
+                {(item.slots ?? 1) > 1 && (
+                  <span className="text-xs text-slate-500 bg-slate-700 rounded px-1 shrink-0">×{item.slots}</span>
+                )}
+              </div>
+              <button onClick={() => setBackpack(backpack.filter(i => i.id !== item.id))} className="text-slate-500 hover:text-red-400 transition-colors shrink-0">
                 <X size={13} />
               </button>
             </div>
           ))}
         </div>
-        {backpack.length + meals < backpackMax && (
-          <div className="flex gap-2">
-            <button
-              onClick={() => setMeals(meals + 1)}
-              className="flex items-center gap-1 px-3 py-1.5 rounded border border-amber-900/50 text-amber-600 hover:bg-amber-950/30 text-xs font-medium transition-colors shrink-0"
-            >
-              <Plus size={12} />
-              {t('sheet.meals')}
-            </button>
-            <input
-              value={newBackpackItem}
-              onChange={e => setNewBackpackItem(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && addBackpackItem()}
-              placeholder={t('sheet.addItem')}
-              className="flex-1 bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-amber-600"
-            />
-            <button onClick={addBackpackItem} className="relative p-2 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors before:absolute before:inset-[-6px]">
-              <Plus size={16} />
-            </button>
+        {backpack.reduce((s, i) => s + (i.slots ?? 1), 0) + meals < backpackMax && (
+          <div className="flex flex-col gap-1.5">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setMeals(meals + 1)}
+                className="flex items-center gap-1 px-3 py-1.5 rounded border border-amber-900/50 text-amber-600 hover:bg-amber-950/30 text-xs font-medium transition-colors shrink-0"
+              >
+                <Plus size={12} />
+                {t('sheet.meals')}
+              </button>
+              <input
+                value={newBackpackItem}
+                onChange={e => setNewBackpackItem(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addBackpackItem()}
+                placeholder={t('sheet.addItem')}
+                className="flex-1 bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-amber-600"
+              />
+              <button onClick={addBackpackItem} className="relative p-2 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors before:absolute before:inset-[-6px]">
+                <Plus size={16} />
+              </button>
+            </div>
+            <label className="flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer select-none w-fit">
+              <input
+                type="checkbox"
+                checked={newBackpackItemTwoSlots}
+                onChange={e => setNewBackpackItemTwoSlots(e.target.checked)}
+                className="accent-amber-600 w-3.5 h-3.5"
+              />
+              {t('sheet.twoSlots')}
+            </label>
           </div>
         )}
       </div>

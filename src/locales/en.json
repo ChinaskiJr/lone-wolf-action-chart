@@ -89,7 +89,9 @@
     "bonus": "Bonus",
     "total": "Total",
     "hcBonusItem": "+CS",
-    "peBonusItem": "+EP"
+    "peBonusItem": "+EP",
+    "itemDescription": "Description (optional)",
+    "twoSlots": "2 slots"
   },
   "combat": {
     "title": "Combat Calculator",

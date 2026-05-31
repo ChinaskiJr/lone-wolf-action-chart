@@ -89,7 +89,9 @@
     "bonus": "Bonus",
     "total": "Total",
     "hcBonusItem": "+HC",
-    "peBonusItem": "+PE"
+    "peBonusItem": "+PE",
+    "itemDescription": "Description (optionnel)",
+    "twoSlots": "2 emplacements"
   },
   "combat": {
     "title": "Calculateur de Combat",

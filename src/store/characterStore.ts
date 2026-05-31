@@ -104,7 +104,8 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
   addBackpackItem: (item) =>
     set(updateChar(get, c => {
       const maxSlots = c.cycle === 'kai' || c.cycle === 'magnakai' ? 8 : 10
-      if (c.backpack.length + c.meals >= maxSlots) return {}
+      const usedSlots = c.backpack.reduce((sum, i) => sum + (i.slots ?? 1), 0) + c.meals
+      if (usedSlots + (item.slots ?? 1) > maxSlots) return {}
       return { backpack: [...c.backpack, item] }
     })),
 
