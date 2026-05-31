@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Swords, ChevronLeft, Save, BookCheck } from 'lucide-react'
@@ -7,12 +7,14 @@ import { useSavesStore } from '@/store/savesStore'
 import { useUIStore } from '@/store/uiStore'
 import { useAutoSave } from '@/hooks/useAutoSave'
 import { BOOKS, CYCLE_LAST_BOOK } from '@/data/books'
+import { getTotalCS, getTotalEPMax } from '@/utils/character'
 import { StatsPanel } from './StatsPanel'
 import { DisciplinesPanel } from './DisciplinesPanel'
 import { EquipmentPanel } from './EquipmentPanel'
 import { GoldPanel } from './GoldPanel'
 import { NotesPanel } from './NotesPanel'
 import { CombatCalculator } from './CombatCalculator'
+import { DeathModal } from './DeathModal'
 
 type SectionId = 'stats' | 'disciplines' | 'equipment' | 'gold' | 'notes'
 
@@ -20,9 +22,10 @@ export function AdventureSheet() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
-  const { character, setCharacter, save, setCurrentBook, completeBook } = useCharacterStore()
+  const { character, setCharacter, save, setCurrentBook, completeBook, setEnduranceCurrent } = useCharacterStore()
   const { getSave } = useSavesStore()
   const { activeSection, setActiveSection, combatModalOpen, setCombatModalOpen } = useUIStore()
+  const [showDeathModal, setShowDeathModal] = useState(false)
 
   useAutoSave()
 
@@ -118,6 +121,48 @@ export function AdventureSheet() {
         </div>
       </div>
 
+      {/* Persistent EP bar */}
+      {(() => {
+        const totalCS = getTotalCS(character)
+        const maxEP = getTotalEPMax(character)
+        const currentEP = character.endurance.current
+        const epPct = Math.max(0, Math.min(100, (currentEP / maxEP) * 100))
+        const barColor = epPct > 50 ? 'bg-green-500' : epPct > 25 ? 'bg-yellow-500' : 'bg-red-500'
+        return (
+          <div className="flex items-center gap-3 bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-2.5">
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="text-xs text-slate-500 uppercase tracking-wide">HC</span>
+              <span className="text-lg font-bold text-amber-400">{totalCS}</span>
+            </div>
+            <div className="w-px h-5 bg-slate-700 shrink-0" />
+            <span className="text-xs text-slate-500 uppercase tracking-wide shrink-0">PE</span>
+            <button
+              onClick={() => {
+                const next = currentEP - 1
+                setEnduranceCurrent(next)
+                if (next <= 0) setTimeout(() => setShowDeathModal(true), 150)
+              }}
+              className="w-6 h-6 rounded-full bg-red-900/50 border border-red-800 hover:bg-red-800/60 text-red-300 flex items-center justify-center text-sm font-bold transition-colors shrink-0"
+            >−</button>
+            <div className="flex-1 flex flex-col gap-1 min-w-0">
+              <div className="flex justify-between text-xs">
+                <span className={`font-bold ${epPct > 50 ? 'text-green-400' : epPct > 25 ? 'text-yellow-400' : 'text-red-400'}`}>
+                  {currentEP}
+                </span>
+                <span className="text-slate-500">{maxEP}</span>
+              </div>
+              <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                <div className={`h-full rounded-full transition-all duration-300 ${barColor}`} style={{ width: `${epPct}%` }} />
+              </div>
+            </div>
+            <button
+              onClick={() => setEnduranceCurrent(Math.min(maxEP, currentEP + 1))}
+              className="w-6 h-6 rounded-full bg-green-900/50 border border-green-800 hover:bg-green-800/60 text-green-300 flex items-center justify-center text-sm font-bold transition-colors shrink-0"
+            >+</button>
+          </div>
+        )
+      })()}
+
       {/* Section nav */}
       <div className="flex gap-1 overflow-x-auto pb-1 border-b border-slate-800">
         {sections.map(s => (
@@ -145,6 +190,9 @@ export function AdventureSheet() {
 
       {/* Combat calculator modal */}
       {combatModalOpen && <CombatCalculator onClose={() => setCombatModalOpen(false)} />}
+
+      {/* Death modal (triggered from persistent EP bar) */}
+      {showDeathModal && <DeathModal onClose={() => setShowDeathModal(false)} />}
     </div>
   )
 }
