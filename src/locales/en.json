@@ -53,6 +53,11 @@
   },
   "sheet": {
     "map": "Map",
+    "worldMap": "World Map",
+    "resetZoom": "Reset view",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "fullscreen": "Fullscreen",
     "stats": "Statistics",
     "disciplines": "Disciplines",
     "equipment": "Equipment",

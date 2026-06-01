@@ -53,6 +53,11 @@
   },
   "sheet": {
     "map": "Carte",
+    "worldMap": "Carte du Monde",
+    "resetZoom": "Vue initiale",
+    "zoomIn": "Zoomer",
+    "zoomOut": "Dézoomer",
+    "fullscreen": "Plein écran",
     "stats": "Caractéristiques",
     "disciplines": "Disciplines",
     "equipment": "Équipement",
