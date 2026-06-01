@@ -17,6 +17,7 @@ import { CombatCalculator } from './CombatCalculator'
 import { DeathModal } from './DeathModal'
 import { CompleteBookModal } from './CompleteBookModal'
 import { PersistentStatBar } from './PersistentStatBar'
+import { MapPanel } from './MapPanel'
 
 type SectionId = 'stats' | 'disciplines' | 'equipment' | 'gold' | 'notes'
 
@@ -79,7 +80,7 @@ export function AdventureSheet() {
   ].filter(Boolean).join(' · ')
 
   return (
-    <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full px-4 py-4 gap-3">
+    <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full px-4 py-4 gap-3 overflow-y-auto">
 
       {/* Top bar — left: back + identity / right: actions */}
       <div className="flex items-center gap-3">
@@ -173,6 +174,8 @@ export function AdventureSheet() {
         {activeSection === 'gold' && <GoldPanel />}
         {activeSection === 'notes' && <NotesPanel />}
       </div>
+
+      <MapPanel bookNumber={character.currentBook} />
 
       {/* Combat calculator modal */}
       {combatModalOpen && <CombatCalculator onClose={() => setCombatModalOpen(false)} />}

@@ -52,6 +52,7 @@
     "startingWeapons": "Armes"
   },
   "sheet": {
+    "map": "Carte",
     "stats": "Caractéristiques",
     "disciplines": "Disciplines",
     "equipment": "Équipement",
@@ -79,6 +80,8 @@
     "potion": "Potion d'Endurance",
     "usePotion": "Utiliser la potion",
     "removeItem": "Retirer",
+    "equipItem": "Équiper",
+    "unequipItem": "Déséquiper",
     "slotsUsed": "{{used}}/{{max}} emplacements",
     "lorestones": "Pierres de Savoir",
     "loreCircles": "Cercles de Connaissance",

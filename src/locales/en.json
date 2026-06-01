@@ -52,6 +52,7 @@
     "startingWeapons": "Weapons"
   },
   "sheet": {
+    "map": "Map",
     "stats": "Statistics",
     "disciplines": "Disciplines",
     "equipment": "Equipment",
@@ -79,6 +80,8 @@
     "potion": "Endurance Potion",
     "usePotion": "Use potion",
     "removeItem": "Remove",
+    "equipItem": "Equip",
+    "unequipItem": "Unequip",
     "slotsUsed": "{{used}}/{{max}} slots",
     "lorestones": "Lorestones",
     "loreCircles": "Lore-Circles",
