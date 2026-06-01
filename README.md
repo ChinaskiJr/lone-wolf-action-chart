@@ -1,6 +1,6 @@
 # Loup Solitaire — Feuille d'Aventure Interactive
 
-Une feuille d'aventure web pour les livres-jeux **Loup Solitaire** de Joe Dever, republiés par [Holmgaard Press](https://holmgaard.fr). Conçue pour enchaîner les 32 livres depuis une seule instance, avec sauvegardes persistantes, transitions de cycle assistées et calculateur de combat intégré.
+Une feuille d'aventure web pour les livres-jeux **Loup Solitaire** de Joe Dever, republiés par [Holmgaard Press](https://shop-magnamund.com/). Conçue pour enchaîner les 32 livres depuis une seule instance, avec sauvegardes persistantes, transitions de cycle assistées et calculateur de combat intégré.
 
 > Contrairement aux feuilles existantes (une par livre), cette application gère la progression complète du personnage à travers les 4 cycles et 32 livres de la série.
 
@@ -60,7 +60,7 @@ Une feuille d'aventure web pour les livres-jeux **Loup Solitaire** de Joe Dever,
 
 | Outil | Rôle |
 |---|---|
-| [React 18](https://react.dev) + [TypeScript](https://www.typescriptlang.org) | Framework UI + typage strict |
+| [React 19](https://react.dev) + [TypeScript](https://www.typescriptlang.org) | Framework UI + typage strict |
 | [Vite 8](https://vite.dev) | Build & dev server |
 | [Tailwind CSS v4](https://tailwindcss.com) | Styles utilitaires |
 | [Zustand](https://zustand-demo.pmnd.rs) | État global |
@@ -140,7 +140,7 @@ Chaque cycle a ses propres champs (disciplines, lorestones, kaiName, etc.) tout 
 
 ## Données de jeu
 
-Les données sont issues des éditions **Holmgaard Press** (française) et du projet [Project Aon](https://www.projectaon.org) pour les règles anglaises de référence :
+Les données sont issues des éditions **[Holmgaard Press](https://shop-magnamund.com/)** (française) et du projet [Project Aon](https://www.projectaon.org) pour les règles anglaises de référence :
 
 - Titres officiels FR fournis par les éditions Holmgaard Press
 - Noms de disciplines FR officiels (Kaï, Magnakaï, Grandes Disciplines avec préfixe G.D.)
@@ -152,9 +152,16 @@ Les données sont issues des éditions **Holmgaard Press** (française) et du pr
 
 ## Roadmap
 
+### Fait
+- [x] Tests unitaires (table de combat, calcul de rang, transitions — 112 tests)
+- [x] Sac à dos : description optionnelle et objets 2 emplacements
+- [x] Carry-over Magnakaï → Grand Maître : transfert fidèle des objets avec leurs bonus
+- [x] Affichage de la carte du livre courant sur la feuille d'aventure (livres 1–30)
+
+### À venir
+- [ ] Lancé de d10 sur la feuille d'aventure
 - [ ] Gestion de la Maîtrise des Armes (armes multiples par cycle)
 - [ ] Suivi des lorestones depuis la feuille de jeu
-- [ ] Tests unitaires complets (table de combat, calcul de rang, transitions)
 - [ ] PWA / mode hors-ligne
 - [ ] Import depuis les feuilles Project Aon existantes
 
@@ -162,4 +169,4 @@ Les données sont issues des éditions **Holmgaard Press** (française) et du pr
 
 ## Licence
 
-Usage personnel. Les livres *Loup Solitaire* et leurs contenus sont la propriété de Joe Dever / Holmgaard Press.
+Usage personnel. Les livres *Loup Solitaire* et leurs contenus sont la propriété de Joe Dever / [Holmgaard Press](https://shop-magnamund.com/).
