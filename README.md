@@ -157,9 +157,9 @@ Les données sont issues des éditions **[Holmgaard Press](https://shop-magnamun
 - [x] Sac à dos : description optionnelle et objets 2 emplacements
 - [x] Carry-over Magnakaï → Grand Maître : transfert fidèle des objets avec leurs bonus
 - [x] Affichage de la carte du livre courant sur la feuille d'aventure (livres 1–30)
+- [x] Lancé de D10 : strip permanent sur la feuille, animation morphe
 
 ### À venir
-- [ ] Lancé de d10 sur la feuille d'aventure
 - [ ] Gestion de la Maîtrise des Armes (armes multiples par cycle)
 - [ ] Suivi des lorestones depuis la feuille de jeu
 - [ ] PWA / mode hors-ligne

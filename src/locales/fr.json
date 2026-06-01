@@ -94,7 +94,11 @@
     "hcBonusItem": "+HC",
     "peBonusItem": "+PE",
     "itemDescription": "Description (optionnel)",
-    "twoSlots": "2 emplacements"
+    "twoSlots": "2 emplacements",
+    "d10": {
+      "roll": "Lancer",
+      "reroll": "Relancer"
+    }
   },
   "combat": {
     "title": "Calculateur de Combat",

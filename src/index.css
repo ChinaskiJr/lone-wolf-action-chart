@@ -42,3 +42,14 @@ h1, h2, h3 {
 .animate-ping-slow {
   animation: pingSlow 1.4s ease-out infinite;
 }
+
+@keyframes d10-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes d10-exit {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-10px); }
+}
+.animate-d10-enter { animation: d10-enter 200ms ease-out forwards; }
+.animate-d10-exit  { animation: d10-exit  200ms ease-out forwards; }

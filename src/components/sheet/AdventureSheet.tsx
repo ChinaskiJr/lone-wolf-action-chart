@@ -18,6 +18,7 @@ import { DeathModal } from './DeathModal'
 import { CompleteBookModal } from './CompleteBookModal'
 import { PersistentStatBar } from './PersistentStatBar'
 import { MapPanel } from './MapPanel'
+import { D10Roll } from './D10Roll'
 
 type SectionId = 'stats' | 'disciplines' | 'equipment' | 'gold' | 'notes'
 
@@ -136,6 +137,8 @@ export function AdventureSheet() {
           )}
         </div>
       </div>
+
+      <D10Roll />
 
       {/* Persistent stat bar */}
       <PersistentStatBar

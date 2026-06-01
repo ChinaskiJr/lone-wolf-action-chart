@@ -94,7 +94,11 @@
     "hcBonusItem": "+CS",
     "peBonusItem": "+EP",
     "itemDescription": "Description (optional)",
-    "twoSlots": "2 slots"
+    "twoSlots": "2 slots",
+    "d10": {
+      "roll": "Roll",
+      "reroll": "Reroll"
+    }
   },
   "combat": {
     "title": "Combat Calculator",
