@@ -31,6 +31,7 @@ interface CharacterState {
   // Special items
   addSpecialItem: (item: SpecialItem) => void
   removeSpecialItem: (id: string) => void
+  updateSpecialItem: (id: string, updates: Partial<SpecialItem>) => void
 
   // Gold
   setGold: (amount: number) => void
@@ -140,6 +141,11 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
   removeSpecialItem: (id) =>
     set(updateChar(get, c => ({
       specialItems: c.specialItems.filter(i => i.id !== id),
+    }))),
+
+  updateSpecialItem: (id, updates) =>
+    set(updateChar(get, c => ({
+      specialItems: c.specialItems.map(i => i.id === id ? { ...i, ...updates } : i),
     }))),
 
   setGold: (amount) =>

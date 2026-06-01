@@ -57,6 +57,12 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
     setNewSpecialItemPE('')
   }
 
+  function toggleSpecialItemEquipped(id: string) {
+    setSpecialItems(items => items.map(i =>
+      i.id === id ? { ...i, equipped: i.equipped !== false ? false : true } : i
+    ))
+  }
+
   function handleFinish() {
     onFinish({
       ...character,
@@ -176,22 +182,37 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
           <span className="text-xs text-slate-500">{specialItems.length}/12</span>
         </div>
         <div className="space-y-1 mb-2">
-          {specialItems.map(item => (
-            <div key={item.id} className="flex items-center gap-2 bg-slate-800/60 rounded px-3 py-1.5">
-              <div className="flex-1 flex items-center gap-1.5 flex-wrap">
-                <span className="text-sm text-slate-200">{item.name}</span>
-                {item.hcBonus != null && item.hcBonus !== 0 && (
-                  <span className="text-xs font-semibold text-amber-400 bg-amber-900/40 rounded px-1">{item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC</span>
-                )}
-                {item.peBonus != null && item.peBonus !== 0 && (
-                  <span className="text-xs font-semibold text-green-400 bg-green-900/40 rounded px-1">{item.peBonus > 0 ? '+' : ''}{item.peBonus} PE</span>
-                )}
+          {specialItems.map(item => {
+            const isEquipped = item.equipped !== false
+            return (
+              <div key={item.id} className={`flex items-center gap-2 bg-slate-800/60 rounded px-3 py-1.5 transition-opacity ${isEquipped ? '' : 'opacity-50'}`}>
+                <label className="flex items-center shrink-0 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isEquipped}
+                    onChange={() => toggleSpecialItemEquipped(item.id)}
+                    className="accent-amber-600 w-3.5 h-3.5"
+                  />
+                </label>
+                <div className="flex-1 flex items-center gap-1.5 flex-wrap">
+                  <span className="text-sm text-slate-200">{item.name}</span>
+                  {item.hcBonus != null && item.hcBonus !== 0 && (
+                    <span className={`text-xs font-semibold rounded px-1 ${isEquipped ? 'text-amber-400 bg-amber-900/40' : 'text-slate-500 bg-slate-700/40'}`}>
+                      {item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC
+                    </span>
+                  )}
+                  {item.peBonus != null && item.peBonus !== 0 && (
+                    <span className={`text-xs font-semibold rounded px-1 ${isEquipped ? 'text-green-400 bg-green-900/40' : 'text-slate-500 bg-slate-700/40'}`}>
+                      {item.peBonus > 0 ? '+' : ''}{item.peBonus} PE
+                    </span>
+                  )}
+                </div>
+                <button onClick={() => setSpecialItems(specialItems.filter(i => i.id !== item.id))} className="text-slate-500 hover:text-red-400 transition-colors">
+                  <X size={13} />
+                </button>
               </div>
-              <button onClick={() => setSpecialItems(specialItems.filter(i => i.id !== item.id))} className="text-slate-500 hover:text-red-400 transition-colors">
-                <X size={13} />
-              </button>
-            </div>
-          ))}
+            )
+          })}
         </div>
         {specialItems.length < 12 && (
           <div className="flex flex-col gap-1.5">

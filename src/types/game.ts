@@ -20,6 +20,7 @@ export interface SpecialItem {
   effect?: string
   hcBonus?: number
   peBonus?: number
+  equipped?: boolean   // undefined = équipé (rétrocompat sauvegardes existantes)
 }
 
 // --- Kai ---

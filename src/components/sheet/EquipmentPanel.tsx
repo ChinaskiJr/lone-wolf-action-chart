@@ -10,7 +10,7 @@ export function EquipmentPanel() {
     character,
     addWeapon, removeWeapon,
     addBackpackItem, removeBackpackItem,
-    addSpecialItem, removeSpecialItem,
+    addSpecialItem, removeSpecialItem, updateSpecialItem,
     setMeals,
     usePotion,
   } = useCharacterStore()
@@ -30,7 +30,7 @@ export function EquipmentPanel() {
         onMealsChange={setMeals}
         onUsePotion={usePotion}
       />
-      <SpecialItemsSection items={character.specialItems} onAdd={addSpecialItem} onRemove={removeSpecialItem} />
+      <SpecialItemsSection items={character.specialItems} onAdd={addSpecialItem} onRemove={removeSpecialItem} onUpdate={updateSpecialItem} />
     </div>
   )
 }
@@ -339,11 +339,12 @@ function BackpackSection({
 }
 
 function SpecialItemsSection({
-  items, onAdd, onRemove
+  items, onAdd, onRemove, onUpdate
 }: {
   items: SpecialItem[]
   onAdd: (item: SpecialItem) => void
   onRemove: (id: string) => void
+  onUpdate: (id: string, updates: Partial<SpecialItem>) => void
 }) {
   const { t } = useTranslation()
   const [input, setInput] = useState('')
@@ -371,26 +372,40 @@ function SpecialItemsSection({
         </span>
       </div>
       <div className="space-y-1.5 mb-2">
-        {items.map(item => (
-          <div key={item.id} className="flex gap-2 bg-amber-950/20 border border-amber-900/30 rounded-lg px-3 py-2">
-            <span className="text-amber-500 text-xs mt-0.5 shrink-0">★</span>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-sm text-amber-100 font-medium">{item.name}</span>
-                {item.hcBonus != null && item.hcBonus !== 0 && (
-                  <span className="text-xs font-semibold text-amber-400 bg-amber-900/40 rounded px-1">{item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC</span>
-                )}
-                {item.peBonus != null && item.peBonus !== 0 && (
-                  <span className="text-xs font-semibold text-green-400 bg-green-900/40 rounded px-1">{item.peBonus > 0 ? '+' : ''}{item.peBonus} PE</span>
-                )}
+        {items.map(item => {
+          const isEquipped = item.equipped !== false
+          return (
+            <div key={item.id} className={`flex gap-2 bg-amber-950/20 border border-amber-900/30 rounded-lg px-3 py-2 transition-opacity ${isEquipped ? '' : 'opacity-50'}`}>
+              <label className="flex items-center shrink-0 mt-0.5 cursor-pointer" aria-label={isEquipped ? t('sheet.unequipItem') : t('sheet.equipItem')}>
+                <input
+                  type="checkbox"
+                  checked={isEquipped}
+                  onChange={() => onUpdate(item.id, { equipped: !isEquipped })}
+                  className="accent-amber-600 w-3.5 h-3.5"
+                />
+              </label>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-sm text-amber-100 font-medium">{item.name}</span>
+                  {item.hcBonus != null && item.hcBonus !== 0 && (
+                    <span className={`text-xs font-semibold rounded px-1 ${isEquipped ? 'text-amber-400 bg-amber-900/40' : 'text-slate-500 bg-slate-700/40'}`}>
+                      {item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC
+                    </span>
+                  )}
+                  {item.peBonus != null && item.peBonus !== 0 && (
+                    <span className={`text-xs font-semibold rounded px-1 ${isEquipped ? 'text-green-400 bg-green-900/40' : 'text-slate-500 bg-slate-700/40'}`}>
+                      {item.peBonus > 0 ? '+' : ''}{item.peBonus} PE
+                    </span>
+                  )}
+                </div>
+                {item.effect && <div className="text-xs text-slate-400 mt-0.5">{item.effect}</div>}
               </div>
-              {item.effect && <div className="text-xs text-slate-400 mt-0.5">{item.effect}</div>}
+              <button onClick={() => onRemove(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 mt-0.5 before:absolute before:inset-[-10px]">
+                <X size={13} />
+              </button>
             </div>
-            <button onClick={() => onRemove(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 mt-0.5 before:absolute before:inset-[-10px]">
-              <X size={13} />
-            </button>
-          </div>
-        ))}
+          )
+        })}
         {items.length === 0 && <div className="text-sm text-slate-600 italic px-3 py-2">Aucun objet spécial</div>}
       </div>
       {items.length < 12 && (

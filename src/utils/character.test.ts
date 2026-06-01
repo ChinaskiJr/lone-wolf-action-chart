@@ -29,6 +29,30 @@ describe('getTotalCS', () => {
     expect(getTotalCS(char)).toBe(15)
   })
 
+  it('ignores hcBonus from unequipped items (equipped: false)', () => {
+    const char = makeKaiChar({
+      combatSkill: { base: 15, bonus: 0 },
+      specialItems: [makeItem({ hcBonus: 8, equipped: false })],
+    })
+    expect(getTotalCS(char)).toBe(15)
+  })
+
+  it('counts hcBonus from items with equipped: undefined (legacy rétrocompat)', () => {
+    const char = makeKaiChar({
+      combatSkill: { base: 15, bonus: 0 },
+      specialItems: [makeItem({ hcBonus: 8, equipped: undefined })],
+    })
+    expect(getTotalCS(char)).toBe(23)
+  })
+
+  it('counts hcBonus from items with equipped: true', () => {
+    const char = makeKaiChar({
+      combatSkill: { base: 15, bonus: 0 },
+      specialItems: [makeItem({ hcBonus: 4, equipped: true }), makeItem({ id: 'item-2', hcBonus: 6, equipped: false })],
+    })
+    expect(getTotalCS(char)).toBe(19)
+  })
+
   it('grandmaster: adds +1 CS per discipline beyond 4', () => {
     const char = makeGrandMasterChar({
       combatSkill: { base: 30, bonus: 0 },
@@ -72,6 +96,22 @@ describe('getTotalEPMax', () => {
     const char = makeKaiChar({
       endurance: { current: 20, max: 25 },
       specialItems: [makeItem({ peBonus: 4 })],
+    })
+    expect(getTotalEPMax(char)).toBe(29)
+  })
+
+  it('ignores peBonus from unequipped items (equipped: false)', () => {
+    const char = makeKaiChar({
+      endurance: { current: 20, max: 25 },
+      specialItems: [makeItem({ peBonus: 4, equipped: false })],
+    })
+    expect(getTotalEPMax(char)).toBe(25)
+  })
+
+  it('counts peBonus from items with equipped: undefined (legacy rétrocompat)', () => {
+    const char = makeKaiChar({
+      endurance: { current: 20, max: 25 },
+      specialItems: [makeItem({ peBonus: 4, equipped: undefined })],
     })
     expect(getTotalEPMax(char)).toBe(29)
   })

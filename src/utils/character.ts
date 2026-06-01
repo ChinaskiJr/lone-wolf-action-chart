@@ -16,7 +16,7 @@ export function rollEndurance(cycle: Cycle): number {
 
 export function getTotalCS(char: Character): number {
   const base = char.combatSkill.base + char.combatSkill.bonus
-  const itemsHC = char.specialItems.reduce((sum, i) => sum + (i.hcBonus ?? 0), 0)
+  const itemsHC = char.specialItems.filter(i => i.equipped !== false).reduce((sum, i) => sum + (i.hcBonus ?? 0), 0)
   if (char.cycle === 'grandmaster') {
     const extraDisciplines = Math.max(0, char.disciplines.length - 4)
     return base + extraDisciplines + itemsHC
@@ -30,7 +30,7 @@ export function getTotalCS(char: Character): number {
 
 export function getTotalEPMax(char: Character): number {
   const base = char.endurance.max
-  const itemsPE = char.specialItems.reduce((sum, i) => sum + (i.peBonus ?? 0), 0)
+  const itemsPE = char.specialItems.filter(i => i.equipped !== false).reduce((sum, i) => sum + (i.peBonus ?? 0), 0)
   if (char.cycle === 'grandmaster') {
     const extraDisciplines = Math.max(0, char.disciplines.length - 4)
     return base + extraDisciplines * 2 + itemsPE
