@@ -129,7 +129,17 @@
     "defeat": "Vous êtes mort.",
     "defeatSub": "Votre aventure s'achève ici.",
     "newCombat": "Nouveau combat",
-    "replay": "Rejouer"
+    "replay": "Rejouer",
+    "disciplineBonuses": "Bonus de disciplines",
+    "reset": "Réinitialiser",
+    "die": "Dé",
+    "killed": "Tué",
+    "enemy": "enn.",
+    "simVictory": "Victoire !",
+    "simDefeat": "Défaite",
+    "simOngoing": "Combat non conclu",
+    "yourEP": "Vos PE actuels",
+    "enemyEPShort": "PE ennemi"
   },
   "transition": {
     "title": "Transition de Cycle",

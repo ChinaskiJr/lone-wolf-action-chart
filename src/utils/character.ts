@@ -1,5 +1,6 @@
 import type { Character, GrandMasterCharacter, KaiCharacter, MagnakaiCharacter, NewOrderCharacter } from '@/types/character'
-import type { Cycle, SpecialItem } from '@/types/game'
+import type { Cycle, GrandMasterDiscipline, KaiDiscipline, MagnakaiDiscipline, NewOrderDiscipline, SpecialItem } from '@/types/game'
+import type { CombatModifier } from '@/data/combatModifiers'
 import { computeGrandMasterRank, computeKaiRank, computeMagnakaiRank, computeNewOrderRank } from '@/data/ranks'
 import { computeLoreCircleBonuses } from '@/data/loreCircles'
 import { rollD10 } from './rng'
@@ -40,6 +41,24 @@ export function getTotalEPMax(char: Character): number {
     return base + extraDisciplines * 2 + itemsPE
   }
   return base + itemsPE
+}
+
+export function hasDisciplineForModifier(char: Character, modifier: CombatModifier): boolean {
+  const key = modifier.disciplineKey
+  switch (char.cycle) {
+    case 'kai':
+      return char.disciplines.includes(key as KaiDiscipline)
+    case 'magnakai':
+      if (['weaponmastery', 'psiSurge'].includes(key))
+        return char.disciplines.includes(key as MagnakaiDiscipline)
+      return char.kaiDisciplines.includes(key as KaiDiscipline)
+    case 'grandmaster':
+      if (['grandWeaponmastery', 'kaiSurge'].includes(key))
+        return char.disciplines.includes(key as GrandMasterDiscipline)
+      return char.magnakaiDisciplines.includes(key as MagnakaiDiscipline)
+    case 'neworder':
+      return char.disciplines.includes(key as NewOrderDiscipline)
+  }
 }
 
 export function getItemsCSBonus(char: Character): number {

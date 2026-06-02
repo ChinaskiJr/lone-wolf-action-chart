@@ -2,21 +2,23 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { X, Dices, Swords, SkipForward } from 'lucide-react'
 import { useCharacterStore } from '@/store/characterStore'
-import { getTotalCS } from '@/utils/character'
+import { getTotalCS, hasDisciplineForModifier } from '@/utils/character'
 import { DeathModal } from './DeathModal'
 import { resolveCombatRound, simulateCombat, type CombatRound } from '@/utils/combat'
 import { rollD10 } from '@/utils/rng'
+import { COMBAT_MODIFIERS } from '@/data/combatModifiers'
 
 interface Props {
   onClose: () => void
 }
 
 export function CombatCalculator({ onClose }: Props) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language as 'fr' | 'en'
   const { character, setEnduranceCurrent } = useCharacterStore()
   if (!character) return null
 
-  const playerCS = getTotalCS(character)
+  const basePlayerCS = getTotalCS(character)
   const [enemyCS, setEnemyCS] = useState(15)
   const [enemyEP, setEnemyEP] = useState(20)
   const [enemyCurrentEP, setEnemyCurrentEP] = useState(20)
@@ -25,6 +27,30 @@ export function CombatCalculator({ onClose }: Props) {
   const [showSim, setShowSim] = useState(false)
   const [victory, setVictory] = useState(false)
   const [defeat, setDefeat] = useState(false)
+  const [activeModifiers, setActiveModifiers] = useState<Set<string>>(new Set())
+
+  const visibleModifiers = COMBAT_MODIFIERS.filter(m => m.visibleFor.includes(character.cycle))
+
+  const disciplineBonusHC = Array.from(activeModifiers).reduce((sum, id) => {
+    const mod = COMBAT_MODIFIERS.find(m => m.id === id)
+    return sum + (mod?.hcBonus ?? 0)
+  }, 0)
+  const playerCS = basePlayerCS + disciplineBonusHC
+
+  function toggleModifier(id: string) {
+    const mod = COMBAT_MODIFIERS.find(m => m.id === id)
+    if (!mod) return
+    setActiveModifiers(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        mod.exclusiveWith?.forEach(eid => next.delete(eid))
+        next.add(id)
+      }
+      return next
+    })
+  }
 
   function handleRoll() {
     const rn = rollD10()
@@ -35,7 +61,11 @@ export function CombatCalculator({ onClose }: Props) {
 
   function handleApplyDamage() {
     if (!lastRound) return
-    const newPlayerEP = Math.max(0, character!.endurance.current - lastRound.playerLoss)
+    const epCostModifiers = Array.from(activeModifiers).reduce((sum, id) => {
+      const mod = COMBAT_MODIFIERS.find(m => m.id === id)
+      return sum + (mod?.epCostPerRound ?? 0)
+    }, 0)
+    const newPlayerEP = Math.max(0, character!.endurance.current - lastRound.playerLoss - epCostModifiers)
     const newEnemyEP = lastRound.enemyKilled ? 0 : Math.max(0, enemyCurrentEP - lastRound.enemyLoss)
     setEnduranceCurrent(newPlayerEP)
     setEnemyCurrentEP(newEnemyEP)
@@ -54,6 +84,7 @@ export function CombatCalculator({ onClose }: Props) {
     setLastRound(null)
     setSimulationRounds([])
     setShowSim(false)
+    setActiveModifiers(new Set())
   }
 
   function handleSimulate() {
@@ -112,7 +143,7 @@ export function CombatCalculator({ onClose }: Props) {
                 onClick={onClose}
                 className="flex-1 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium transition-colors"
               >
-                Fermer
+                {t('common.close')}
               </button>
             </div>
           </div>
@@ -147,6 +178,46 @@ export function CombatCalculator({ onClose }: Props) {
             </div>
           </div>
 
+          {/* Discipline bonuses */}
+          <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-3">
+            <div className="text-xs font-semibold text-slate-400 mb-2">{t('combat.disciplineBonuses')}</div>
+            <div className="flex flex-col gap-1.5">
+              {visibleModifiers.map(mod => {
+                const owned = hasDisciplineForModifier(character, mod)
+                const active = activeModifiers.has(mod.id)
+                const label = lang === 'fr' ? mod.labelFr : mod.labelEn
+                const condition = lang === 'fr' ? mod.conditionFr : mod.conditionEn
+                return (
+                  <label
+                    key={mod.id}
+                    className={`flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 transition-colors ${
+                      owned ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'
+                    } ${active ? 'bg-amber-900/20 border border-amber-800/40' : 'border border-transparent'}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={active}
+                      disabled={!owned}
+                      onChange={() => toggleModifier(mod.id)}
+                      className="accent-amber-500 w-3.5 h-3.5 shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className={`text-xs font-medium ${active ? 'text-amber-200' : 'text-slate-300'}`}>{label}</span>
+                        <span className={`text-xs font-semibold rounded px-1 ${active ? 'text-amber-400 bg-amber-900/40' : 'text-slate-500 bg-slate-700/40'}`}>
+                          +{mod.hcBonus} HC
+                        </span>
+                      </div>
+                      {condition && (
+                        <div className={`text-xs mt-0.5 ${active ? 'text-amber-600/80' : 'text-slate-600'}`}>{condition}</div>
+                      )}
+                    </div>
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+
           {/* Enemy EP */}
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-3">
@@ -155,7 +226,7 @@ export function CombatCalculator({ onClose }: Props) {
                 <button
                   onClick={() => { setEnemyEP(Number(enemyCS)); setEnemyCurrentEP(Number(enemyCS)) }}
                   className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
-                  title="Réinitialiser"
+                  title={t('combat.reset')}
                 >↺</button>
                 <input
                   type="number"
@@ -250,9 +321,9 @@ export function CombatCalculator({ onClose }: Props) {
                 {simulationRounds.map((r, i) => (
                   <div key={i} className="flex items-center gap-2 text-xs">
                     <span className="text-slate-500 w-14 shrink-0">Round {i + 1}:</span>
-                    <span className="text-amber-600">Dé {r.randomNumber}</span>
+                    <span className="text-amber-600">{t('combat.die')} {r.randomNumber}</span>
                     <span className="text-red-400">-{r.playerLoss} PE</span>
-                    <span className="text-green-400">{r.enemyKilled ? '⚔ Tué' : `-${r.enemyLoss} PE enn.`}</span>
+                    <span className="text-green-400">{r.enemyKilled ? t('combat.killed') : `-${r.enemyLoss} PE ${t('combat.enemy')}`}</span>
                   </div>
                 ))}
               </div>
@@ -267,7 +338,7 @@ export function CombatCalculator({ onClose }: Props) {
                     playerDead ? 'text-red-400 bg-red-950/40' :
                     'text-yellow-400 bg-yellow-950/40'
                   }`}>
-                    {enemyDead && !playerDead ? '⚔ Victoire !' : playerDead ? '☠ Défaite' : '🛡 Combat non conclu'}
+                    {enemyDead && !playerDead ? t('combat.simVictory') : playerDead ? t('combat.simDefeat') : t('combat.simOngoing')}
                   </div>
                 )
               })()}
@@ -276,8 +347,8 @@ export function CombatCalculator({ onClose }: Props) {
 
           {/* Current EP summary */}
           <div className="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-800">
-            <span>Vos PE actuels: <span className="text-slate-300 font-medium">{character.endurance.current}</span></span>
-            <span>PE ennemi: <span className="text-slate-300 font-medium">{enemyCurrentEP}</span></span>
+            <span>{t('combat.yourEP')}: <span className="text-slate-300 font-medium">{character.endurance.current}</span></span>
+            <span>{t('combat.enemyEPShort')}: <span className="text-slate-300 font-medium">{enemyCurrentEP}</span></span>
           </div>
         </div>
       </div>

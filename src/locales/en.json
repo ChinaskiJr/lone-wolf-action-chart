@@ -129,7 +129,17 @@
     "defeat": "You are dead.",
     "defeatSub": "Your adventure ends here.",
     "newCombat": "New combat",
-    "replay": "Replay"
+    "replay": "Replay",
+    "disciplineBonuses": "Discipline bonuses",
+    "reset": "Reset",
+    "die": "Roll",
+    "killed": "Slain",
+    "enemy": "enem.",
+    "simVictory": "Victory!",
+    "simDefeat": "Defeat",
+    "simOngoing": "Ongoing",
+    "yourEP": "Your current EP",
+    "enemyEPShort": "Enemy EP"
   },
   "transition": {
     "title": "Cycle Transition",
