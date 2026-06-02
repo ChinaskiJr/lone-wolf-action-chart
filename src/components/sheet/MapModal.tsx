@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { WorldMapViewer } from './WorldMapViewer'
+import { WorldMapTabs } from './WorldMapTabs'
 
 interface Props {
   onClose: () => void
@@ -30,7 +30,9 @@ export function MapModal({ onClose }: Props) {
         </button>
       </div>
 
-      <WorldMapViewer className="flex-1 min-h-0 w-full rounded-none" />
+      <div className="flex-1 min-h-0 flex flex-col px-4 pb-4">
+        <WorldMapTabs areaClassName="flex-1 min-h-0 w-full" />
+      </div>
     </div>
   )
 }

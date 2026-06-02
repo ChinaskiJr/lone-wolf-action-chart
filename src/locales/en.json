@@ -54,6 +54,8 @@
   "sheet": {
     "map": "Map",
     "worldMap": "World Map",
+    "mapOutspaced": "Outspaced",
+    "mapHolmgaard": "Holmgaard Press",
     "resetZoom": "Reset view",
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",

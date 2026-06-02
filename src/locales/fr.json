@@ -54,6 +54,8 @@
   "sheet": {
     "map": "Carte",
     "worldMap": "Carte du Monde",
+    "mapOutspaced": "Outspaced",
+    "mapHolmgaard": "Holmgaard Press",
     "resetZoom": "Vue initiale",
     "zoomIn": "Zoomer",
     "zoomOut": "Dézoomer",

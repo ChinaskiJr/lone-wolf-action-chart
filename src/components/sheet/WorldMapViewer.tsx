@@ -1,10 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Minus, Plus, RotateCcw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import magnaMundMap from '@/assets/maps/world/magnamund.jpg'
 
-const IMG_W = 4000
-const IMG_H = 4957
 const MAX_ZOOM_FACTOR = 8 // deepest zoom relative to the cover scale
 const WHEEL_STEP = 1.15
 const BUTTON_STEP = 1.5
@@ -20,10 +17,14 @@ const distance = (a: { x: number; y: number }, b: { x: number; y: number }) =>
 type View = { scale: number; tx: number; ty: number }
 
 interface Props {
+  src: string
+  width: number
+  height: number
+  alt?: string
   className?: string
 }
 
-export function WorldMapViewer({ className }: Props) {
+export function WorldMapViewer({ src, width, height, alt, className }: Props) {
   const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -43,8 +44,8 @@ export function WorldMapViewer({ className }: Props) {
   // (At scale >= cover, scaled width/height are guaranteed >= container.)
   const clampPan = (tx: number, ty: number, scale: number): View => {
     const { cw, ch } = limits.current
-    const sw = IMG_W * scale
-    const sh = IMG_H * scale
+    const sw = width * scale
+    const sh = height * scale
     const ntx = sw <= cw ? (cw - sw) / 2 : clamp(tx, cw - sw, 0)
     const nty = sh <= ch ? (ch - sh) / 2 : clamp(ty, ch - sh, 0)
     return { scale, tx: ntx, ty: nty }
@@ -71,12 +72,12 @@ export function WorldMapViewer({ className }: Props) {
     const cw = el.clientWidth
     const ch = el.clientHeight
     if (!cw || !ch) return
-    const cover = Math.max(cw / IMG_W, ch / IMG_H)
+    const cover = Math.max(cw / width, ch / height)
     limits.current = { min: cover, max: cover * MAX_ZOOM_FACTOR, cw, ch }
     home.current = {
       scale: cover,
-      tx: (cw - IMG_W * cover) / 2,
-      ty: (ch - IMG_H * cover) / 2,
+      tx: (cw - width * cover) / 2,
+      ty: (ch - height * cover) / 2,
     }
     if (initial || view.current.scale === 0) {
       view.current = { ...home.current }
@@ -181,16 +182,16 @@ export function WorldMapViewer({ className }: Props) {
       style={{ touchAction: 'none', cursor: panning ? 'grabbing' : 'grab' }}
     >
       <img
-        src={magnaMundMap}
-        alt={t('sheet.worldMap')}
+        src={src}
+        alt={alt ?? t('sheet.worldMap')}
         draggable={false}
         onLoad={() => reflow(false)}
         style={{
           position: 'absolute',
           top: 0,
           left: 0,
-          width: `${IMG_W}px`,
-          height: `${IMG_H}px`,
+          width: `${width}px`,
+          height: `${height}px`,
           maxWidth: 'none',
           transformOrigin: '0 0',
           transform: `translate(${tx}px, ${ty}px) scale(${scale})`,
