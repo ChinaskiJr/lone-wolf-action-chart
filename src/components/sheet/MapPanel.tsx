@@ -38,10 +38,20 @@ const ZOOM_STEP = 0.25
 function BookMapModal({ mapUrl, bookNumber, onClose }: { mapUrl: string; bookNumber: number; onClose: () => void }) {
   const { t } = useTranslation()
   const [scale, setScale] = useState(1)
+  const [fitSize, setFitSize] = useState<{ w: number; h: number } | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const zoom = (delta: number) =>
     setScale(s => Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, Math.round((s + delta) * 100) / 100)))
+
+  function handleImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+    const img = e.currentTarget
+    const pad = 32
+    const cw = window.innerWidth - pad
+    const ch = window.innerHeight - 48 - pad // 48px header
+    const ratio = Math.min(cw / img.naturalWidth, ch / img.naturalHeight)
+    setFitSize({ w: Math.round(img.naturalWidth * ratio), h: Math.round(img.naturalHeight * ratio) })
+  }
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -65,7 +75,8 @@ function BookMapModal({ mapUrl, bookNumber, onClose }: { mapUrl: string; bookNum
     return () => el.removeEventListener('wheel', onWheel)
   }, [])
 
-  const padding = scale > 1 ? `${(scale - 1) * 40}vh ${(scale - 1) * 40}vw` : '1rem'
+  const imgW = fitSize ? fitSize.w * scale : undefined
+  const imgH = fitSize ? fitSize.h * scale : undefined
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black/95">
@@ -108,18 +119,19 @@ function BookMapModal({ mapUrl, bookNumber, onClose }: { mapUrl: string; bookNum
       </div>
       <div ref={containerRef} className="flex-1 min-h-0 overflow-auto">
         <div
-          className="flex items-center justify-center"
-          style={{ minHeight: '100%', padding }}
+          className="flex items-center justify-center p-4"
+          style={{ minHeight: '100%', minWidth: imgW ? imgW + 32 : '100%' }}
         >
           <img
             src={mapUrl}
             alt={`${t('sheet.map')} ${bookNumber}`}
-            style={{
-              transform: `scale(${scale})`,
-              transformOrigin: 'center center',
-              transition: 'transform 0.15s ease',
-            }}
-            className="max-w-full max-h-[calc(100vh-112px)] object-contain rounded-lg select-none block"
+            onLoad={handleImageLoad}
+            style={
+              fitSize
+                ? { width: imgW, height: imgH, transition: 'width 0.15s ease, height 0.15s ease' }
+                : { maxWidth: '100%', maxHeight: 'calc(100vh - 112px)' }
+            }
+            className="rounded-lg select-none block"
             draggable={false}
           />
         </div>
