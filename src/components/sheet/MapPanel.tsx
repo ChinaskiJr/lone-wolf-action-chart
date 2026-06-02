@@ -58,7 +58,6 @@ function BookMapModal({ mapUrl, bookNumber, onClose }: { mapUrl: string; bookNum
     const el = containerRef.current
     if (!el) return
     function onWheel(e: WheelEvent) {
-      if (!e.ctrlKey && !e.metaKey) return
       e.preventDefault()
       zoom(e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP)
     }
