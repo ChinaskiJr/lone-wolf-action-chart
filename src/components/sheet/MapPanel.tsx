@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Maximize2, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Maximize2, X, ZoomIn, ZoomOut } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { MapModal } from './MapModal'
 import { WorldMapTabs } from './WorldMapTabs'
@@ -31,16 +31,42 @@ interface Props {
   bookNumber: number
 }
 
+const ZOOM_MIN = 0.5
+const ZOOM_MAX = 4
+const ZOOM_STEP = 0.25
+
 function BookMapModal({ mapUrl, bookNumber, onClose }: { mapUrl: string; bookNumber: number; onClose: () => void }) {
   const { t } = useTranslation()
+  const [scale, setScale] = useState(1)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const zoom = (delta: number) =>
+    setScale(s => Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, Math.round((s + delta) * 100) / 100)))
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose()
+      if ((e.key === '+' || e.key === '=') && !e.ctrlKey) zoom(ZOOM_STEP)
+      if (e.key === '-' && !e.ctrlKey) zoom(-ZOOM_STEP)
+      if (e.key === '0') setScale(1)
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [onClose])
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    function onWheel(e: WheelEvent) {
+      if (!e.ctrlKey && !e.metaKey) return
+      e.preventDefault()
+      zoom(e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP)
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [])
+
+  const padding = scale > 1 ? `${(scale - 1) * 40}vh ${(scale - 1) * 40}vw` : '1rem'
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black/95">
@@ -48,19 +74,56 @@ function BookMapModal({ mapUrl, bookNumber, onClose }: { mapUrl: string; bookNum
         <span className="text-sm font-medium text-amber-200">
           {t('sheet.map')} — {t('home.book')} {bookNumber}
         </span>
-        <button
-          onClick={onClose}
-          className="flex items-center justify-center w-7 h-7 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded transition-colors"
-        >
-          <X size={16} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => zoom(-ZOOM_STEP)}
+            disabled={scale <= ZOOM_MIN}
+            title={t('sheet.zoomOut')}
+            className="flex items-center justify-center w-7 h-7 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded transition-colors disabled:opacity-30 disabled:pointer-events-none"
+          >
+            <ZoomOut size={14} />
+          </button>
+          <button
+            onClick={() => setScale(1)}
+            title="Reset zoom"
+            className="text-xs text-slate-400 hover:text-slate-200 w-10 text-center tabular-nums py-1 rounded hover:bg-slate-800 transition-colors"
+          >
+            {Math.round(scale * 100)}%
+          </button>
+          <button
+            onClick={() => zoom(ZOOM_STEP)}
+            disabled={scale >= ZOOM_MAX}
+            title={t('sheet.zoomIn')}
+            className="flex items-center justify-center w-7 h-7 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded transition-colors disabled:opacity-30 disabled:pointer-events-none"
+          >
+            <ZoomIn size={14} />
+          </button>
+          <div className="w-px h-5 bg-slate-700 mx-1" />
+          <button
+            onClick={onClose}
+            className="flex items-center justify-center w-7 h-7 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded transition-colors"
+          >
+            <X size={16} />
+          </button>
+        </div>
       </div>
-      <div className="flex-1 min-h-0 overflow-auto flex items-center justify-center p-4">
-        <img
-          src={mapUrl}
-          alt={`${t('sheet.map')} ${bookNumber}`}
-          className="max-w-full max-h-full object-contain rounded-lg"
-        />
+      <div ref={containerRef} className="flex-1 min-h-0 overflow-auto">
+        <div
+          className="flex items-center justify-center"
+          style={{ minHeight: '100%', padding }}
+        >
+          <img
+            src={mapUrl}
+            alt={`${t('sheet.map')} ${bookNumber}`}
+            style={{
+              transform: `scale(${scale})`,
+              transformOrigin: 'center center',
+              transition: 'transform 0.15s ease',
+            }}
+            className="max-w-full max-h-[calc(100vh-112px)] object-contain rounded-lg select-none block"
+            draggable={false}
+          />
+        </div>
       </div>
     </div>
   )
