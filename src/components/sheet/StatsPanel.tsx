@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Minus, Plus } from 'lucide-react'
 import { useCharacterStore } from '@/store/characterStore'
-import { getTotalCS, getTotalEPMax, computeRank } from '@/utils/character'
+import { getTotalCS, getTotalEPMax, computeRank, getItemsCSBonus, getItemsEPBonus } from '@/utils/character'
 import { KAI_RANKS, MAGNAKAI_RANKS, GRAND_MASTER_RANKS, NEW_ORDER_RANKS } from '@/data/ranks'
 
 export function StatsPanel() {
@@ -12,6 +12,8 @@ export function StatsPanel() {
 
   const totalCS = getTotalCS(character)
   const maxEP = getTotalEPMax(character)
+  const itemsHC = getItemsCSBonus(character)
+  const itemsPE = getItemsEPBonus(character)
   const rankKey = computeRank(character)
 
   const ranks =
@@ -69,6 +71,12 @@ export function StatsPanel() {
           <div className="bg-amber-900/30 border border-amber-800/50 rounded-lg p-3">
             <div className="text-3xl font-bold text-amber-400 tabular-nums">{totalCS}</div>
             <div className="text-xs text-amber-600/80 mt-1">{t('sheet.csTotal')}</div>
+            {itemsHC > 0 && (
+              <div className="mt-1.5 text-xs text-amber-700/80 leading-tight">
+                {totalCS - itemsHC} <span className="text-amber-400 font-semibold">+{itemsHC}</span>
+                <div className="text-amber-800/70">{t('sheet.itemBonus')}</div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -83,6 +91,12 @@ export function StatsPanel() {
           <div className="text-right">
             <div className="text-xs text-slate-500 mb-0.5">{t('sheet.epMax')}</div>
             <div className="text-xl font-semibold text-slate-400 tabular-nums">{maxEP}</div>
+            {itemsPE > 0 && (
+              <div className="mt-1 text-xs text-slate-600 leading-tight">
+                {maxEP - itemsPE} <span className="text-green-400/80 font-semibold">+{itemsPE}</span>
+                <div className="text-slate-700">{t('sheet.itemBonus')}</div>
+              </div>
+            )}
           </div>
         </div>
         <div className="h-3 bg-slate-900 rounded-full overflow-hidden">

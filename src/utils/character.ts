@@ -42,6 +42,14 @@ export function getTotalEPMax(char: Character): number {
   return base + itemsPE
 }
 
+export function getItemsCSBonus(char: Character): number {
+  return char.specialItems.filter(i => i.equipped !== false).reduce((sum, i) => sum + (i.hcBonus ?? 0), 0)
+}
+
+export function getItemsEPBonus(char: Character): number {
+  return char.specialItems.filter(i => i.equipped !== false).reduce((sum, i) => sum + (i.peBonus ?? 0), 0)
+}
+
 export function computeRank(char: Character): string {
   const count = char.disciplines.length
   switch (char.cycle) {
