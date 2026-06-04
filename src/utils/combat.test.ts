@@ -23,48 +23,50 @@ describe('resolveCombatRound', () => {
   })
 
   it('returns correct playerLoss and enemyLoss from the table', () => {
-    // ratio 0, rn 0 → [3, 5]
-    const round = resolveCombatRound(10, 10, 0)
-    expect(round.playerLoss).toBe(3)
-    expect(round.enemyLoss).toBe(5)
-    expect(round.randomNumber).toBe(0)
+    // ratio 0, rn 5 → table[5][6] = [7, 2] (enemyLoss, playerLoss)
+    const round = resolveCombatRound(10, 10, 5)
+    expect(round.enemyLoss).toBe(7)
+    expect(round.playerLoss).toBe(2)
+    expect(round.randomNumber).toBe(5)
   })
 
-  it('sets enemyKilled=true when ratio >= 4 and enemyLoss === 0', () => {
-    // ratio +4, rn 9 → table['4'][9] = [0, 0] → instant kill
-    const round = resolveCombatRound(14, 10, 9)
-    expect(round.enemyLoss).toBe(0)
+  it('sets enemyKilled=true when the table cell enemy loss is K', () => {
+    // ratio +11, rn 0 → table[0][12] = [K, 0] → enemy instantly slain
+    const round = resolveCombatRound(21, 10, 0)
     expect(round.enemyKilled).toBe(true)
+    expect(round.enemyLoss).toBe(0)
   })
 
-  it('sets enemyKilled=false when ratio >= 4 but enemyLoss !== 0', () => {
-    // ratio +4, rn 0 → table['4'][0] = [0, 8]
+  it('sets enemyKilled=false when enemy loss is non-zero', () => {
+    // ratio +4, rn 0 → table[0][8] = [16, 0]
     const round = resolveCombatRound(14, 10, 0)
-    expect(round.enemyLoss).toBe(8)
+    expect(round.enemyLoss).toBe(16)
     expect(round.enemyKilled).toBe(false)
   })
 
-  it('sets enemyKilled=false when ratio < 4 even if result would be 0', () => {
-    // ratio +3, rn 9 → table['3'][9] = [0, 20] → enemyLoss=20, not instant kill
-    const round = resolveCombatRound(13, 10, 9)
-    expect(round.enemyKilled).toBe(false)
+  it('sets playerKilled=true when the table cell player loss is K', () => {
+    // ratio -15, rn 1 → table[1][0] = [0, K] → Lone Wolf instantly slain
+    const round = resolveCombatRound(5, 20, 1)
+    expect(round.playerKilled).toBe(true)
+    expect(round.playerLoss).toBe(0)
   })
 })
 
 describe('simulateCombat', () => {
   it('terminates when enemy EP reaches 0', () => {
-    // ratio +11 (massive advantage), every round deals heavy damage to enemy
-    // rollD10 mocked to 5 → table['11'][5] = [0, 0] → instant kill on first round
+    // ratio +11 (massive advantage); rn 5 → table[5][12] = [14, 1]
+    // enemy (10 EP) is destroyed in a single round
     vi.mocked(rollD10).mockReturnValue(5)
     const rounds = simulateCombat(21, 25, 10, 10)
     expect(rounds.length).toBeGreaterThan(0)
-    expect(rounds[rounds.length - 1].enemyKilled).toBe(true)
+    const totalEnemyLoss = rounds.reduce((sum, r) => sum + r.enemyLoss, 0)
+    expect(totalEnemyLoss).toBeGreaterThanOrEqual(10)
   })
 
   it('terminates when player EP reaches 0', () => {
-    // ratio -11 (massive disadvantage), player takes heavy damage each round
-    // rollD10 mocked to 0 → table['-11'][0] = [8, 0]
-    vi.mocked(rollD10).mockReturnValue(0)
+    // ratio -15 (massive disadvantage); rn 3 → table[3][0] = [0, 8]
+    // Lone Wolf (5 EP) takes 8 damage and falls
+    vi.mocked(rollD10).mockReturnValue(3)
     const rounds = simulateCombat(5, 5, 20, 100)
     const totalPlayerLoss = rounds.reduce((sum, r) => sum + r.playerLoss, 0)
     expect(totalPlayerLoss).toBeGreaterThanOrEqual(5)

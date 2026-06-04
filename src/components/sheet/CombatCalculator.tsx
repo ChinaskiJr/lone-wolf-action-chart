@@ -28,6 +28,7 @@ export function CombatCalculator({ onClose }: Props) {
   const [victory, setVictory] = useState(false)
   const [defeat, setDefeat] = useState(false)
   const [activeModifiers, setActiveModifiers] = useState<Set<string>>(new Set())
+  const [situationalMod, setSituationalMod] = useState(0)
 
   const visibleModifiers = COMBAT_MODIFIERS.filter(m => m.visibleFor.includes(character.cycle))
 
@@ -35,7 +36,7 @@ export function CombatCalculator({ onClose }: Props) {
     const mod = COMBAT_MODIFIERS.find(m => m.id === id)
     return sum + (mod?.hcBonus ?? 0)
   }, 0)
-  const playerCS = basePlayerCS + disciplineBonusHC
+  const playerCS = basePlayerCS + disciplineBonusHC + situationalMod
 
   function toggleModifier(id: string) {
     const mod = COMBAT_MODIFIERS.find(m => m.id === id)
@@ -65,7 +66,9 @@ export function CombatCalculator({ onClose }: Props) {
       const mod = COMBAT_MODIFIERS.find(m => m.id === id)
       return sum + (mod?.epCostPerRound ?? 0)
     }, 0)
-    const newPlayerEP = Math.max(0, character!.endurance.current - lastRound.playerLoss - epCostModifiers)
+    const newPlayerEP = lastRound.playerKilled
+      ? 0
+      : Math.max(0, character!.endurance.current - lastRound.playerLoss - epCostModifiers)
     const newEnemyEP = lastRound.enemyKilled ? 0 : Math.max(0, enemyCurrentEP - lastRound.enemyLoss)
     setEnduranceCurrent(newPlayerEP)
     setEnemyCurrentEP(newEnemyEP)
@@ -85,6 +88,7 @@ export function CombatCalculator({ onClose }: Props) {
     setSimulationRounds([])
     setShowSim(false)
     setActiveModifiers(new Set())
+    setSituationalMod(0)
   }
 
   function handleSimulate() {
@@ -96,6 +100,7 @@ export function CombatCalculator({ onClose }: Props) {
 
   const ratio = playerCS - enemyCS
   const ratioColor = ratio > 0 ? 'text-green-400' : ratio < 0 ? 'text-red-400' : 'text-slate-400'
+  const modColor = situationalMod > 0 ? 'text-green-400' : situationalMod < 0 ? 'text-red-400' : 'text-slate-400'
 
   const enemyEPPercent = enemyEP > 0 ? enemyCurrentEP / enemyEP : 0
   const enemyBarColor =
@@ -161,10 +166,20 @@ export function CombatCalculator({ onClose }: Props) {
 
         <div className={`p-5 flex flex-col gap-4 ${victory || defeat ? 'hidden' : ''}`}>
           {/* CS display */}
-          <div className="grid grid-cols-3 gap-3 text-center bg-slate-800/40 rounded-xl p-4">
+          <div className="grid grid-cols-4 gap-2 text-center bg-slate-800/40 rounded-xl p-4">
             <div>
               <div className="text-xs text-slate-500 mb-1">{t('combat.playerCS')}</div>
               <div className="text-3xl font-bold text-amber-400">{playerCS}</div>
+            </div>
+            <div>
+              <div className="text-xs text-slate-500 mb-1">{t('combat.modifier')}</div>
+              <input
+                type="number"
+                value={situationalMod}
+                onChange={e => setSituationalMod(Number(e.target.value))}
+                onFocus={e => e.target.select()}
+                className={`w-full bg-slate-900 border border-slate-700 rounded-lg text-center text-3xl font-bold focus:outline-none focus:border-amber-600 py-0 ${modColor}`}
+              />
             </div>
             <div>
               <div className="text-xs text-slate-500 mb-1">Ratio</div>
@@ -301,13 +316,17 @@ export function CombatCalculator({ onClose }: Props) {
                 <span className="text-xl font-bold text-amber-300">{lastRound.randomNumber}</span>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className={`text-center rounded-lg p-3 ${lastRound.playerLoss > 0 ? 'bg-red-950/40 border border-red-900' : 'bg-green-950/30 border border-green-900'}`}>
+                <div className={`text-center rounded-lg p-3 ${lastRound.playerLoss > 0 || lastRound.playerKilled ? 'bg-red-950/40 border border-red-900' : 'bg-green-950/30 border border-green-900'}`}>
                   <div className="text-xs text-slate-400 mb-1">{t('combat.playerLoss')}</div>
-                  <div className={`text-2xl font-bold ${lastRound.playerLoss > 0 ? 'text-red-400' : 'text-green-400'}`}>
-                    -{lastRound.playerLoss}
-                  </div>
+                  {lastRound.playerKilled ? (
+                    <div className="text-lg font-bold text-red-400">{t('combat.instantKill')}</div>
+                  ) : (
+                    <div className={`text-2xl font-bold ${lastRound.playerLoss > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                      -{lastRound.playerLoss}
+                    </div>
+                  )}
                   <div className="text-xs text-slate-500 mt-1">
-                    PE: {character.endurance.current} → {Math.max(0, character.endurance.current - lastRound.playerLoss)}
+                    PE: {character.endurance.current} → {lastRound.playerKilled ? 0 : Math.max(0, character.endurance.current - lastRound.playerLoss)}
                   </div>
                 </div>
                 <div className={`text-center rounded-lg p-3 ${lastRound.enemyKilled ? 'bg-green-950/40 border border-green-700' : 'bg-red-950/30 border border-red-900'}`}>
@@ -344,7 +363,7 @@ export function CombatCalculator({ onClose }: Props) {
                   <div key={i} className="flex items-center gap-2 text-xs">
                     <span className="text-slate-500 w-14 shrink-0">Round {i + 1}:</span>
                     <span className="text-amber-600">{t('combat.die')} {r.randomNumber}</span>
-                    <span className="text-red-400">-{r.playerLoss} PE</span>
+                    <span className="text-red-400">{r.playerKilled ? t('combat.instantKill') : `-${r.playerLoss} PE`}</span>
                     <span className="text-green-400">{r.enemyKilled ? t('combat.killed') : `-${r.enemyLoss} PE ${t('combat.enemy')}`}</span>
                   </div>
                 ))}
@@ -353,7 +372,7 @@ export function CombatCalculator({ onClose }: Props) {
                 const totalPlayerLoss = simulationRounds.reduce((s, r) => s + r.playerLoss, 0)
                 const lastRoundData = simulationRounds[simulationRounds.length - 1]
                 const enemyDead = lastRoundData.enemyKilled || simulationRounds.reduce((s, r) => s + r.enemyLoss, 0) >= enemyCurrentEP
-                const playerDead = totalPlayerLoss >= character.endurance.current
+                const playerDead = simulationRounds.some(r => r.playerKilled) || totalPlayerLoss >= character.endurance.current
                 return (
                   <div className={`text-sm font-medium text-center py-2 rounded-lg ${
                     enemyDead && !playerDead ? 'text-green-400 bg-green-950/40' :
