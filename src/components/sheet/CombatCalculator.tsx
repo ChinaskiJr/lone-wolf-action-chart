@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { X, Dices, Swords, SkipForward, Footprints, HeartPulse, Crosshair, Flame } from 'lucide-react'
 import { useCharacterStore } from '@/store/characterStore'
-import { getTotalCS, hasDisciplineForModifier, getEffectiveModifier, getBowBonus, canIgnite } from '@/utils/character'
+import { getTotalCS, getTotalEPMax, hasDisciplineForModifier, getEffectiveModifier, getBowBonus, canIgnite } from '@/utils/character'
 import { DeathModal } from './DeathModal'
 import { resolveCombatRound, simulateCombat, type CombatRound } from '@/utils/combat'
 import { rollD10 } from '@/utils/rng'
@@ -162,10 +162,11 @@ export function CombatCalculator({ onClose }: Props) {
     enemyEPPercent > 0.33 ? 'bg-orange-500' :
     'bg-red-500'
 
-  const playerEPPercent = character.endurance.max > 0 ? character.endurance.current / character.endurance.max : 0
+  const maxPlayerEP = getTotalEPMax(character)
+  const playerEPPercent = maxPlayerEP > 0 ? character.endurance.current / maxPlayerEP : 0
   const playerBarColor =
-    playerEPPercent > 0.66 ? 'bg-green-500' :
-    playerEPPercent > 0.33 ? 'bg-orange-500' :
+    playerEPPercent > 0.5 ? 'bg-green-500' :
+    playerEPPercent > 0.25 ? 'bg-yellow-500' :
     'bg-red-500'
 
   return (
@@ -424,7 +425,7 @@ export function CombatCalculator({ onClose }: Props) {
             <div className="flex items-center justify-between">
               <span className="text-sm text-slate-400">{t('combat.yourEP')}</span>
               <span className="text-sm font-bold text-slate-200">
-                {character.endurance.current} <span className="text-slate-500 font-normal">/ {character.endurance.max}</span>
+                {character.endurance.current} <span className="text-slate-500 font-normal">/ {maxPlayerEP}</span>
               </span>
             </div>
             <div className="h-2 rounded-full bg-slate-700 overflow-hidden">
