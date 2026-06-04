@@ -103,6 +103,12 @@ export function CombatCalculator({ onClose }: Props) {
     enemyEPPercent > 0.33 ? 'bg-orange-500' :
     'bg-red-500'
 
+  const playerEPPercent = character.endurance.max > 0 ? character.endurance.current / character.endurance.max : 0
+  const playerBarColor =
+    playerEPPercent > 0.66 ? 'bg-green-500' :
+    playerEPPercent > 0.33 ? 'bg-orange-500' :
+    'bg-red-500'
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <div className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl">
@@ -271,6 +277,22 @@ export function CombatCalculator({ onClose }: Props) {
             </button>
           </div>
 
+          {/* Player EP bar */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-400">{t('combat.yourEP')}</span>
+              <span className="text-sm font-bold text-slate-200">
+                {character.endurance.current} <span className="text-slate-500 font-normal">/ {character.endurance.max}</span>
+              </span>
+            </div>
+            <div className="h-2 rounded-full bg-slate-700 overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-300 ${playerBarColor}`}
+                style={{ width: `${Math.max(0, Math.min(100, playerEPPercent * 100))}%` }}
+              />
+            </div>
+          </div>
+
           {/* Single round result */}
           {lastRound && !showSim && (
             <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
@@ -345,11 +367,6 @@ export function CombatCalculator({ onClose }: Props) {
             </div>
           )}
 
-          {/* Current EP summary */}
-          <div className="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-800">
-            <span>{t('combat.yourEP')}: <span className="text-slate-300 font-medium">{character.endurance.current}</span></span>
-            <span>{t('combat.enemyEPShort')}: <span className="text-slate-300 font-medium">{enemyCurrentEP}</span></span>
-          </div>
         </div>
       </div>
     </div>
