@@ -12,30 +12,33 @@ interface RankInfo {
   en: string
 }
 
+// Official Kai numbering: rank position = number of Disciplines mastered (1-10).
+// A starting Kai has 5 Disciplines (Initiate).
 export const KAI_RANKS: RankInfo[] = [
-  { rank: 'novice',    minDisciplines: 0, fr: 'Postulant',  en: 'Novice' },
-  { rank: 'intuite',   minDisciplines: 1, fr: 'Novice',     en: 'Intuite' },
-  { rank: 'doan',      minDisciplines: 2, fr: 'Apprenti',   en: 'Doan' },
-  { rank: 'acolyte',   minDisciplines: 3, fr: 'Disciple',   en: 'Acolyte' },
-  { rank: 'initiate',  minDisciplines: 4, fr: 'Initié',     en: 'Initiate' },
-  { rank: 'aspirant',  minDisciplines: 5, fr: 'Aspirant',   en: 'Aspirant' },
-  { rank: 'guardian',  minDisciplines: 6, fr: 'Gardien',    en: 'Guardian' },
-  { rank: 'warman',    minDisciplines: 7, fr: 'Guerrier',   en: 'Warman' },
-  { rank: 'savant',    minDisciplines: 8, fr: 'Savant',     en: 'Savant' },
-  { rank: 'master',    minDisciplines: 9, fr: 'Maître',     en: 'Master' },
+  { rank: 'novice',    minDisciplines: 1,  fr: 'Postulant',  en: 'Novice' },
+  { rank: 'intuite',   minDisciplines: 2,  fr: 'Novice',     en: 'Intuite' },
+  { rank: 'doan',      minDisciplines: 3,  fr: 'Apprenti',   en: 'Doan' },
+  { rank: 'acolyte',   minDisciplines: 4,  fr: 'Disciple',   en: 'Acolyte' },
+  { rank: 'initiate',  minDisciplines: 5,  fr: 'Initié',     en: 'Initiate' },
+  { rank: 'aspirant',  minDisciplines: 6,  fr: 'Aspirant',   en: 'Aspirant' },
+  { rank: 'guardian',  minDisciplines: 7,  fr: 'Gardien',    en: 'Guardian' },
+  { rank: 'warman',    minDisciplines: 8,  fr: 'Guerrier',   en: 'Warman' },
+  { rank: 'savant',    minDisciplines: 9,  fr: 'Savant',     en: 'Savant' },
+  { rank: 'master',    minDisciplines: 10, fr: 'Maître',     en: 'Master' },
 ]
 
-// 10 Magnakaï disciplines → 10 ranks, 1 per discipline mastered
+// Official Magnakai numbering: rank position = number of Disciplines mastered (1-10).
+// A starting Magnakai has 3 Disciplines (Kai Master Superior).
 export const MAGNAKAI_RANKS: RankInfo[] = [
-  { rank: 'kaiMaster',        minDisciplines: 0,  fr: 'Maître Kaï',                        en: 'Kai Master' },
-  { rank: 'kaiMasterSenior',  minDisciplines: 1,  fr: "Maître Kaï d'ordre intermédiaire",  en: 'Kai Master Senior' },
-  { rank: 'kaiMasterSuperior',minDisciplines: 2,  fr: "Maître Kaï d'ordre supérieur",      en: 'Kai Master Superior' },
-  { rank: 'primate',          minDisciplines: 3,  fr: 'Maître primat',                     en: 'Primate' },
-  { rank: 'tutelary',         minDisciplines: 4,  fr: 'Maître tutélaire',                  en: 'Tutelary' },
-  { rank: 'principalin',      minDisciplines: 5,  fr: 'Maître principal',                  en: 'Principalin' },
-  { rank: 'mentora',          minDisciplines: 6,  fr: 'Maître mentor',                     en: 'Mentora' },
-  { rank: 'scionMaster',      minDisciplines: 7,  fr: 'Maître éminent',                    en: 'Scion-Master' },
-  { rank: 'archmaster',       minDisciplines: 8,  fr: 'Maître transcendant',               en: 'Archmaster' },
+  { rank: 'kaiMaster',        minDisciplines: 1,  fr: 'Maître Kaï',                        en: 'Kai Master' },
+  { rank: 'kaiMasterSenior',  minDisciplines: 2,  fr: "Maître Kaï d'ordre intermédiaire",  en: 'Kai Master Senior' },
+  { rank: 'kaiMasterSuperior',minDisciplines: 3,  fr: "Maître Kaï d'ordre supérieur",      en: 'Kai Master Superior' },
+  { rank: 'primate',          minDisciplines: 4,  fr: 'Maître primat',                     en: 'Primate' },
+  { rank: 'tutelary',         minDisciplines: 5,  fr: 'Maître tutélaire',                  en: 'Tutelary' },
+  { rank: 'principalin',      minDisciplines: 6,  fr: 'Maître principal',                  en: 'Principalin' },
+  { rank: 'mentora',          minDisciplines: 7,  fr: 'Maître mentor',                     en: 'Mentora' },
+  { rank: 'scionMaster',      minDisciplines: 8,  fr: 'Maître éminent',                    en: 'Scion-Master' },
+  { rank: 'archmaster',       minDisciplines: 9,  fr: 'Maître transcendant',               en: 'Archmaster' },
   { rank: 'grandMasterKai',   minDisciplines: 10, fr: 'Grand maître Kaï',                  en: 'Grand Master' },
 ]
 

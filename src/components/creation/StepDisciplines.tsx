@@ -13,7 +13,7 @@ import type { DisciplineData } from '@/types/game'
 
 const MAX_DISCIPLINES: Record<string, number> = {
   kai: 5,
-  magnakai: 5,
+  magnakai: 3,
   grandmaster: 4,
   neworder: 5,
 }

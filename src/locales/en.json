@@ -149,7 +149,11 @@
     "escaped": "You escaped",
     "enemyLossIgnored": "ignored (evading)",
     "deliverance": "Deliverance (+20 EP)",
-    "deliveranceUsed": "Deliverance used"
+    "deliveranceUsed": "Deliverance used",
+    "bow": "Ranged (bow/thrown)",
+    "bowEffectiveRoll": "Ranged +{{n}}",
+    "ignite": "Burning blade",
+    "surgeLocked": "EP too low"
   },
   "transition": {
     "title": "Cycle Transition",

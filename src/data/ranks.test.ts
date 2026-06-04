@@ -1,22 +1,23 @@
 import { describe, it, expect } from 'vitest'
 import { computeKaiRank, computeMagnakaiRank, computeGrandMasterRank, computeNewOrderRank } from './ranks'
 
+// Official Kai numbering: rank position = discipline count (1-10).
 describe('computeKaiRank', () => {
-  it('0 disciplines → novice', () => expect(computeKaiRank(0)).toBe('novice'))
-  it('1 discipline → intuite', () => expect(computeKaiRank(1)).toBe('intuite'))
-  it('5 disciplines → aspirant', () => expect(computeKaiRank(5)).toBe('aspirant'))
-  it('8 disciplines → savant', () => expect(computeKaiRank(8)).toBe('savant'))
-  it('9 disciplines → master', () => expect(computeKaiRank(9)).toBe('master'))
-  it('10 disciplines → master (past max)', () => expect(computeKaiRank(10)).toBe('master'))
+  it('0 disciplines → novice (fallback)', () => expect(computeKaiRank(0)).toBe('novice'))
+  it('1 discipline → novice', () => expect(computeKaiRank(1)).toBe('novice'))
+  it('2 disciplines → intuite', () => expect(computeKaiRank(2)).toBe('intuite'))
+  it('5 disciplines → initiate', () => expect(computeKaiRank(5)).toBe('initiate'))
+  it('9 disciplines → savant', () => expect(computeKaiRank(9)).toBe('savant'))
+  it('10 disciplines → master', () => expect(computeKaiRank(10)).toBe('master'))
 })
 
+// Official Magnakai numbering: rank position = discipline count (1-10).
 describe('computeMagnakaiRank', () => {
-  it('0 disciplines → kaiMaster', () => expect(computeMagnakaiRank(0)).toBe('kaiMaster'))
-  it('3 disciplines → primate', () => expect(computeMagnakaiRank(3)).toBe('primate'))
-  it('5 disciplines → principalin', () => expect(computeMagnakaiRank(5)).toBe('principalin'))
-  // minDisciplines jumps from 8 to 10 — 9 stays at archmaster
-  it('8 disciplines → archmaster', () => expect(computeMagnakaiRank(8)).toBe('archmaster'))
-  it('9 disciplines → archmaster (gap before grandMasterKai)', () => expect(computeMagnakaiRank(9)).toBe('archmaster'))
+  it('0 disciplines → kaiMaster (fallback)', () => expect(computeMagnakaiRank(0)).toBe('kaiMaster'))
+  it('3 disciplines → kaiMasterSuperior', () => expect(computeMagnakaiRank(3)).toBe('kaiMasterSuperior'))
+  it('5 disciplines → tutelary', () => expect(computeMagnakaiRank(5)).toBe('tutelary'))
+  it('8 disciplines → scionMaster', () => expect(computeMagnakaiRank(8)).toBe('scionMaster'))
+  it('9 disciplines → archmaster', () => expect(computeMagnakaiRank(9)).toBe('archmaster'))
   it('10 disciplines → grandMasterKai', () => expect(computeMagnakaiRank(10)).toBe('grandMasterKai'))
 })
 

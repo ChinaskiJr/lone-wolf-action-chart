@@ -21,7 +21,7 @@ import { CARRY_OVER_SPECIAL_ITEMS } from '@/data/carryOverItems'
 import type { DisciplineData } from '@/types/game'
 
 const MAX_DISCIPLINES: Record<string, number> = {
-  magnakai: 5,
+  magnakai: 3,
   grandmaster: 4,
   neworder: 5,
 }

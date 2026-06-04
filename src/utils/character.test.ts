@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { getTotalCS, getTotalEPMax, computeRank, filterCarryOverItems, getEffectiveModifier, hasDisciplineForModifier } from './character'
+import { getTotalCS, getTotalEPMax, computeRank, filterCarryOverItems, getEffectiveModifier, hasDisciplineForModifier, getBowBonus, canIgnite } from './character'
 import { makeKaiChar, makeMagnakaiChar, makeGrandMasterChar, makeNewOrderChar } from '@/test/fixtures'
 import { COMBAT_MODIFIERS } from '@/data/combatModifiers'
 import type { SpecialItem } from '@/types/game'
 
 const WEAPONMASTERY = COMBAT_MODIFIERS.find(m => m.id === 'weaponmastery_3')!
 const PSI_SURGE_STRONG = COMBAT_MODIFIERS.find(m => m.id === 'psiSurge_4')!
+const KAI_SURGE_STRONG = COMBAT_MODIFIERS.find(m => m.id === 'kaiSurge_8')!
 const UNARMED = COMBAT_MODIFIERS.find(m => m.id === 'unarmed_4')!
 
 function makeItem(overrides: Partial<SpecialItem> = {}): SpecialItem {
@@ -147,14 +148,14 @@ describe('getTotalEPMax', () => {
 })
 
 describe('computeRank', () => {
-  it('returns correct kai rank', () => {
+  it('returns correct kai rank (official numbering: 5 disciplines = Initiate)', () => {
     const char = makeKaiChar({ disciplines: ['a', 'b', 'c', 'd', 'e'] as any })
-    expect(computeRank(char)).toBe('aspirant')
+    expect(computeRank(char)).toBe('initiate')
   })
 
-  it('returns correct magnakai rank', () => {
+  it('returns correct magnakai rank (official numbering: 3 disciplines = Kai Master Superior)', () => {
     const char = makeMagnakaiChar({ disciplines: ['a', 'b', 'c'] as any })
-    expect(computeRank(char)).toBe('primate')
+    expect(computeRank(char)).toBe('kaiMasterSuperior')
   })
 
   it('returns correct grandmaster rank', () => {
@@ -169,32 +170,54 @@ describe('computeRank', () => {
 })
 
 describe('getEffectiveModifier', () => {
-  it('weaponmastery is +3 below Scion-Master (6 disciplines)', () => {
-    const char = makeMagnakaiChar({ disciplines: Array(6).fill('weaponmastery') as any })
+  it('weaponmastery is +3 below Scion-kai (7 disciplines)', () => {
+    const char = makeMagnakaiChar({ disciplines: Array(7).fill('weaponmastery') as any })
     expect(getEffectiveModifier(char, WEAPONMASTERY).hcBonus).toBe(3)
   })
 
-  it('weaponmastery upgrades to +4 at Scion-Master (7 disciplines)', () => {
-    const char = makeMagnakaiChar({ disciplines: Array(7).fill('weaponmastery') as any })
+  it('weaponmastery upgrades to +4 at Scion-kai (8 disciplines)', () => {
+    const char = makeMagnakaiChar({ disciplines: Array(8).fill('weaponmastery') as any })
     expect(getEffectiveModifier(char, WEAPONMASTERY).hcBonus).toBe(4)
   })
 
-  it('strong psi-surge is +4 / -2 EP below Archmaster (7 disciplines)', () => {
-    const char = makeMagnakaiChar({ disciplines: Array(7).fill('psiSurge') as any })
+  it('strong psi-surge is +4 / -2 EP, locked at EP<=6 (minEP 7) below Archmaster (8 disciplines)', () => {
+    const char = makeMagnakaiChar({ disciplines: Array(8).fill('psiSurge') as any })
     const eff = getEffectiveModifier(char, PSI_SURGE_STRONG)
     expect(eff.hcBonus).toBe(4)
     expect(eff.epCostPerRound).toBe(2)
+    expect(eff.minEP).toBe(7)
   })
 
-  it('strong psi-surge upgrades to +6 / -1 EP at Archmaster (8 disciplines)', () => {
-    const char = makeMagnakaiChar({ disciplines: Array(8).fill('psiSurge') as any })
+  it('strong psi-surge upgrades to +6 / -1 EP, minEP 5 at Archmaster (9 disciplines)', () => {
+    const char = makeMagnakaiChar({ disciplines: Array(9).fill('psiSurge') as any })
     const eff = getEffectiveModifier(char, PSI_SURGE_STRONG)
     expect(eff.hcBonus).toBe(6)
     expect(eff.epCostPerRound).toBe(1)
+    expect(eff.minEP).toBe(5)
+  })
+
+  it('strong kai-surge requires minEP 7', () => {
+    const char = makeGrandMasterChar({ disciplines: ['kaiSurge'] as any })
+    expect(getEffectiveModifier(char, KAI_SURGE_STRONG).minEP).toBe(7)
   })
 
   it('unarmed is -4 by default', () => {
     expect(getEffectiveModifier(makeKaiChar(), UNARMED).hcBonus).toBe(-4)
+  })
+
+  it('magnakai unarmed becomes -2 at Tutelary (5 disc) with Weaponmastery', () => {
+    const char = makeMagnakaiChar({ disciplines: ['weaponmastery', 'a', 'b', 'c', 'd'] as any })
+    expect(getEffectiveModifier(char, UNARMED).hcBonus).toBe(-2)
+  })
+
+  it('magnakai unarmed becomes -1 at Scion-kai (8 disc) with Weaponmastery', () => {
+    const char = makeMagnakaiChar({ disciplines: ['weaponmastery', ...Array(7).fill('x')] as any })
+    expect(getEffectiveModifier(char, UNARMED).hcBonus).toBe(-1)
+  })
+
+  it('magnakai unarmed stays -4 without Weaponmastery', () => {
+    const char = makeMagnakaiChar({ disciplines: Array(8).fill('x') as any })
+    expect(getEffectiveModifier(char, UNARMED).hcBonus).toBe(-4)
   })
 
   it('unarmed becomes +3 at Grand Crown with Grand Weaponmastery (10 disciplines)', () => {
@@ -203,15 +226,49 @@ describe('getEffectiveModifier', () => {
     expect(getEffectiveModifier(char, UNARMED).hcBonus).toBe(3)
   })
 
-  it('unarmed stays -4 at Grand Crown without Grand Weaponmastery', () => {
-    const char = makeGrandMasterChar({ disciplines: Array(10).fill('x') as any })
-    expect(getEffectiveModifier(char, UNARMED).hcBonus).toBe(-4)
-  })
-
   it('unarmed stays -4 with Grand Weaponmastery below Grand Crown (9 disciplines)', () => {
     const disciplines = ['grandWeaponmastery', ...Array(8).fill('x')] as any
     const char = makeGrandMasterChar({ disciplines })
     expect(getEffectiveModifier(char, UNARMED).hcBonus).toBe(-4)
+  })
+})
+
+describe('getBowBonus', () => {
+  it('magnakai Mentora (7 disc) with Weaponmastery gives +2', () => {
+    const char = makeMagnakaiChar({ disciplines: ['weaponmastery', ...Array(6).fill('x')] as any })
+    expect(getBowBonus(char)).toBe(2)
+  })
+
+  it('magnakai below Mentora (6 disc) gives 0', () => {
+    const char = makeMagnakaiChar({ disciplines: ['weaponmastery', ...Array(5).fill('x')] as any })
+    expect(getBowBonus(char)).toBe(0)
+  })
+
+  it('grandmaster with Grand Weaponmastery gives +3', () => {
+    const char = makeGrandMasterChar({ disciplines: ['grandWeaponmastery'] as any })
+    expect(getBowBonus(char)).toBe(3)
+  })
+
+  it('gives 0 without the relevant discipline', () => {
+    expect(getBowBonus(makeKaiChar())).toBe(0)
+    expect(getBowBonus(makeGrandMasterChar({ disciplines: ['x'] as any }))).toBe(0)
+  })
+})
+
+describe('canIgnite', () => {
+  it('grandmaster Sun Lord (7 disc) with Grand Weaponmastery can ignite', () => {
+    const char = makeGrandMasterChar({ disciplines: ['grandWeaponmastery', ...Array(6).fill('x')] as any })
+    expect(canIgnite(char)).toBe(true)
+  })
+
+  it('cannot ignite below Sun Lord (6 disc)', () => {
+    const char = makeGrandMasterChar({ disciplines: ['grandWeaponmastery', ...Array(5).fill('x')] as any })
+    expect(canIgnite(char)).toBe(false)
+  })
+
+  it('cannot ignite without Grand Weaponmastery', () => {
+    const char = makeGrandMasterChar({ disciplines: Array(7).fill('x') as any })
+    expect(canIgnite(char)).toBe(false)
   })
 })
 

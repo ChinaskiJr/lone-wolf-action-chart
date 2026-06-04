@@ -63,25 +63,46 @@ export function hasDisciplineForModifier(char: Character, modifier: CombatModifi
   }
 }
 
-// Rank-based scaling of combat modifiers (rank derives from discipline count).
-// Returns the effective HC bonus and per-round EP cost for the given modifier.
+// Rank-based scaling of combat modifiers (rank position = discipline count).
+// Returns the effective HC bonus, per-round EP cost, and the minimum current EP
+// required to use the modifier (surge lockout); minEP 0 means no restriction.
 export function getEffectiveModifier(
   char: Character,
   mod: CombatModifier
-): { hcBonus: number; epCostPerRound: number } {
+): { hcBonus: number; epCostPerRound: number; minEP: number } {
   let hcBonus = mod.hcBonus
   let epCostPerRound = mod.epCostPerRound ?? 0
+  let minEP = 0
 
   if (char.cycle === 'magnakai') {
     const count = char.disciplines.length
-    // Scion-Master (7 disciplines mastered): Weaponmastery +3 -> +4
-    if (mod.disciplineKey === 'weaponmastery' && count >= 7) hcBonus = 4
-    // Archmaster (8 disciplines): strong Psi-surge +4/-2 PE -> +6/-1 PE
-    if (mod.id === 'psiSurge_4' && count >= 8) {
-      hcBonus = 6
-      epCostPerRound = 1
+    const hasWeaponmastery = char.disciplines.includes('weaponmastery' as MagnakaiDiscipline)
+
+    // Scion-kai (8 disciplines): Weaponmastery +3 -> +4
+    if (mod.disciplineKey === 'weaponmastery' && count >= 8) hcBonus = 4
+
+    // Strong Psi-surge: +4/-2 EP, unusable at EP <= 6 (need >= 7).
+    // Archmaster (9): +6/-1 EP, unusable at EP <= 4 (need >= 5).
+    if (mod.id === 'psiSurge_4') {
+      if (count >= 9) {
+        hcBonus = 6
+        epCostPerRound = 1
+        minEP = 5
+      } else {
+        minEP = 7
+      }
+    }
+
+    // Unarmed scaling (requires the Weaponmastery Discipline):
+    // Tutelary (5) -> -2, Scion-kai (8) -> -1.
+    if (mod.id === 'unarmed_4' && hasWeaponmastery) {
+      if (count >= 8) hcBonus = -1
+      else if (count >= 5) hcBonus = -2
     }
   }
+
+  // Strong Kai-surge: unusable at EP <= 6 (need >= 7).
+  if (mod.id === 'kaiSurge_8') minEP = 7
 
   // Grand Crown (10 disciplines) with Grand Weaponmastery:
   // unarmed combat grants +3 HC instead of the -4 penalty.
@@ -94,7 +115,31 @@ export function getEffectiveModifier(
     hcBonus = 3
   }
 
-  return { hcBonus, epCostPerRound }
+  return { hcBonus, epCostPerRound, minEP }
+}
+
+// Ranged (Bow / thrown weapon) bonus added to the picked Random Number.
+// Magnakai Mentora (7) with Weaponmastery: +2. Grand Master / New Order with
+// Grand Weaponmastery: +3. (The +5 ex-Mentora case is not tracked in-app.)
+export function getBowBonus(char: Character): number {
+  if (char.cycle === 'magnakai') {
+    if (char.disciplines.length >= 7 && char.disciplines.includes('weaponmastery' as MagnakaiDiscipline)) return 2
+  }
+  if (char.cycle === 'grandmaster' && char.disciplines.includes('grandWeaponmastery' as GrandMasterDiscipline)) return 3
+  if (char.cycle === 'neworder' && char.disciplines.includes('grandWeaponmastery' as NewOrderDiscipline)) return 3
+  return 0
+}
+
+// Sun Lord (7) with Grand Weaponmastery: a burning blade inflicts +1 extra
+// ENDURANCE loss on the enemy in every successful round.
+export function canIgnite(char: Character): boolean {
+  if (char.cycle === 'grandmaster') {
+    return char.disciplines.length >= 7 && char.disciplines.includes('grandWeaponmastery' as GrandMasterDiscipline)
+  }
+  if (char.cycle === 'neworder') {
+    return char.disciplines.length >= 7 && char.disciplines.includes('grandWeaponmastery' as NewOrderDiscipline)
+  }
+  return false
 }
 
 export function getItemsCSBonus(char: Character): number {
@@ -147,7 +192,7 @@ export function createNewMagnakaiCharacter(fromKai?: KaiCharacter): MagnakaiChar
     return {
       ...fromKai,
       cycle: 'magnakai',
-      rank: 'kaiMaster',
+      rank: 'kaiMasterSuperior',
       kaiDisciplines: fromKai.disciplines,
       kaiWeaponskillWeapon: fromKai.weaponskillWeapon,
       disciplines: [],
@@ -168,7 +213,7 @@ export function createNewMagnakaiCharacter(fromKai?: KaiCharacter): MagnakaiChar
     booksCompleted: [],
     combatSkill: { base: cs, bonus: 0 },
     endurance: { current: ep, max: ep },
-    rank: 'kaiMaster',
+    rank: 'kaiMasterSuperior',
     kaiDisciplines: [],
     kaiWeaponskillWeapon: '',
     disciplines: [],

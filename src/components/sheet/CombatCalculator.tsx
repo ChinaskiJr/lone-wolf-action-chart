@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { X, Dices, Swords, SkipForward, Footprints, HeartPulse } from 'lucide-react'
+import { X, Dices, Swords, SkipForward, Footprints, HeartPulse, Crosshair, Flame } from 'lucide-react'
 import { useCharacterStore } from '@/store/characterStore'
-import { getTotalCS, hasDisciplineForModifier, getEffectiveModifier } from '@/utils/character'
+import { getTotalCS, hasDisciplineForModifier, getEffectiveModifier, getBowBonus, canIgnite } from '@/utils/character'
 import { DeathModal } from './DeathModal'
 import { resolveCombatRound, simulateCombat, type CombatRound } from '@/utils/combat'
 import { rollD10 } from '@/utils/rng'
@@ -31,14 +31,31 @@ export function CombatCalculator({ onClose }: Props) {
   const [evading, setEvading] = useState(false)
   const [activeModifiers, setActiveModifiers] = useState<Set<string>>(new Set())
   const [situationalMod, setSituationalMod] = useState(0)
+  const [bowActive, setBowActive] = useState(false)
+  const [igniteActive, setIgniteActive] = useState(false)
 
   const visibleModifiers = COMBAT_MODIFIERS.filter(m => m.visibleFor.includes(character.cycle))
 
-  const disciplineBonusHC = Array.from(activeModifiers).reduce((sum, id) => {
+  // A surge modifier is locked when current EP is below its minimum.
+  function isLocked(mod: typeof COMBAT_MODIFIERS[number]): boolean {
+    const { minEP } = getEffectiveModifier(character!, mod)
+    return minEP > 0 && character!.endurance.current < minEP
+  }
+
+  // Only non-locked active modifiers contribute to HC / EP cost.
+  const effectiveActiveIds = Array.from(activeModifiers).filter(id => {
+    const mod = COMBAT_MODIFIERS.find(m => m.id === id)
+    return mod ? !isLocked(mod) : false
+  })
+
+  const disciplineBonusHC = effectiveActiveIds.reduce((sum, id) => {
     const mod = COMBAT_MODIFIERS.find(m => m.id === id)
     return sum + (mod ? getEffectiveModifier(character, mod).hcBonus : 0)
   }, 0)
   const playerCS = basePlayerCS + disciplineBonusHC + situationalMod
+
+  const bowBonus = getBowBonus(character)
+  const ignitePossible = canIgnite(character)
 
   const hasDeliverance = character.cycle === 'grandmaster' && character.disciplines.includes('deliverance')
   const deliveranceReady = hasDeliverance && character.deliveranceAvailable !== false && character.endurance.current <= 8
@@ -58,17 +75,21 @@ export function CombatCalculator({ onClose }: Props) {
     })
   }
 
-  function handleRoll() {
+  // Ranged attacks add the bow bonus to the picked number (clamped to 0-9).
+  function rollNumber() {
     const rn = rollD10()
-    const round = resolveCombatRound(playerCS, enemyCS, rn)
+    return bowActive && bowBonus > 0 ? Math.max(0, Math.min(9, rn + bowBonus)) : rn
+  }
+
+  function handleRoll() {
+    const round = resolveCombatRound(playerCS, enemyCS, rollNumber())
     setEvading(false)
     setLastRound(round)
     setShowSim(false)
   }
 
   function handleEvade() {
-    const rn = rollD10()
-    const round = resolveCombatRound(playerCS, enemyCS, rn)
+    const round = resolveCombatRound(playerCS, enemyCS, rollNumber())
     setEvading(true)
     setLastRound(round)
     setShowSim(false)
@@ -76,7 +97,7 @@ export function CombatCalculator({ onClose }: Props) {
 
   function handleApplyDamage() {
     if (!lastRound) return
-    const epCostModifiers = Array.from(activeModifiers).reduce((sum, id) => {
+    const epCostModifiers = effectiveActiveIds.reduce((sum, id) => {
       const mod = COMBAT_MODIFIERS.find(m => m.id === id)
       return sum + (mod ? getEffectiveModifier(character!, mod).epCostPerRound : 0)
     }, 0)
@@ -97,7 +118,9 @@ export function CombatCalculator({ onClose }: Props) {
       return
     }
 
-    const newEnemyEP = lastRound.enemyKilled ? 0 : Math.max(0, enemyCurrentEP - lastRound.enemyLoss)
+    // Burning blade (Sun Lord): +1 enemy EP loss on a successful, non-killing round.
+    const igniteBonus = igniteActive && ignitePossible && !lastRound.enemyKilled && lastRound.enemyLoss > 0 ? 1 : 0
+    const newEnemyEP = lastRound.enemyKilled ? 0 : Math.max(0, enemyCurrentEP - lastRound.enemyLoss - igniteBonus)
     setEnemyCurrentEP(newEnemyEP)
     setLastRound(null)
     if (lastRound.enemyKilled || newEnemyEP <= 0) {
@@ -118,6 +141,8 @@ export function CombatCalculator({ onClose }: Props) {
     setShowSim(false)
     setActiveModifiers(new Set())
     setSituationalMod(0)
+    setBowActive(false)
+    setIgniteActive(false)
   }
 
   function handleSimulate() {
@@ -263,23 +288,27 @@ export function CombatCalculator({ onClose }: Props) {
             <div className="flex flex-col gap-1.5">
               {visibleModifiers.map(mod => {
                 const owned = hasDisciplineForModifier(character, mod)
-                const active = activeModifiers.has(mod.id)
                 const eff = getEffectiveModifier(character, mod)
+                const locked = isLocked(mod)
+                const active = activeModifiers.has(mod.id) && !locked
+                const usable = owned && !locked
                 const label = lang === 'fr' ? mod.labelFr : mod.labelEn
-                const condition = eff.epCostPerRound > 0
-                  ? (lang === 'fr' ? `−${eff.epCostPerRound} PE/round` : `−${eff.epCostPerRound} EP/round`)
-                  : (lang === 'fr' ? mod.conditionFr : mod.conditionEn)
+                const condition = locked
+                  ? t('combat.surgeLocked')
+                  : eff.epCostPerRound > 0
+                    ? (lang === 'fr' ? `−${eff.epCostPerRound} PE/round` : `−${eff.epCostPerRound} EP/round`)
+                    : (lang === 'fr' ? mod.conditionFr : mod.conditionEn)
                 return (
                   <label
                     key={mod.id}
                     className={`flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 transition-colors ${
-                      owned ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'
+                      usable ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'
                     } ${active ? 'bg-amber-900/20 border border-amber-800/40' : 'border border-transparent'}`}
                   >
                     <input
                       type="checkbox"
                       checked={active}
-                      disabled={!owned}
+                      disabled={!usable}
                       onChange={() => toggleModifier(mod.id)}
                       className="accent-amber-500 w-3.5 h-3.5 shrink-0"
                     />
@@ -291,7 +320,7 @@ export function CombatCalculator({ onClose }: Props) {
                         </span>
                       </div>
                       {condition && (
-                        <div className={`text-xs mt-0.5 ${active ? 'text-amber-600/80' : 'text-slate-600'}`}>{condition}</div>
+                        <div className={`text-xs mt-0.5 ${locked ? 'text-red-400/80' : active ? 'text-amber-600/80' : 'text-slate-600'}`}>{condition}</div>
                       )}
                     </div>
                   </label>
@@ -299,6 +328,36 @@ export function CombatCalculator({ onClose }: Props) {
               })}
             </div>
           </div>
+
+          {/* Ranged & burning blade toggles */}
+          {(bowBonus > 0 || ignitePossible) && (
+            <div className="flex flex-wrap gap-2">
+              {bowBonus > 0 && (
+                <button
+                  onClick={() => setBowActive(v => !v)}
+                  aria-pressed={bowActive}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                    bowActive ? 'border-amber-700 bg-amber-900/30 text-amber-200' : 'border-slate-700 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <Crosshair size={13} />
+                  {t('combat.bow')} <span className="font-semibold">+{bowBonus}</span>
+                </button>
+              )}
+              {ignitePossible && (
+                <button
+                  onClick={() => setIgniteActive(v => !v)}
+                  aria-pressed={igniteActive}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                    igniteActive ? 'border-orange-700 bg-orange-900/30 text-orange-200' : 'border-slate-700 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <Flame size={13} />
+                  {t('combat.ignite')}
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Enemy EP */}
           <div className="flex flex-col gap-1.5">
@@ -399,7 +458,12 @@ export function CombatCalculator({ onClose }: Props) {
             <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm text-slate-400">{t('combat.randomNumber')}:</span>
-                <span className="text-xl font-bold text-amber-300">{lastRound.randomNumber}</span>
+                <span className="flex items-center gap-2">
+                  {bowActive && bowBonus > 0 && (
+                    <span className="text-xs text-amber-500/80">{t('combat.bowEffectiveRoll', { n: bowBonus })}</span>
+                  )}
+                  <span className="text-xl font-bold text-amber-300">{lastRound.randomNumber}</span>
+                </span>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className={`text-center rounded-lg p-3 ${lastRound.playerLoss > 0 || lastRound.playerKilled ? 'bg-red-950/40 border border-red-900' : 'bg-green-950/30 border border-green-900'}`}>
@@ -424,16 +488,22 @@ export function CombatCalculator({ onClose }: Props) {
                 ) : (
                   <div className={`text-center rounded-lg p-3 ${lastRound.enemyKilled ? 'bg-green-950/40 border border-green-700' : 'bg-red-950/30 border border-red-900'}`}>
                     <div className="text-xs text-slate-400 mb-1">{t('combat.enemyLoss')}</div>
-                    {lastRound.enemyKilled ? (
-                      <div className="text-lg font-bold text-green-400">{t('combat.instantKill')}</div>
-                    ) : (
-                      <div className="text-2xl font-bold text-green-400">-{lastRound.enemyLoss}</div>
-                    )}
-                    {!lastRound.enemyKilled && (
-                      <div className="text-xs text-slate-500 mt-1">
-                        PE: {enemyCurrentEP} → {Math.max(0, enemyCurrentEP - lastRound.enemyLoss)}
-                      </div>
-                    )}
+                    {(() => {
+                      const ignite = igniteActive && ignitePossible && !lastRound.enemyKilled && lastRound.enemyLoss > 0 ? 1 : 0
+                      return lastRound.enemyKilled ? (
+                        <div className="text-lg font-bold text-green-400">{t('combat.instantKill')}</div>
+                      ) : (
+                        <>
+                          <div className="text-2xl font-bold text-green-400">
+                            -{lastRound.enemyLoss + ignite}
+                            {ignite > 0 && <span className="text-xs text-orange-400 ml-1">({t('combat.ignite')} +1)</span>}
+                          </div>
+                          <div className="text-xs text-slate-500 mt-1">
+                            PE: {enemyCurrentEP} → {Math.max(0, enemyCurrentEP - lastRound.enemyLoss - ignite)}
+                          </div>
+                        </>
+                      )
+                    })()}
                   </div>
                 )}
               </div>

@@ -149,7 +149,11 @@
     "escaped": "Vous avez fui",
     "enemyLossIgnored": "ignoré (fuite)",
     "deliverance": "Délivrance (+20 PE)",
-    "deliveranceUsed": "Délivrance utilisée"
+    "deliveranceUsed": "Délivrance utilisée",
+    "bow": "Tir (arc/jet)",
+    "bowEffectiveRoll": "Tir +{{n}}",
+    "ignite": "Lames enflammées",
+    "surgeLocked": "PE trop bas"
   },
   "transition": {
     "title": "Transition de Cycle",
