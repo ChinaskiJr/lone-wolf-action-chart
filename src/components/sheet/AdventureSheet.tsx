@@ -66,6 +66,7 @@ export function AdventureSheet() {
     } else {
       const nextBook = character!.currentBook + 1
       setCurrentBook(nextBook)
+      setEnduranceCurrent(getTotalEPMax(character!))
       save()
     }
   }
