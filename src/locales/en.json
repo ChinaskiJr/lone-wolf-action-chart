@@ -153,7 +153,9 @@
     "bow": "Ranged (bow/thrown)",
     "bowEffectiveRoll": "Ranged +{{n}}",
     "ignite": "Burning blade",
-    "surgeLocked": "EP too low"
+    "surgeLocked": "EP too low",
+    "dmgX2": "×2 damage",
+    "dmgHalf": "÷2 damage"
   },
   "transition": {
     "title": "Cycle Transition",

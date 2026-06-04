@@ -33,6 +33,7 @@ export function CombatCalculator({ onClose }: Props) {
   const [situationalMod, setSituationalMod] = useState(0)
   const [bowActive, setBowActive] = useState(false)
   const [igniteActive, setIgniteActive] = useState(false)
+  const [enemyDmgMult, setEnemyDmgMult] = useState<'x2' | 'half' | null>(null)
 
   const visibleModifiers = COMBAT_MODIFIERS.filter(m => m.visibleFor.includes(character.cycle))
 
@@ -118,9 +119,8 @@ export function CombatCalculator({ onClose }: Props) {
       return
     }
 
-    // Burning blade (Sun Lord): +1 enemy EP loss on a successful, non-killing round.
-    const igniteBonus = igniteActive && ignitePossible && !lastRound.enemyKilled && lastRound.enemyLoss > 0 ? 1 : 0
-    const newEnemyEP = lastRound.enemyKilled ? 0 : Math.max(0, enemyCurrentEP - lastRound.enemyLoss - igniteBonus)
+    const finalEnemyLoss = computeEnemyLoss(lastRound)
+    const newEnemyEP = lastRound.enemyKilled ? 0 : Math.max(0, enemyCurrentEP - finalEnemyLoss)
     setEnemyCurrentEP(newEnemyEP)
     setLastRound(null)
     if (lastRound.enemyKilled || newEnemyEP <= 0) {
@@ -143,6 +143,7 @@ export function CombatCalculator({ onClose }: Props) {
     setSituationalMod(0)
     setBowActive(false)
     setIgniteActive(false)
+    setEnemyDmgMult(null)
   }
 
   function handleSimulate() {
@@ -150,6 +151,15 @@ export function CombatCalculator({ onClose }: Props) {
     setSimulationRounds(rounds)
     setShowSim(true)
     setLastRound(null)
+  }
+
+  function computeEnemyLoss(round: CombatRound): number {
+    if (round.enemyKilled) return 0
+    const ignite = igniteActive && ignitePossible && round.enemyLoss > 0 ? 1 : 0
+    const base = round.enemyLoss + ignite
+    if (enemyDmgMult === 'x2') return base * 2
+    if (enemyDmgMult === 'half') return Math.floor(base / 2)
+    return base
   }
 
   const ratio = playerCS - enemyCS
@@ -330,35 +340,51 @@ export function CombatCalculator({ onClose }: Props) {
             </div>
           </div>
 
-          {/* Ranged & burning blade toggles */}
-          {(bowBonus > 0 || ignitePossible) && (
-            <div className="flex flex-wrap gap-2">
-              {bowBonus > 0 && (
-                <button
-                  onClick={() => setBowActive(v => !v)}
-                  aria-pressed={bowActive}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
-                    bowActive ? 'border-amber-700 bg-amber-900/30 text-amber-200' : 'border-slate-700 text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  <Crosshair size={13} />
-                  {t('combat.bow')} <span className="font-semibold">+{bowBonus}</span>
-                </button>
-              )}
-              {ignitePossible && (
-                <button
-                  onClick={() => setIgniteActive(v => !v)}
-                  aria-pressed={igniteActive}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
-                    igniteActive ? 'border-orange-700 bg-orange-900/30 text-orange-200' : 'border-slate-700 text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  <Flame size={13} />
-                  {t('combat.ignite')}
-                </button>
-              )}
-            </div>
-          )}
+          {/* Ranged, burning blade & damage modifier toggles */}
+          <div className="flex flex-wrap gap-2">
+            {bowBonus > 0 && (
+              <button
+                onClick={() => setBowActive(v => !v)}
+                aria-pressed={bowActive}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                  bowActive ? 'border-amber-700 bg-amber-900/30 text-amber-200' : 'border-slate-700 text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Crosshair size={13} />
+                {t('combat.bow')} <span className="font-semibold">+{bowBonus}</span>
+              </button>
+            )}
+            {ignitePossible && (
+              <button
+                onClick={() => setIgniteActive(v => !v)}
+                aria-pressed={igniteActive}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                  igniteActive ? 'border-orange-700 bg-orange-900/30 text-orange-200' : 'border-slate-700 text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Flame size={13} />
+                {t('combat.ignite')}
+              </button>
+            )}
+            <button
+              onClick={() => setEnemyDmgMult(v => v === 'x2' ? null : 'x2')}
+              aria-pressed={enemyDmgMult === 'x2'}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                enemyDmgMult === 'x2' ? 'border-emerald-700 bg-emerald-900/30 text-emerald-200' : 'border-slate-700 text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {t('combat.dmgX2')}
+            </button>
+            <button
+              onClick={() => setEnemyDmgMult(v => v === 'half' ? null : 'half')}
+              aria-pressed={enemyDmgMult === 'half'}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                enemyDmgMult === 'half' ? 'border-violet-700 bg-violet-900/30 text-violet-200' : 'border-slate-700 text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {t('combat.dmgHalf')}
+            </button>
+          </div>
 
           {/* Enemy EP */}
           <div className="flex flex-col gap-1.5">
@@ -489,18 +515,21 @@ export function CombatCalculator({ onClose }: Props) {
                 ) : (
                   <div className={`text-center rounded-lg p-3 ${lastRound.enemyKilled ? 'bg-green-950/40 border border-green-700' : 'bg-red-950/30 border border-red-900'}`}>
                     <div className="text-xs text-slate-400 mb-1">{t('combat.enemyLoss')}</div>
-                    {(() => {
-                      const ignite = igniteActive && ignitePossible && !lastRound.enemyKilled && lastRound.enemyLoss > 0 ? 1 : 0
-                      return lastRound.enemyKilled ? (
-                        <div className="text-lg font-bold text-green-400">{t('combat.instantKill')}</div>
-                      ) : (
+                    {lastRound.enemyKilled ? (
+                      <div className="text-lg font-bold text-green-400">{t('combat.instantKill')}</div>
+                    ) : (() => {
+                      const total = computeEnemyLoss(lastRound)
+                      const ignite = igniteActive && ignitePossible && lastRound.enemyLoss > 0 ? 1 : 0
+                      return (
                         <>
                           <div className="text-2xl font-bold text-green-400">
-                            -{lastRound.enemyLoss + ignite}
+                            -{total}
                             {ignite > 0 && <span className="text-xs text-orange-400 ml-1">({t('combat.ignite')} +1)</span>}
+                            {enemyDmgMult === 'x2' && <span className="text-xs text-emerald-400 ml-1">(×2)</span>}
+                            {enemyDmgMult === 'half' && <span className="text-xs text-violet-400 ml-1">(÷2)</span>}
                           </div>
                           <div className="text-xs text-slate-500 mt-1">
-                            PE: {enemyCurrentEP} → {Math.max(0, enemyCurrentEP - lastRound.enemyLoss - ignite)}
+                            PE: {enemyCurrentEP} → {Math.max(0, enemyCurrentEP - total)}
                           </div>
                         </>
                       )

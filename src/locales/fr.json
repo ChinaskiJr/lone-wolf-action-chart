@@ -153,7 +153,9 @@
     "bow": "Tir (arc/jet)",
     "bowEffectiveRoll": "Tir +{{n}}",
     "ignite": "Lames enflammées",
-    "surgeLocked": "PE trop bas"
+    "surgeLocked": "PE trop bas",
+    "dmgX2": "×2 dégâts",
+    "dmgHalf": "÷2 dégâts"
   },
   "transition": {
     "title": "Transition de Cycle",
