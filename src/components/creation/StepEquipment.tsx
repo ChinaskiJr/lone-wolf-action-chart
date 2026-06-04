@@ -4,6 +4,7 @@ import { Plus, X } from 'lucide-react'
 import type { Character } from '@/types/character'
 import type { BackpackItem, SpecialItem, Weapon } from '@/types/game'
 import { v4 as uuidv4 } from 'uuid'
+import { D10Roll } from '@/components/sheet/D10Roll'
 
 interface Props {
   character: Character
@@ -79,6 +80,9 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
   return (
     <div className="flex flex-col gap-5">
       <h2 className="text-xl font-serif font-semibold text-amber-100">{t('creation.step4')}</h2>
+
+      {/* D10 */}
+      <D10Roll />
 
       {/* Weapons */}
       <div>
