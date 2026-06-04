@@ -54,7 +54,7 @@
   },
   "sheet": {
     "map": "Map",
-    "worldMap": "World Map",
+    "worldMap": "Magnamund Map",
     "mapOutspaced": "Outspaced",
     "mapHolmgaard": "Holmgaard Press",
     "resetZoom": "Reset view",
