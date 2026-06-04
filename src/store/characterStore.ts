@@ -139,18 +139,39 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
   addSpecialItem: (item) =>
     set(updateChar(get, c => {
       if (c.specialItems.length >= 12) return {}
-      return { specialItems: [...c.specialItems, item] }
+      const peDelta = (item.equipped !== false) ? (item.peBonus ?? 0) : 0
+      return {
+        specialItems: [...c.specialItems, item],
+        endurance: { ...c.endurance, current: c.endurance.current + peDelta },
+      }
     })),
 
   removeSpecialItem: (id) =>
-    set(updateChar(get, c => ({
-      specialItems: c.specialItems.filter(i => i.id !== id),
-    }))),
+    set(updateChar(get, c => {
+      const item = c.specialItems.find(i => i.id === id)
+      const peDelta = item && item.equipped !== false ? (item.peBonus ?? 0) : 0
+      return {
+        specialItems: c.specialItems.filter(i => i.id !== id),
+        endurance: { ...c.endurance, current: Math.max(0, c.endurance.current - peDelta) },
+      }
+    })),
 
   updateSpecialItem: (id, updates) =>
-    set(updateChar(get, c => ({
-      specialItems: c.specialItems.map(i => i.id === id ? { ...i, ...updates } : i),
-    }))),
+    set(updateChar(get, c => {
+      const prev = c.specialItems.find(i => i.id === id)
+      const next = prev ? { ...prev, ...updates } : undefined
+      let peDelta = 0
+      if (prev && next && 'equipped' in updates) {
+        const wasEquipped = prev.equipped !== false
+        const nowEquipped = next.equipped !== false
+        if (!wasEquipped && nowEquipped) peDelta = prev.peBonus ?? 0
+        if (wasEquipped && !nowEquipped) peDelta = -(prev.peBonus ?? 0)
+      }
+      return {
+        specialItems: c.specialItems.map(i => i.id === id ? { ...i, ...updates } : i),
+        endurance: { ...c.endurance, current: Math.max(0, c.endurance.current + peDelta) },
+      }
+    })),
 
   setGold: (amount) =>
     set(updateChar(get, _c => ({ goldCrowns: Math.max(0, Math.min(50, amount)) }))),
