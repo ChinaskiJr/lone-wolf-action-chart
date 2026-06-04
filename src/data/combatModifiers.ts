@@ -100,4 +100,14 @@ export const COMBAT_MODIFIERS: CombatModifier[] = [
     conditionFr: '−1 PE/round',
     conditionEn: '−1 EP/round',
   },
+  {
+    id: 'unarmed_4',
+    disciplineKey: 'unarmed',
+    visibleFor: ['kai', 'magnakai', 'grandmaster', 'neworder'],
+    hcBonus: -4,
+    labelFr: 'Mains nues',
+    labelEn: 'Unarmed',
+    conditionFr: 'aucune arme',
+    conditionEn: 'no weapon',
+  },
 ]

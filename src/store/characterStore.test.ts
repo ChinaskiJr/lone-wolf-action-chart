@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useCharacterStore } from './characterStore'
-import { makeKaiChar } from '@/test/fixtures'
+import { makeKaiChar, makeGrandMasterChar } from '@/test/fixtures'
 import type { BackpackItem } from '@/types/game'
 
 function makeItem(overrides: Partial<BackpackItem> = {}): BackpackItem {
@@ -84,6 +84,89 @@ describe('usePotion', () => {
     const state = useCharacterStore.getState().character!
     expect(state.endurance.current).toBe(15)
     expect(state.backpack).toHaveLength(1)
+  })
+})
+
+describe('eatMeal', () => {
+  it('consumes one meal when food is available', () => {
+    useCharacterStore.setState({ character: makeKaiChar({ meals: 3, endurance: { current: 20, max: 25 } }) })
+    useCharacterStore.getState().eatMeal()
+    const state = useCharacterStore.getState().character!
+    expect(state.meals).toBe(2)
+    expect(state.endurance.current).toBe(20)
+  })
+
+  it('loses 3 EP when no meal is available', () => {
+    useCharacterStore.setState({ character: makeKaiChar({ meals: 0, endurance: { current: 20, max: 25 } }) })
+    useCharacterStore.getState().eatMeal()
+    const state = useCharacterStore.getState().character!
+    expect(state.meals).toBe(0)
+    expect(state.endurance.current).toBe(17)
+  })
+
+  it('clamps EP loss at 0 when no meal and low EP', () => {
+    useCharacterStore.setState({ character: makeKaiChar({ meals: 0, endurance: { current: 2, max: 25 } }) })
+    useCharacterStore.getState().eatMeal()
+    expect(useCharacterStore.getState().character!.endurance.current).toBe(0)
+  })
+})
+
+describe('useDeliverance', () => {
+  it('restores 20 EP when EP <= 8 and discipline owned', () => {
+    useCharacterStore.setState({ character: makeGrandMasterChar({
+      disciplines: ['deliverance'] as any,
+      endurance: { current: 6, max: 35 },
+    }) })
+    useCharacterStore.getState().useDeliverance()
+    const state = useCharacterStore.getState().character!
+    expect(state.endurance.current).toBe(26)
+    expect((state as any).deliveranceAvailable).toBe(false)
+  })
+
+  it('clamps restored EP to max', () => {
+    useCharacterStore.setState({ character: makeGrandMasterChar({
+      disciplines: ['deliverance'] as any,
+      endurance: { current: 8, max: 20 },
+    }) })
+    useCharacterStore.getState().useDeliverance()
+    expect(useCharacterStore.getState().character!.endurance.current).toBe(20)
+  })
+
+  it('does nothing when EP > 8', () => {
+    useCharacterStore.setState({ character: makeGrandMasterChar({
+      disciplines: ['deliverance'] as any,
+      endurance: { current: 9, max: 35 },
+    }) })
+    useCharacterStore.getState().useDeliverance()
+    expect(useCharacterStore.getState().character!.endurance.current).toBe(9)
+  })
+
+  it('does nothing when already used (deliveranceAvailable false)', () => {
+    useCharacterStore.setState({ character: makeGrandMasterChar({
+      disciplines: ['deliverance'] as any,
+      endurance: { current: 5, max: 35 },
+      deliveranceAvailable: false,
+    }) })
+    useCharacterStore.getState().useDeliverance()
+    expect(useCharacterStore.getState().character!.endurance.current).toBe(5)
+  })
+
+  it('does nothing without the deliverance discipline', () => {
+    useCharacterStore.setState({ character: makeGrandMasterChar({
+      disciplines: [] as any,
+      endurance: { current: 5, max: 35 },
+    }) })
+    useCharacterStore.getState().useDeliverance()
+    expect(useCharacterStore.getState().character!.endurance.current).toBe(5)
+  })
+
+  it('recharges on completeBook (grandmaster)', () => {
+    useCharacterStore.setState({ character: makeGrandMasterChar({
+      disciplines: ['deliverance'] as any,
+      deliveranceAvailable: false,
+    }) })
+    useCharacterStore.getState().completeBook(13)
+    expect((useCharacterStore.getState().character as any).deliveranceAvailable).toBe(true)
   })
 })
 

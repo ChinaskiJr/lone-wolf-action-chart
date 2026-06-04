@@ -45,6 +45,8 @@ export function getTotalEPMax(char: Character): number {
 
 export function hasDisciplineForModifier(char: Character, modifier: CombatModifier): boolean {
   const key = modifier.disciplineKey
+  // Unarmed combat is always available (no discipline required)
+  if (key === 'unarmed') return true
   switch (char.cycle) {
     case 'kai':
       return char.disciplines.includes(key as KaiDiscipline)
@@ -59,6 +61,40 @@ export function hasDisciplineForModifier(char: Character, modifier: CombatModifi
     case 'neworder':
       return char.disciplines.includes(key as NewOrderDiscipline)
   }
+}
+
+// Rank-based scaling of combat modifiers (rank derives from discipline count).
+// Returns the effective HC bonus and per-round EP cost for the given modifier.
+export function getEffectiveModifier(
+  char: Character,
+  mod: CombatModifier
+): { hcBonus: number; epCostPerRound: number } {
+  let hcBonus = mod.hcBonus
+  let epCostPerRound = mod.epCostPerRound ?? 0
+
+  if (char.cycle === 'magnakai') {
+    const count = char.disciplines.length
+    // Scion-Master (7 disciplines mastered): Weaponmastery +3 -> +4
+    if (mod.disciplineKey === 'weaponmastery' && count >= 7) hcBonus = 4
+    // Archmaster (8 disciplines): strong Psi-surge +4/-2 PE -> +6/-1 PE
+    if (mod.id === 'psiSurge_4' && count >= 8) {
+      hcBonus = 6
+      epCostPerRound = 1
+    }
+  }
+
+  // Grand Crown (10 disciplines) with Grand Weaponmastery:
+  // unarmed combat grants +3 HC instead of the -4 penalty.
+  if (
+    char.cycle === 'grandmaster' &&
+    mod.id === 'unarmed_4' &&
+    char.disciplines.length >= 10 &&
+    char.disciplines.includes('grandWeaponmastery' as GrandMasterDiscipline)
+  ) {
+    hcBonus = 3
+  }
+
+  return { hcBonus, epCostPerRound }
 }
 
 export function getItemsCSBonus(char: Character): number {

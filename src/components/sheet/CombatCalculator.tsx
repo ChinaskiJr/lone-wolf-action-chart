@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { X, Dices, Swords, SkipForward } from 'lucide-react'
+import { X, Dices, Swords, SkipForward, Footprints, HeartPulse } from 'lucide-react'
 import { useCharacterStore } from '@/store/characterStore'
-import { getTotalCS, hasDisciplineForModifier } from '@/utils/character'
+import { getTotalCS, hasDisciplineForModifier, getEffectiveModifier } from '@/utils/character'
 import { DeathModal } from './DeathModal'
 import { resolveCombatRound, simulateCombat, type CombatRound } from '@/utils/combat'
 import { rollD10 } from '@/utils/rng'
@@ -15,7 +15,7 @@ interface Props {
 export function CombatCalculator({ onClose }: Props) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'fr' | 'en'
-  const { character, setEnduranceCurrent } = useCharacterStore()
+  const { character, setEnduranceCurrent, useDeliverance } = useCharacterStore()
   if (!character) return null
 
   const basePlayerCS = getTotalCS(character)
@@ -27,6 +27,8 @@ export function CombatCalculator({ onClose }: Props) {
   const [showSim, setShowSim] = useState(false)
   const [victory, setVictory] = useState(false)
   const [defeat, setDefeat] = useState(false)
+  const [escaped, setEscaped] = useState(false)
+  const [evading, setEvading] = useState(false)
   const [activeModifiers, setActiveModifiers] = useState<Set<string>>(new Set())
   const [situationalMod, setSituationalMod] = useState(0)
 
@@ -34,9 +36,12 @@ export function CombatCalculator({ onClose }: Props) {
 
   const disciplineBonusHC = Array.from(activeModifiers).reduce((sum, id) => {
     const mod = COMBAT_MODIFIERS.find(m => m.id === id)
-    return sum + (mod?.hcBonus ?? 0)
+    return sum + (mod ? getEffectiveModifier(character, mod).hcBonus : 0)
   }, 0)
   const playerCS = basePlayerCS + disciplineBonusHC + situationalMod
+
+  const hasDeliverance = character.cycle === 'grandmaster' && character.disciplines.includes('deliverance')
+  const deliveranceReady = hasDeliverance && character.deliveranceAvailable !== false && character.endurance.current <= 8
 
   function toggleModifier(id: string) {
     const mod = COMBAT_MODIFIERS.find(m => m.id === id)
@@ -56,6 +61,15 @@ export function CombatCalculator({ onClose }: Props) {
   function handleRoll() {
     const rn = rollD10()
     const round = resolveCombatRound(playerCS, enemyCS, rn)
+    setEvading(false)
+    setLastRound(round)
+    setShowSim(false)
+  }
+
+  function handleEvade() {
+    const rn = rollD10()
+    const round = resolveCombatRound(playerCS, enemyCS, rn)
+    setEvading(true)
     setLastRound(round)
     setShowSim(false)
   }
@@ -64,13 +78,26 @@ export function CombatCalculator({ onClose }: Props) {
     if (!lastRound) return
     const epCostModifiers = Array.from(activeModifiers).reduce((sum, id) => {
       const mod = COMBAT_MODIFIERS.find(m => m.id === id)
-      return sum + (mod?.epCostPerRound ?? 0)
+      return sum + (mod ? getEffectiveModifier(character!, mod).epCostPerRound : 0)
     }, 0)
     const newPlayerEP = lastRound.playerKilled
       ? 0
       : Math.max(0, character!.endurance.current - lastRound.playerLoss - epCostModifiers)
-    const newEnemyEP = lastRound.enemyKilled ? 0 : Math.max(0, enemyCurrentEP - lastRound.enemyLoss)
     setEnduranceCurrent(newPlayerEP)
+
+    if (evading) {
+      // Evasion: enemy losses are ignored, only Lone Wolf may lose EP.
+      setLastRound(null)
+      setEvading(false)
+      if (newPlayerEP <= 0) {
+        setTimeout(() => setDefeat(true), 150)
+      } else {
+        setTimeout(() => setEscaped(true), 150)
+      }
+      return
+    }
+
+    const newEnemyEP = lastRound.enemyKilled ? 0 : Math.max(0, enemyCurrentEP - lastRound.enemyLoss)
     setEnemyCurrentEP(newEnemyEP)
     setLastRound(null)
     if (lastRound.enemyKilled || newEnemyEP <= 0) {
@@ -83,6 +110,8 @@ export function CombatCalculator({ onClose }: Props) {
   function handleNewCombat() {
     setVictory(false)
     setDefeat(false)
+    setEscaped(false)
+    setEvading(false)
     setEnemyCurrentEP(enemyEP)
     setLastRound(null)
     setSimulationRounds([])
@@ -164,7 +193,36 @@ export function CombatCalculator({ onClose }: Props) {
           <DeathModal onClose={onClose} onReplay={handleNewCombat} />
         )}
 
-        <div className={`p-5 flex flex-col gap-4 ${victory || defeat ? 'hidden' : ''}`}>
+        {/* Escaped screen */}
+        {escaped && (
+          <div className="p-8 flex flex-col items-center gap-5 animate-victory">
+            <div className="w-16 h-16 rounded-full bg-slate-800/60 border border-slate-600/60 flex items-center justify-center">
+              <Footprints size={28} className="text-slate-300" />
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-serif font-semibold text-slate-100 mb-1">{t('combat.escaped')}</div>
+              <div className="text-sm text-slate-400">
+                {t('combat.epAfter')} : <span className="text-green-400 font-medium">{character.endurance.current}</span>
+              </div>
+            </div>
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={handleNewCombat}
+                className="flex-1 py-2 rounded-lg border border-slate-600 text-slate-300 hover:border-slate-500 hover:text-slate-100 text-sm transition-colors"
+              >
+                {t('combat.newCombat')}
+              </button>
+              <button
+                onClick={onClose}
+                className="flex-1 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium transition-colors"
+              >
+                {t('common.close')}
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className={`p-5 flex flex-col gap-4 ${victory || defeat || escaped ? 'hidden' : ''}`}>
           {/* CS display */}
           <div className="grid grid-cols-4 gap-2 text-center bg-slate-800/40 rounded-xl p-4">
             <div>
@@ -206,8 +264,11 @@ export function CombatCalculator({ onClose }: Props) {
               {visibleModifiers.map(mod => {
                 const owned = hasDisciplineForModifier(character, mod)
                 const active = activeModifiers.has(mod.id)
+                const eff = getEffectiveModifier(character, mod)
                 const label = lang === 'fr' ? mod.labelFr : mod.labelEn
-                const condition = lang === 'fr' ? mod.conditionFr : mod.conditionEn
+                const condition = eff.epCostPerRound > 0
+                  ? (lang === 'fr' ? `−${eff.epCostPerRound} PE/round` : `−${eff.epCostPerRound} EP/round`)
+                  : (lang === 'fr' ? mod.conditionFr : mod.conditionEn)
                 return (
                   <label
                     key={mod.id}
@@ -226,7 +287,7 @@ export function CombatCalculator({ onClose }: Props) {
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className={`text-xs font-medium ${active ? 'text-amber-200' : 'text-slate-300'}`}>{label}</span>
                         <span className={`text-xs font-semibold rounded px-1 ${active ? 'text-amber-400 bg-amber-900/40' : 'text-slate-500 bg-slate-700/40'}`}>
-                          +{mod.hcBonus} HC
+                          {eff.hcBonus >= 0 ? '+' : ''}{eff.hcBonus} HC
                         </span>
                       </div>
                       {condition && (
@@ -284,6 +345,13 @@ export function CombatCalculator({ onClose }: Props) {
               {t('combat.roll')}
             </button>
             <button
+              onClick={handleEvade}
+              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:border-slate-500 hover:text-slate-100 text-sm transition-colors"
+              title={t('combat.evade')}
+            >
+              <Footprints size={16} />
+            </button>
+            <button
               onClick={handleSimulate}
               className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:border-slate-500 hover:text-slate-100 text-sm transition-colors"
               title={t('combat.simulate')}
@@ -308,6 +376,24 @@ export function CombatCalculator({ onClose }: Props) {
             </div>
           </div>
 
+          {/* Deliverance (Grand Master) */}
+          {hasDeliverance && (
+            <button
+              onClick={() => useDeliverance()}
+              disabled={!deliveranceReady}
+              className={`flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-medium transition-colors ${
+                deliveranceReady
+                  ? 'bg-green-800/60 border border-green-700 text-green-200 hover:bg-green-700/60'
+                  : 'border border-slate-700 text-slate-600 cursor-not-allowed'
+              }`}
+            >
+              <HeartPulse size={15} />
+              {character.deliveranceAvailable === false
+                ? t('combat.deliveranceUsed')
+                : t('combat.deliverance')}
+            </button>
+          )}
+
           {/* Single round result */}
           {lastRound && !showSim && (
             <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
@@ -329,19 +415,27 @@ export function CombatCalculator({ onClose }: Props) {
                     PE: {character.endurance.current} → {lastRound.playerKilled ? 0 : Math.max(0, character.endurance.current - lastRound.playerLoss)}
                   </div>
                 </div>
-                <div className={`text-center rounded-lg p-3 ${lastRound.enemyKilled ? 'bg-green-950/40 border border-green-700' : 'bg-red-950/30 border border-red-900'}`}>
-                  <div className="text-xs text-slate-400 mb-1">{t('combat.enemyLoss')}</div>
-                  {lastRound.enemyKilled ? (
-                    <div className="text-lg font-bold text-green-400">{t('combat.instantKill')}</div>
-                  ) : (
-                    <div className="text-2xl font-bold text-green-400">-{lastRound.enemyLoss}</div>
-                  )}
-                  {!lastRound.enemyKilled && (
-                    <div className="text-xs text-slate-500 mt-1">
-                      PE: {enemyCurrentEP} → {Math.max(0, enemyCurrentEP - lastRound.enemyLoss)}
-                    </div>
-                  )}
-                </div>
+                {evading ? (
+                  <div className="text-center rounded-lg p-3 bg-slate-800/40 border border-slate-700">
+                    <div className="text-xs text-slate-400 mb-1">{t('combat.enemyLoss')}</div>
+                    <div className="text-2xl font-bold text-slate-600 line-through">-{lastRound.enemyLoss}</div>
+                    <div className="text-xs text-slate-500 mt-1">{t('combat.enemyLossIgnored')}</div>
+                  </div>
+                ) : (
+                  <div className={`text-center rounded-lg p-3 ${lastRound.enemyKilled ? 'bg-green-950/40 border border-green-700' : 'bg-red-950/30 border border-red-900'}`}>
+                    <div className="text-xs text-slate-400 mb-1">{t('combat.enemyLoss')}</div>
+                    {lastRound.enemyKilled ? (
+                      <div className="text-lg font-bold text-green-400">{t('combat.instantKill')}</div>
+                    ) : (
+                      <div className="text-2xl font-bold text-green-400">-{lastRound.enemyLoss}</div>
+                    )}
+                    {!lastRound.enemyKilled && (
+                      <div className="text-xs text-slate-500 mt-1">
+                        PE: {enemyCurrentEP} → {Math.max(0, enemyCurrentEP - lastRound.enemyLoss)}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               <button
                 onClick={handleApplyDamage}

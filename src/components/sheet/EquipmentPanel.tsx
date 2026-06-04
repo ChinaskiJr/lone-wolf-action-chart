@@ -1,9 +1,24 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, X, Sword, FlaskConical } from 'lucide-react'
+import { Plus, X, Sword, FlaskConical, Utensils } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { useCharacterStore } from '@/store/characterStore'
 import type { BackpackItem, SpecialItem, Weapon } from '@/types/game'
+import type { Character } from '@/types/character'
+
+// Hunting (Kai) / Huntmastery (Magnakai+) often remove the need to eat a meal.
+function characterHasHunting(char: Character): boolean {
+  switch (char.cycle) {
+    case 'kai':
+      return char.disciplines.includes('hunting')
+    case 'magnakai':
+      return char.disciplines.includes('huntmastery') || char.kaiDisciplines.includes('hunting')
+    case 'grandmaster':
+      return char.disciplines.includes('grandHuntmastery') || char.magnakaiDisciplines.includes('huntmastery')
+    case 'neworder':
+      return char.disciplines.includes('grandHuntmastery')
+  }
+}
 
 export function EquipmentPanel() {
   const {
@@ -12,11 +27,13 @@ export function EquipmentPanel() {
     addBackpackItem, removeBackpackItem,
     addSpecialItem, removeSpecialItem, updateSpecialItem,
     setMeals,
+    eatMeal,
     usePotion,
   } = useCharacterStore()
   if (!character) return null
 
   const backpackMax = character.cycle === 'kai' || character.cycle === 'magnakai' ? 8 : 10
+  const hasHunting = characterHasHunting(character)
 
   return (
     <div className="flex flex-col gap-6">
@@ -25,9 +42,11 @@ export function EquipmentPanel() {
         items={character.backpack}
         meals={character.meals}
         max={backpackMax}
+        hasHunting={hasHunting}
         onAdd={addBackpackItem}
         onRemove={removeBackpackItem}
         onMealsChange={setMeals}
+        onEat={eatMeal}
         onUsePotion={usePotion}
       />
       <SpecialItemsSection items={character.specialItems} onAdd={addSpecialItem} onRemove={removeSpecialItem} onUpdate={updateSpecialItem} />
@@ -94,14 +113,16 @@ function WeaponsSection({
 }
 
 function BackpackSection({
-  items, meals, max, onAdd, onRemove, onMealsChange, onUsePotion
+  items, meals, max, hasHunting, onAdd, onRemove, onMealsChange, onEat, onUsePotion
 }: {
   items: BackpackItem[]
   meals: number
   max: number
+  hasHunting: boolean
   onAdd: (item: BackpackItem) => void
   onRemove: (id: string) => void
   onMealsChange: (n: number) => void
+  onEat: () => void
   onUsePotion: (id: string) => void
 }) {
   const { t } = useTranslation()
@@ -182,6 +203,24 @@ function BackpackSection({
         <div className="text-sm font-semibold text-slate-200">{t('sheet.backpack')}</div>
         <span className={`text-xs ${isFull ? 'text-red-400' : 'text-slate-500'}`}>
           {t('sheet.slotsUsed', { used: slotsUsed, max })}
+        </span>
+      </div>
+
+      {/* Eat a meal */}
+      <div className="flex items-center gap-2 mb-3">
+        <button
+          onClick={onEat}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-900/50 text-amber-300 hover:bg-amber-950/30 text-xs font-medium transition-colors shrink-0"
+        >
+          <Utensils size={12} />
+          {t('sheet.eatMeal')}
+        </button>
+        <span className="text-xs text-slate-500 truncate">
+          {meals === 0
+            ? t('sheet.noFoodPenalty')
+            : hasHunting
+              ? t('sheet.huntingHint')
+              : ''}
         </span>
       </div>
 

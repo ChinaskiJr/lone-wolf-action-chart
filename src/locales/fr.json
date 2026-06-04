@@ -104,6 +104,9 @@
     "peBonusItem": "+PE",
     "itemDescription": "Description (optionnel)",
     "twoSlots": "2 emplacements",
+    "eatMeal": "Manger",
+    "noFoodPenalty": "Aucune ration : −3 PE",
+    "huntingHint": "Chasse : ration souvent superflue",
     "d10": {
       "roll": "Lancer",
       "reroll": "Relancer"
@@ -112,6 +115,7 @@
   "combat": {
     "title": "Calculateur de Combat",
     "playerCS": "Votre HC",
+    "modifier": "Modif.",
     "enemyCS": "HC Ennemi",
     "enemyEP": "PE Ennemi",
     "roll": "Lancer le dé",
@@ -140,7 +144,12 @@
     "simDefeat": "Défaite",
     "simOngoing": "Combat non conclu",
     "yourEP": "Vos PE actuels",
-    "enemyEPShort": "PE ennemi"
+    "enemyEPShort": "PE ennemi",
+    "evade": "Fuir",
+    "escaped": "Vous avez fui",
+    "enemyLossIgnored": "ignoré (fuite)",
+    "deliverance": "Délivrance (+20 PE)",
+    "deliveranceUsed": "Délivrance utilisée"
   },
   "transition": {
     "title": "Transition de Cycle",

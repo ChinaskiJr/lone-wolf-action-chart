@@ -61,6 +61,9 @@ export interface GrandMasterCharacter extends BaseCharacter {
   weaponmasteryWeapons: string[]
   backpack: BackpackItem[]
   specialItems: SpecialItem[]
+  // Deliverance (advanced Curing): restore 20 EP once per ~20 days.
+  // Optional for save retro-compat; absent or true means available.
+  deliveranceAvailable?: boolean
 }
 
 export interface NewOrderCharacter extends BaseCharacter {

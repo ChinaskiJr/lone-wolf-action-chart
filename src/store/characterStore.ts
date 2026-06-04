@@ -38,6 +38,10 @@ interface CharacterState {
 
   // Meals
   setMeals: (count: number) => void
+  eatMeal: () => void
+
+  // Deliverance (Grand Master)
+  useDeliverance: () => void
 
   // Notes
   setNotes: (notes: string) => void
@@ -154,6 +158,26 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
   setMeals: (count) =>
     set(updateChar(get, _c => ({ meals: Math.max(0, count) }))),
 
+  eatMeal: () =>
+    set(updateChar(get, c => {
+      // Eating consumes a meal; if no food is available, lose 3 EP.
+      if (c.meals > 0) return { meals: c.meals - 1 }
+      return { endurance: { ...c.endurance, current: Math.max(0, c.endurance.current - 3) } }
+    })),
+
+  useDeliverance: () =>
+    set(updateChar(get, c => {
+      if (c.cycle !== 'grandmaster') return {}
+      if (!c.disciplines.includes('deliverance')) return {}
+      if (c.deliveranceAvailable === false) return {}
+      if (c.endurance.current > 8) return {}
+      const newEP = Math.min(c.endurance.max, c.endurance.current + 20)
+      return {
+        endurance: { ...c.endurance, current: newEP },
+        deliveranceAvailable: false,
+      } as Partial<Character>
+    })),
+
   setNotes: (notes) =>
     set(updateChar(get, _c => ({ notes }))),
 
@@ -161,11 +185,16 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     set(updateChar(get, _c => ({ currentBook: bookId }))),
 
   completeBook: (bookId) =>
-    set(updateChar(get, c => ({
-      booksCompleted: c.booksCompleted.includes(bookId)
+    set(updateChar(get, c => {
+      const booksCompleted = c.booksCompleted.includes(bookId)
         ? c.booksCompleted
-        : [...c.booksCompleted, bookId],
-    }))),
+        : [...c.booksCompleted, bookId]
+      // A new book spans well over 20 in-game days: Deliverance recharges.
+      if (c.cycle === 'grandmaster') {
+        return { booksCompleted, deliveranceAvailable: true } as Partial<Character>
+      }
+      return { booksCompleted }
+    })),
 
   setWeaponskillWeapon: (weapon) =>
     set(updateChar(get, c => {

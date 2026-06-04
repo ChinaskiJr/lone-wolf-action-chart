@@ -1,7 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { getTotalCS, getTotalEPMax, computeRank, filterCarryOverItems } from './character'
+import { getTotalCS, getTotalEPMax, computeRank, filterCarryOverItems, getEffectiveModifier, hasDisciplineForModifier } from './character'
 import { makeKaiChar, makeMagnakaiChar, makeGrandMasterChar, makeNewOrderChar } from '@/test/fixtures'
+import { COMBAT_MODIFIERS } from '@/data/combatModifiers'
 import type { SpecialItem } from '@/types/game'
+
+const WEAPONMASTERY = COMBAT_MODIFIERS.find(m => m.id === 'weaponmastery_3')!
+const PSI_SURGE_STRONG = COMBAT_MODIFIERS.find(m => m.id === 'psiSurge_4')!
+const UNARMED = COMBAT_MODIFIERS.find(m => m.id === 'unarmed_4')!
 
 function makeItem(overrides: Partial<SpecialItem> = {}): SpecialItem {
   return { id: 'item-1', name: 'Test Item', ...overrides }
@@ -160,6 +165,60 @@ describe('computeRank', () => {
   it('returns correct neworder rank', () => {
     const char = makeNewOrderChar({ disciplines: ['a', 'b', 'c', 'd'] as any })
     expect(computeRank(char)).toBe('kaiGrandMasterSenior')
+  })
+})
+
+describe('getEffectiveModifier', () => {
+  it('weaponmastery is +3 below Scion-Master (6 disciplines)', () => {
+    const char = makeMagnakaiChar({ disciplines: Array(6).fill('weaponmastery') as any })
+    expect(getEffectiveModifier(char, WEAPONMASTERY).hcBonus).toBe(3)
+  })
+
+  it('weaponmastery upgrades to +4 at Scion-Master (7 disciplines)', () => {
+    const char = makeMagnakaiChar({ disciplines: Array(7).fill('weaponmastery') as any })
+    expect(getEffectiveModifier(char, WEAPONMASTERY).hcBonus).toBe(4)
+  })
+
+  it('strong psi-surge is +4 / -2 EP below Archmaster (7 disciplines)', () => {
+    const char = makeMagnakaiChar({ disciplines: Array(7).fill('psiSurge') as any })
+    const eff = getEffectiveModifier(char, PSI_SURGE_STRONG)
+    expect(eff.hcBonus).toBe(4)
+    expect(eff.epCostPerRound).toBe(2)
+  })
+
+  it('strong psi-surge upgrades to +6 / -1 EP at Archmaster (8 disciplines)', () => {
+    const char = makeMagnakaiChar({ disciplines: Array(8).fill('psiSurge') as any })
+    const eff = getEffectiveModifier(char, PSI_SURGE_STRONG)
+    expect(eff.hcBonus).toBe(6)
+    expect(eff.epCostPerRound).toBe(1)
+  })
+
+  it('unarmed is -4 by default', () => {
+    expect(getEffectiveModifier(makeKaiChar(), UNARMED).hcBonus).toBe(-4)
+  })
+
+  it('unarmed becomes +3 at Grand Crown with Grand Weaponmastery (10 disciplines)', () => {
+    const disciplines = ['grandWeaponmastery', ...Array(9).fill('x')] as any
+    const char = makeGrandMasterChar({ disciplines })
+    expect(getEffectiveModifier(char, UNARMED).hcBonus).toBe(3)
+  })
+
+  it('unarmed stays -4 at Grand Crown without Grand Weaponmastery', () => {
+    const char = makeGrandMasterChar({ disciplines: Array(10).fill('x') as any })
+    expect(getEffectiveModifier(char, UNARMED).hcBonus).toBe(-4)
+  })
+
+  it('unarmed stays -4 with Grand Weaponmastery below Grand Crown (9 disciplines)', () => {
+    const disciplines = ['grandWeaponmastery', ...Array(8).fill('x')] as any
+    const char = makeGrandMasterChar({ disciplines })
+    expect(getEffectiveModifier(char, UNARMED).hcBonus).toBe(-4)
+  })
+})
+
+describe('hasDisciplineForModifier', () => {
+  it('unarmed is always available regardless of disciplines', () => {
+    expect(hasDisciplineForModifier(makeKaiChar(), UNARMED)).toBe(true)
+    expect(hasDisciplineForModifier(makeGrandMasterChar(), UNARMED)).toBe(true)
   })
 })
 
