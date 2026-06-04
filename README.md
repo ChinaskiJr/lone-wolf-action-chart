@@ -158,10 +158,12 @@ Data is sourced from **[Holmgaard Press](https://shop-magnamund.com/)** editions
 - [x] Magnakai → Grand Master carry-over: faithful item transfer with bonuses
 - [x] Current book map display on the adventure sheet (books 1–30)
 - [x] D10 roll: permanent strip on the sheet, morph animation
+- [x] Combat: ×2 / ÷2 manual damage modifier toggles
+- [x] Combat: fight-to-the-death auto-roll (rounds play out automatically until one side falls)
+- [x] Lorestone tracking: Gem icons auto-derived from book progression (Magnakai)
 
 ### Upcoming
 - [ ] Weapon Mastery management (multiple weapons per cycle)
-- [ ] Lorestone tracking from the play sheet
 - [ ] PWA / offline mode
 - [ ] Import from existing Project Aon sheets
 

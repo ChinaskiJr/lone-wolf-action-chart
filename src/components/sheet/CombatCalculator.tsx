@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { X, Dices, Swords, SkipForward, Footprints, HeartPulse, Crosshair, Flame } from 'lucide-react'
+import { X, Dices, Swords, SkipForward, Footprints, HeartPulse, Crosshair, Flame, Skull } from 'lucide-react'
 import { useCharacterStore } from '@/store/characterStore'
 import { getTotalCS, getTotalEPMax, hasDisciplineForModifier, getEffectiveModifier, getBowBonus, canIgnite } from '@/utils/character'
 import { DeathModal } from './DeathModal'
@@ -34,6 +34,10 @@ export function CombatCalculator({ onClose }: Props) {
   const [bowActive, setBowActive] = useState(false)
   const [igniteActive, setIgniteActive] = useState(false)
   const [enemyDmgMult, setEnemyDmgMult] = useState<'x2' | 'half' | null>(null)
+  const [autoFighting, setAutoFighting] = useState(false)
+  const autoFightRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => () => { if (autoFightRef.current) clearInterval(autoFightRef.current) }, [])
 
   const visibleModifiers = COMBAT_MODIFIERS.filter(m => m.visibleFor.includes(character.cycle))
 
@@ -131,6 +135,7 @@ export function CombatCalculator({ onClose }: Props) {
   }
 
   function handleNewCombat() {
+    stopAutoFight()
     setVictory(false)
     setDefeat(false)
     setEscaped(false)
@@ -151,6 +156,66 @@ export function CombatCalculator({ onClose }: Props) {
     setSimulationRounds(rounds)
     setShowSim(true)
     setLastRound(null)
+  }
+
+  function stopAutoFight() {
+    if (autoFightRef.current) {
+      clearInterval(autoFightRef.current)
+      autoFightRef.current = null
+    }
+    setAutoFighting(false)
+  }
+
+  function handleFightToTheDeath() {
+    if (autoFighting) return
+    setShowSim(false)
+    setLastRound(null)
+    setEvading(false)
+    setAutoFighting(true)
+
+    let currentEnemyEP = enemyCurrentEP
+    let currentPlayerEP = character!.endurance.current
+
+    const epCostPerRound = effectiveActiveIds.reduce((sum, id) => {
+      const mod = COMBAT_MODIFIERS.find(m => m.id === id)
+      return sum + (mod ? getEffectiveModifier(character!, mod).epCostPerRound : 0)
+    }, 0)
+
+    const capturedIgnite = igniteActive
+    const capturedIgnitePossible = ignitePossible
+    const capturedDmgMult = enemyDmgMult
+
+    autoFightRef.current = setInterval(() => {
+      const round = resolveCombatRound(playerCS, enemyCS, rollNumber())
+
+      const newPlayerEP = round.playerKilled ? 0 : Math.max(0, currentPlayerEP - round.playerLoss - epCostPerRound)
+      setEnduranceCurrent(newPlayerEP)
+      currentPlayerEP = newPlayerEP
+
+      const igniteBonus = capturedIgnite && capturedIgnitePossible && !round.enemyKilled && round.enemyLoss > 0 ? 1 : 0
+      let enemyDmgTotal = round.enemyKilled ? 0 : round.enemyLoss + igniteBonus
+      if (!round.enemyKilled && enemyDmgTotal > 0) {
+        if (capturedDmgMult === 'x2') enemyDmgTotal *= 2
+        else if (capturedDmgMult === 'half') enemyDmgTotal = Math.floor(enemyDmgTotal / 2)
+      }
+      const newEnemyEP = round.enemyKilled ? 0 : Math.max(0, currentEnemyEP - enemyDmgTotal)
+      setEnemyCurrentEP(newEnemyEP)
+      currentEnemyEP = newEnemyEP
+
+      setLastRound(round)
+
+      if (round.enemyKilled || newEnemyEP <= 0) {
+        clearInterval(autoFightRef.current!)
+        autoFightRef.current = null
+        setAutoFighting(false)
+        setTimeout(() => setVictory(true), 300)
+      } else if (round.playerKilled || newPlayerEP <= 0) {
+        clearInterval(autoFightRef.current!)
+        autoFightRef.current = null
+        setAutoFighting(false)
+        setTimeout(() => setDefeat(true), 300)
+      }
+    }, 600)
   }
 
   function computeEnemyLoss(round: CombatRound): number {
@@ -425,24 +490,39 @@ export function CombatCalculator({ onClose }: Props) {
           <div className="flex gap-2">
             <button
               onClick={handleRoll}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-600 text-white font-medium transition-colors"
+              disabled={autoFighting}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium transition-colors"
             >
               <Dices size={16} />
               {t('combat.roll')}
             </button>
             <button
               onClick={handleEvade}
-              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:border-slate-500 hover:text-slate-100 text-sm transition-colors"
+              disabled={autoFighting}
+              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:border-slate-500 hover:text-slate-100 disabled:opacity-40 disabled:cursor-not-allowed text-sm transition-colors"
               title={t('combat.evade')}
             >
               <Footprints size={16} />
             </button>
             <button
               onClick={handleSimulate}
-              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:border-slate-500 hover:text-slate-100 text-sm transition-colors"
+              disabled={autoFighting}
+              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:border-slate-500 hover:text-slate-100 disabled:opacity-40 disabled:cursor-not-allowed text-sm transition-colors"
               title={t('combat.simulate')}
             >
               <SkipForward size={16} />
+            </button>
+            <button
+              onClick={handleFightToTheDeath}
+              disabled={autoFighting}
+              className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border text-sm transition-colors ${
+                autoFighting
+                  ? 'border-red-800 bg-red-900/30 text-red-300 animate-pulse cursor-not-allowed'
+                  : 'border-slate-600 text-slate-300 hover:border-red-700 hover:text-red-300'
+              }`}
+              title={t('combat.fightToTheDeath')}
+            >
+              <Skull size={16} />
             </button>
           </div>
 
@@ -537,12 +617,14 @@ export function CombatCalculator({ onClose }: Props) {
                   </div>
                 )}
               </div>
-              <button
-                onClick={handleApplyDamage}
-                className="w-full mt-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium transition-colors"
-              >
-                {t('combat.applyDamage')}
-              </button>
+              {!autoFighting && (
+                <button
+                  onClick={handleApplyDamage}
+                  className="w-full mt-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium transition-colors"
+                >
+                  {t('combat.applyDamage')}
+                </button>
+              )}
             </div>
           )}
 

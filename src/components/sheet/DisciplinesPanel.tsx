@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, Plus } from 'lucide-react'
+import { Check, Plus, Gem } from 'lucide-react'
 import { useCharacterStore } from '@/store/characterStore'
 import {
   KAI_DISCIPLINES,
@@ -189,17 +189,21 @@ export function DisciplinesPanel() {
       {/* Lorestones (Magnakai) */}
       {character.cycle === 'magnakai' && (
         <div>
-          <h3 className="text-sm font-semibold text-slate-200 mb-3">{t('sheet.lorestones')} (7)</h3>
+          <h3 className="text-sm font-semibold text-slate-200 mb-3">{t('sheet.lorestones')}</h3>
           <div className="flex gap-2">
             {[1, 2, 3, 4, 5, 6, 7].map(n => {
-              const owned = (character as any).lorestones?.includes(n)
+              const owned = n <= (character.currentBook - 6)
               return (
                 <div
                   key={n}
-                  className={`w-9 h-9 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-colors
-                    ${owned ? 'border-amber-500 bg-amber-700/40 text-amber-300' : 'border-slate-700 bg-slate-800/40 text-slate-600'}`}
+                  title={`${t('sheet.lorestones')} ${n}`}
+                  className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
+                    owned
+                      ? 'text-emerald-400 bg-emerald-900/30 border border-emerald-700/60'
+                      : 'text-slate-700 bg-slate-800/40 border border-slate-700/40'
+                  }`}
                 >
-                  {n}
+                  <Gem size={18} />
                 </div>
               )
             })}
