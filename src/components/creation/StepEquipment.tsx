@@ -5,6 +5,7 @@ import type { Character } from '@/types/character'
 import type { BackpackItem, SpecialItem, Weapon } from '@/types/game'
 import { v4 as uuidv4 } from 'uuid'
 import { D10Roll } from '@/components/sheet/D10Roll'
+import { getTotalEPMax } from '@/utils/character'
 
 interface Props {
   character: Character
@@ -65,14 +66,16 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
   }
 
   function handleFinish() {
-    onFinish({
+    const finalChar = {
       ...character,
       weapons,
       backpack,
       specialItems,
       goldCrowns: gold,
       meals,
-    } as Character)
+    } as Character
+    const totalMaxEP = getTotalEPMax(finalChar)
+    onFinish({ ...finalChar, endurance: { ...finalChar.endurance, current: totalMaxEP } })
   }
 
   const backpackMax = character.cycle === 'kai' || character.cycle === 'magnakai' ? 8 : 10
