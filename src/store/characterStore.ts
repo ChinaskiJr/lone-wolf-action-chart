@@ -21,6 +21,7 @@ interface CharacterState {
   addWeapon: (weapon: Weapon) => void
   updateWeapon: (index: number, weapon: Weapon) => void
   removeWeapon: (index: number) => void
+  equipWeapon: (index: number) => void
 
   // Backpack
   addBackpackItem: (item: BackpackItem) => void
@@ -109,6 +110,17 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     set(updateChar(get, c => ({
       weapons: c.weapons.filter((_, i) => i !== index),
     }))),
+
+  equipWeapon: (index) =>
+    set(updateChar(get, c => {
+      const alreadyEquipped = c.weapons[index]?.equipped !== false
+      return {
+        weapons: c.weapons.map((w, i) =>
+          alreadyEquipped ? { ...w, equipped: i === index ? false : w.equipped }
+                          : { ...w, equipped: i === index }
+        ),
+      }
+    })),
 
   addBackpackItem: (item) =>
     set(updateChar(get, c => {

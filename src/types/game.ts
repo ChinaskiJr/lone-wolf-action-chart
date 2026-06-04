@@ -4,6 +4,7 @@ export interface Weapon {
   name: string
   bonus?: number
   notes?: string
+  equipped?: boolean   // undefined = équipé (rétrocompat)
 }
 
 export interface BackpackItem {

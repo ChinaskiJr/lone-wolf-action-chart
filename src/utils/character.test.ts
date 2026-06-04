@@ -115,6 +115,36 @@ describe('getTotalCS', () => {
     })
     expect(getTotalCS(char)).toBe(20)
   })
+
+  it('ignores bonus from unequipped weapon (equipped: false)', () => {
+    const char = makeKaiChar({
+      combatSkill: { base: 15, bonus: 0 },
+      weapons: [
+        { name: 'Épée', bonus: 4, equipped: true },
+        { name: 'Poignard', bonus: 2, equipped: false },
+      ],
+    })
+    expect(getTotalCS(char)).toBe(19) // 15 + 4, not 15 + 4 + 2
+  })
+
+  it('counts no weapon bonus when all weapons are unequipped', () => {
+    const char = makeKaiChar({
+      combatSkill: { base: 15, bonus: 0 },
+      weapons: [
+        { name: 'Épée', bonus: 4, equipped: false },
+        { name: 'Poignard', bonus: 2, equipped: false },
+      ],
+    })
+    expect(getTotalCS(char)).toBe(15)
+  })
+
+  it('counts weapon bonus when equipped: undefined (rétrocompat)', () => {
+    const char = makeKaiChar({
+      combatSkill: { base: 15, bonus: 0 },
+      weapons: [{ name: 'Glaive', bonus: 3, equipped: undefined }],
+    })
+    expect(getTotalCS(char)).toBe(18)
+  })
 })
 
 describe('getTotalEPMax', () => {

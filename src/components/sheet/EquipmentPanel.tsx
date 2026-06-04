@@ -23,7 +23,7 @@ function characterHasHunting(char: Character): boolean {
 export function EquipmentPanel() {
   const {
     character,
-    addWeapon, removeWeapon,
+    addWeapon, removeWeapon, equipWeapon,
     addBackpackItem, removeBackpackItem,
     addSpecialItem, removeSpecialItem, updateSpecialItem,
     setMeals,
@@ -37,7 +37,7 @@ export function EquipmentPanel() {
 
   return (
     <div className="flex flex-col gap-6">
-      <WeaponsSection weapons={character.weapons} onAdd={addWeapon} onRemove={removeWeapon} />
+      <WeaponsSection weapons={character.weapons} onAdd={addWeapon} onRemove={removeWeapon} onEquip={equipWeapon} />
       <BackpackSection
         items={character.backpack}
         meals={character.meals}
@@ -55,11 +55,12 @@ export function EquipmentPanel() {
 }
 
 function WeaponsSection({
-  weapons, onAdd, onRemove
+  weapons, onAdd, onRemove, onEquip
 }: {
   weapons: Weapon[]
   onAdd: (w: Weapon) => void
   onRemove: (i: number) => void
+  onEquip: (i: number) => void
 }) {
   const { t } = useTranslation()
   const [input, setInput] = useState('')
@@ -83,20 +84,31 @@ function WeaponsSection({
         <span className="text-xs text-slate-500">{weapons.length}/2</span>
       </div>
       <div className="space-y-2 mb-2">
-        {weapons.map((w, i) => (
-          <div key={i} className="flex items-center gap-2 bg-slate-800/60 border border-slate-700 rounded-lg px-3 py-2.5">
-            <div className="w-5 h-5 shrink-0 rounded bg-amber-800/40 flex items-center justify-center text-xs text-amber-500">⚔</div>
-            <span className="flex-1 text-sm text-slate-200">{w.name}</span>
-            {w.bonus != null && w.bonus !== 0 && (
-              <span className="text-xs font-semibold text-amber-400 bg-amber-900/40 rounded px-1">
-                {w.bonus > 0 ? '+' : ''}{w.bonus} HC
-              </span>
-            )}
-            <button onClick={() => onRemove(i)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors before:absolute before:inset-[-10px]">
-              <X size={14} />
-            </button>
-          </div>
-        ))}
+        {weapons.map((w, i) => {
+          const isEquipped = w.equipped !== false
+          return (
+            <div key={i} className={`flex items-center gap-2 bg-slate-800/60 border border-slate-700 rounded-lg px-3 py-2.5 transition-opacity ${isEquipped ? '' : 'opacity-50'}`}>
+              <label className="flex items-center shrink-0 cursor-pointer" aria-label={isEquipped ? t('sheet.unequipItem') : t('sheet.equipItem')}>
+                <input
+                  type="checkbox"
+                  checked={isEquipped}
+                  onChange={() => onEquip(i)}
+                  className="accent-amber-600 w-3.5 h-3.5"
+                />
+              </label>
+              <div className="w-5 h-5 shrink-0 rounded bg-amber-800/40 flex items-center justify-center text-xs text-amber-500">⚔</div>
+              <span className="flex-1 text-sm text-slate-200">{w.name}</span>
+              {w.bonus != null && w.bonus !== 0 && (
+                <span className={`text-xs font-semibold rounded px-1 ${isEquipped ? 'text-amber-400 bg-amber-900/40' : 'text-slate-500 bg-slate-700/40'}`}>
+                  {w.bonus > 0 ? '+' : ''}{w.bonus} HC
+                </span>
+              )}
+              <button onClick={() => onRemove(i)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors before:absolute before:inset-[-10px]">
+                <X size={14} />
+              </button>
+            </div>
+          )
+        })}
         {weapons.length === 0 && (
           <div className="text-sm text-slate-600 italic px-3 py-2">Aucune arme</div>
         )}
