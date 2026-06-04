@@ -284,5 +284,4 @@ export const KAI_WEAPONS = [
   { key: 'axe', fr: 'Hache', en: 'Axe' },
   { key: 'quarterstaff', fr: 'Bâton', en: 'Quarterstaff' },
   { key: 'broadsword', fr: 'Glaive', en: 'Broadsword' },
-  { key: 'bow', fr: 'Arc', en: 'Bow' },
 ]

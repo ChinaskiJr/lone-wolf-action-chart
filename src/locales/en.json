@@ -41,6 +41,7 @@
     "chooseDisciplines": "Choose your disciplines",
     "selectMax": "Select {{count}} disciplines",
     "weaponskillWeapon": "Weaponskill weapon type",
+    "weaponskillRoll": "Roll randomly",
     "kaiNamePrefix": "Kai Name prefix",
     "kaiNameSuffix": "Kai Name suffix",
     "kaiNameGenerate": "Generate randomly",

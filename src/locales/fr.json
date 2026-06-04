@@ -41,6 +41,7 @@
     "chooseDisciplines": "Choisissez vos disciplines",
     "selectMax": "Sélectionnez {{count}} disciplines",
     "weaponskillWeapon": "Arme maîtrisée (Maîtrise des Armes)",
+    "weaponskillRoll": "Tirer au hasard",
     "kaiNamePrefix": "Préfixe du Nom Kaï",
     "kaiNameSuffix": "Suffixe du Nom Kaï",
     "kaiNameGenerate": "Générer aléatoirement",

@@ -110,16 +110,23 @@ export function StepDisciplines({ character, onNext, onBack }: Props) {
       {needsWeaponskill && (
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-1.5">{t('creation.weaponskillWeapon')}</label>
-          <select
-            value={weaponskillWeapon}
-            onChange={e => setWeaponskillWeapon(e.target.value)}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 text-sm focus:outline-none focus:border-amber-600"
-          >
-            <option value="">— {lang === 'fr' ? 'Choisir' : 'Choose'} —</option>
-            {KAI_WEAPONS.map(w => (
-              <option key={w.key} value={w.key}>{lang === 'fr' ? w.fr : w.en}</option>
-            ))}
-          </select>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                const idx = Math.floor(Math.random() * KAI_WEAPONS.length)
+                setWeaponskillWeapon(KAI_WEAPONS[idx].key)
+              }}
+              className="px-4 py-2 rounded border border-amber-700 text-amber-400 hover:bg-amber-950/30 text-sm font-medium transition-colors shrink-0"
+            >
+              {t('creation.weaponskillRoll')}
+            </button>
+            {weaponskillWeapon && (
+              <span className="text-sm font-semibold text-amber-200">
+                {KAI_WEAPONS.find(w => w.key === weaponskillWeapon)?.[lang] ?? weaponskillWeapon}
+              </span>
+            )}
+          </div>
         </div>
       )}
 
