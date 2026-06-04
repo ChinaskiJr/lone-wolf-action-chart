@@ -43,8 +43,8 @@ export function StatsPanel() {
       <div className="bg-slate-800/50 border border-amber-900/25 rounded-xl p-5">
         <p className="text-sm font-semibold text-slate-300 mb-4">{t('sheet.combatSkill')}</p>
         <div className="grid grid-cols-3 gap-3 text-center">
-          <div className="bg-slate-900/60 rounded-lg p-3">
-            <div className="text-3xl font-bold text-slate-200 tabular-nums">{character.combatSkill.base}</div>
+          <div className="bg-slate-900/60 rounded-lg p-3 flex flex-col items-center justify-center">
+            <div className="text-3xl md:text-5xl font-bold text-slate-200 tabular-nums">{character.combatSkill.base}</div>
             <div className="text-xs text-slate-500 mt-1">{t('sheet.base')}</div>
           </div>
           <div className="bg-slate-900/60 rounded-lg p-3">
@@ -68,22 +68,22 @@ export function StatsPanel() {
                 <Plus size={10} />
               </button>
             </div>
-          </div>
-          <div className="bg-amber-900/30 border border-amber-800/50 rounded-lg p-3">
-            <div className="text-3xl font-bold text-amber-400 tabular-nums">{totalCS}</div>
-            <div className="text-xs text-amber-600/80 mt-1">{t('sheet.csTotal')}</div>
             {weaponsHC > 0 && (
-              <div className="mt-1.5 text-xs text-amber-700/80 leading-tight">
-                {totalCS - itemsHC - weaponsHC} <span className="text-amber-400 font-semibold">+{weaponsHC}</span>
-                <div className="text-amber-800/70">{t('sheet.weaponBonus')}</div>
+              <div className="mt-2 text-xs text-slate-500 leading-tight">
+                {totalCS - itemsHC - weaponsHC} <span className="text-blue-400 font-semibold">+{weaponsHC}</span>
+                <div className="text-slate-600">{t('sheet.weaponBonus')}</div>
               </div>
             )}
             {itemsHC > 0 && (
-              <div className="mt-1 text-xs text-amber-700/80 leading-tight">
-                {totalCS - itemsHC - weaponsHC} <span className="text-amber-400 font-semibold">+{itemsHC}</span>
-                <div className="text-amber-800/70">{t('sheet.itemBonus')}</div>
+              <div className="mt-1 text-xs text-slate-500 leading-tight">
+                {totalCS - itemsHC} <span className="text-blue-400 font-semibold">+{itemsHC}</span>
+                <div className="text-slate-600">{t('sheet.itemBonus')}</div>
               </div>
             )}
+          </div>
+          <div className="bg-amber-900/30 border border-amber-800/50 rounded-lg p-3 flex flex-col items-center justify-center">
+            <div className="text-3xl md:text-5xl font-bold text-amber-400 tabular-nums">{totalCS}</div>
+            <div className="text-xs text-amber-600/80 mt-1">{t('sheet.csTotal')}</div>
           </div>
         </div>
       </div>
