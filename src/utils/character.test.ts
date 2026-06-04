@@ -90,6 +90,31 @@ describe('getTotalCS', () => {
     })
     expect(getTotalCS(char)).toBe(20)
   })
+
+  it('adds bonus from weapons', () => {
+    const char = makeKaiChar({
+      combatSkill: { base: 15, bonus: 0 },
+      weapons: [{ name: 'Épée', bonus: 3 }, { name: 'Dague', bonus: 1 }],
+    })
+    expect(getTotalCS(char)).toBe(19)
+  })
+
+  it('ignores weapons with no bonus', () => {
+    const char = makeKaiChar({
+      combatSkill: { base: 15, bonus: 0 },
+      weapons: [{ name: 'Épée' }],
+    })
+    expect(getTotalCS(char)).toBe(15)
+  })
+
+  it('stacks weapon bonus with special item bonus', () => {
+    const char = makeKaiChar({
+      combatSkill: { base: 15, bonus: 0 },
+      weapons: [{ name: 'Épée', bonus: 2 }],
+      specialItems: [makeItem({ hcBonus: 3 })],
+    })
+    expect(getTotalCS(char)).toBe(20)
+  })
 })
 
 describe('getTotalEPMax', () => {

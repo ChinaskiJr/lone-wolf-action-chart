@@ -63,11 +63,14 @@ function WeaponsSection({
 }) {
   const { t } = useTranslation()
   const [input, setInput] = useState('')
+  const [bonusInput, setBonusInput] = useState('')
 
   function add() {
     if (!input.trim() || weapons.length >= 2) return
-    onAdd({ name: input.trim() })
+    const parsed = parseInt(bonusInput, 10)
+    onAdd({ name: input.trim(), bonus: !isNaN(parsed) && parsed !== 0 ? parsed : undefined })
     setInput('')
+    setBonusInput('')
   }
 
   return (
@@ -84,7 +87,11 @@ function WeaponsSection({
           <div key={i} className="flex items-center gap-2 bg-slate-800/60 border border-slate-700 rounded-lg px-3 py-2.5">
             <div className="w-5 h-5 shrink-0 rounded bg-amber-800/40 flex items-center justify-center text-xs text-amber-500">⚔</div>
             <span className="flex-1 text-sm text-slate-200">{w.name}</span>
-            {w.bonus && <span className="text-xs text-blue-400">{w.bonus > 0 ? '+' : ''}{w.bonus} HC</span>}
+            {w.bonus != null && w.bonus !== 0 && (
+              <span className="text-xs font-semibold text-amber-400 bg-amber-900/40 rounded px-1">
+                {w.bonus > 0 ? '+' : ''}{w.bonus} HC
+              </span>
+            )}
             <button onClick={() => onRemove(i)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors before:absolute before:inset-[-10px]">
               <X size={14} />
             </button>
@@ -103,6 +110,17 @@ function WeaponsSection({
             placeholder={t('sheet.addWeapon')}
             className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-600"
           />
+          <div className="flex flex-col justify-center bg-slate-800/60 border border-amber-900/30 rounded-lg px-2 py-1 w-14 shrink-0">
+            <div className="text-xs font-semibold text-amber-400 mb-0.5">{t('sheet.hcBonusItem')}</div>
+            <input
+              type="number"
+              value={bonusInput}
+              onChange={e => setBonusInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && add()}
+              placeholder="0"
+              className="w-full bg-transparent text-sm text-slate-200 focus:outline-none tabular-nums"
+            />
+          </div>
           <button onClick={add} aria-label={t('sheet.addWeapon')} className="relative p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors before:absolute before:inset-[-6px]">
             <Plus size={16} />
           </button>

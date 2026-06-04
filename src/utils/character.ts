@@ -18,15 +18,16 @@ export function rollEndurance(cycle: Cycle): number {
 export function getTotalCS(char: Character): number {
   const base = char.combatSkill.base + char.combatSkill.bonus
   const itemsHC = char.specialItems.filter(i => i.equipped !== false).reduce((sum, i) => sum + (i.hcBonus ?? 0), 0)
+  const weaponsHC = char.weapons.reduce((sum, w) => sum + (w.bonus ?? 0), 0)
   if (char.cycle === 'grandmaster') {
     const extraDisciplines = Math.max(0, char.disciplines.length - 4)
-    return base + extraDisciplines + itemsHC
+    return base + extraDisciplines + itemsHC + weaponsHC
   }
   if (char.cycle === 'neworder') {
     const extraDisciplines = Math.max(0, char.disciplines.length - 5)
-    return base + extraDisciplines + itemsHC
+    return base + extraDisciplines + itemsHC + weaponsHC
   }
-  return base + itemsHC
+  return base + itemsHC + weaponsHC
 }
 
 export function getTotalEPMax(char: Character): number {
@@ -144,6 +145,10 @@ export function canIgnite(char: Character): boolean {
 
 export function getItemsCSBonus(char: Character): number {
   return char.specialItems.filter(i => i.equipped !== false).reduce((sum, i) => sum + (i.hcBonus ?? 0), 0)
+}
+
+export function getWeaponsCSBonus(char: Character): number {
+  return char.weapons.reduce((sum, w) => sum + (w.bonus ?? 0), 0)
 }
 
 export function getItemsEPBonus(char: Character): number {

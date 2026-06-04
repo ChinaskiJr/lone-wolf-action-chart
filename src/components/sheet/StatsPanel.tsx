@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Minus, Plus } from 'lucide-react'
 import { useCharacterStore } from '@/store/characterStore'
-import { getTotalCS, getTotalEPMax, computeRank, getItemsCSBonus, getItemsEPBonus } from '@/utils/character'
+import { getTotalCS, getTotalEPMax, computeRank, getItemsCSBonus, getItemsEPBonus, getWeaponsCSBonus } from '@/utils/character'
 import { KAI_RANKS, MAGNAKAI_RANKS, GRAND_MASTER_RANKS, NEW_ORDER_RANKS } from '@/data/ranks'
 
 export function StatsPanel() {
@@ -13,6 +13,7 @@ export function StatsPanel() {
   const totalCS = getTotalCS(character)
   const maxEP = getTotalEPMax(character)
   const itemsHC = getItemsCSBonus(character)
+  const weaponsHC = getWeaponsCSBonus(character)
   const itemsPE = getItemsEPBonus(character)
   const rankKey = computeRank(character)
 
@@ -71,9 +72,15 @@ export function StatsPanel() {
           <div className="bg-amber-900/30 border border-amber-800/50 rounded-lg p-3">
             <div className="text-3xl font-bold text-amber-400 tabular-nums">{totalCS}</div>
             <div className="text-xs text-amber-600/80 mt-1">{t('sheet.csTotal')}</div>
-            {itemsHC > 0 && (
+            {weaponsHC > 0 && (
               <div className="mt-1.5 text-xs text-amber-700/80 leading-tight">
-                {totalCS - itemsHC} <span className="text-amber-400 font-semibold">+{itemsHC}</span>
+                {totalCS - itemsHC - weaponsHC} <span className="text-amber-400 font-semibold">+{weaponsHC}</span>
+                <div className="text-amber-800/70">{t('sheet.weaponBonus')}</div>
+              </div>
+            )}
+            {itemsHC > 0 && (
+              <div className="mt-1 text-xs text-amber-700/80 leading-tight">
+                {totalCS - itemsHC - weaponsHC} <span className="text-amber-400 font-semibold">+{itemsHC}</span>
                 <div className="text-amber-800/70">{t('sheet.itemBonus')}</div>
               </div>
             )}
