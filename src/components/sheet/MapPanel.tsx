@@ -23,6 +23,7 @@ function resolveMapUrl(bookNumber: number): string | undefined {
   return (
     webMaps[`${base}.avif`] ??
     webMaps[`${base}.webp`] ??
+    webMaps[`${base}.jpg`] ??
     trimmedMaps[`/src/assets/maps/trimmed/${bookNumber}.png`]
   )
 }
