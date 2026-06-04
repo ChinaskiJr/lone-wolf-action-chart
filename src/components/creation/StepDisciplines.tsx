@@ -31,6 +31,7 @@ export function StepDisciplines({ character, onNext, onBack }: Props) {
 
   const [selected, setSelected] = useState<string[]>([])
   const [weaponskillWeapon, setWeaponskillWeapon] = useState('')
+  const [weaponmasteryWeapons, setWeaponmasteryWeapons] = useState<string[]>([])
   const [hoveredDiscipline, setHoveredDiscipline] = useState<DisciplineData | null>(null)
 
   const disciplineMap: Record<string, DisciplineData> =
@@ -48,11 +49,15 @@ export function StepDisciplines({ character, onNext, onBack }: Props) {
     )
   }
 
+  const needsWeaponmastery = character.cycle === 'magnakai' && selected.includes('weaponmastery')
+  const needsGrandWeaponmastery = (character.cycle === 'grandmaster' || character.cycle === 'neworder') && selected.includes('grandWeaponmastery')
+
   function handleNext() {
     const updated = {
       ...character,
       disciplines: selected,
       ...(character.cycle === 'kai' ? { weaponskillWeapon } : {}),
+      ...(needsWeaponmastery || needsGrandWeaponmastery ? { weaponmasteryWeapons } : {}),
     } as unknown as Character
     onNext(updated)
   }
@@ -130,13 +135,53 @@ export function StepDisciplines({ character, onNext, onBack }: Props) {
         </div>
       )}
 
+      {(needsWeaponmastery || needsGrandWeaponmastery) && (
+        <div className="bg-blue-950/20 border border-blue-900/40 rounded-lg p-3 flex flex-col gap-2">
+          <label className="block text-sm font-medium text-slate-300">
+            {lang === 'fr' ? 'Armes maîtrisées' : 'Mastered weapons'}
+            {needsWeaponmastery && <span className="text-slate-500 ml-1 text-xs">{lang === 'fr' ? '(jusqu\'à 3)' : '(up to 3)'}</span>}
+          </label>
+          <div className="flex flex-wrap gap-1.5 min-h-[24px]">
+            {weaponmasteryWeapons.map(key => {
+              const w = KAI_WEAPONS.find(ww => ww.key === key)
+              return (
+                <span key={key} className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-900/40 border border-blue-800/60 text-xs text-blue-300">
+                  {w ? (lang === 'fr' ? w.fr : w.en) : key}
+                  <button type="button" onClick={() => setWeaponmasteryWeapons(prev => prev.filter(k => k !== key))} className="text-blue-500 hover:text-blue-200 ml-0.5">×</button>
+                </span>
+              )
+            })}
+          </div>
+          {(needsWeaponmastery ? weaponmasteryWeapons.length < 3 : weaponmasteryWeapons.length < 1) && (
+            <div className="flex gap-2 items-center">
+              <select
+                defaultValue=""
+                onChange={e => {
+                  const value = e.target.value
+                  if (value) {
+                    setWeaponmasteryWeapons(prev => prev.includes(value) ? prev : [...prev, value])
+                    e.target.value = ''
+                  }
+                }}
+                className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-slate-200 text-sm focus:outline-none focus:border-amber-600"
+              >
+                <option value="">— {lang === 'fr' ? 'Choisir une arme' : 'Choose a weapon'} —</option>
+                {KAI_WEAPONS.filter(w => !weaponmasteryWeapons.includes(w.key)).map(w => (
+                  <option key={w.key} value={w.key}>{lang === 'fr' ? w.fr : w.en}</option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="flex gap-3 justify-between">
         <button onClick={onBack} className="px-5 py-2 rounded border border-slate-700 text-slate-400 hover:text-slate-200 transition-colors text-sm">
           {t('creation.back')}
         </button>
         <button
           onClick={handleNext}
-          disabled={selected.length < maxD || (needsWeaponskill && !weaponskillWeapon)}
+          disabled={selected.length < maxD || (needsWeaponskill && !weaponskillWeapon) || ((needsWeaponmastery || needsGrandWeaponmastery) && weaponmasteryWeapons.length === 0)}
           className="px-6 py-2 rounded bg-amber-600 hover:bg-amber-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-medium transition-colors"
         >
           {t('creation.next')}

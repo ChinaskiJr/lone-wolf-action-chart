@@ -16,9 +16,11 @@ import type { DisciplineData } from '@/types/game'
 export function DisciplinesPanel() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'fr' | 'en'
-  const { character, addDiscipline, setWeaponskillWeapon } = useCharacterStore()
+  const { character, addDiscipline, setWeaponskillWeapon, addWeaponmasteryWeapon, removeWeaponmasteryWeapon } = useCharacterStore()
   const [pendingWeaponskill, setPendingWeaponskill] = useState(false)
   const [weaponChoice, setWeaponChoice] = useState('')
+  const [pendingWeaponmastery, setPendingWeaponmastery] = useState(false)
+  const [wmWeaponChoice, setWmWeaponChoice] = useState('')
 
   if (!character) return null
 
@@ -151,16 +153,79 @@ export function DisciplinesPanel() {
       {/* Weaponskill weapon (Kai) */}
       {character.cycle === 'kai' && selected.includes('weaponskill') && (
         <div className="bg-blue-950/20 border border-blue-900/40 rounded-lg p-3 text-sm">
-          <span className="text-slate-400">Arme maîtrisée : </span>
+          <span className="text-slate-400">{lang === 'fr' ? 'Arme maîtrisée' : 'Mastered weapon'} : </span>
           <span className="text-blue-300 font-medium">
             {(() => {
               const w = KAI_WEAPONS.find(ww => ww.key === (character as any).weaponskillWeapon)
               return w ? (lang === 'fr' ? w.fr : w.en) : (character as any).weaponskillWeapon
             })()}
           </span>
-          <span className="text-slate-500 ml-2 text-xs">(+2 HC si portée)</span>
+          <span className="text-slate-500 ml-2 text-xs">(+2 HC {lang === 'fr' ? 'si portée' : 'if carried'})</span>
         </div>
       )}
+
+      {/* Weaponmastery weapons (Magnakai / GM / NO) */}
+      {(character.cycle === 'magnakai' || character.cycle === 'grandmaster' || character.cycle === 'neworder') &&
+        selected.includes(character.cycle === 'magnakai' ? 'weaponmastery' : 'grandWeaponmastery') && (() => {
+          const owned: string[] = (character as any).weaponmasteryWeapons ?? []
+          const max = character.cycle === 'magnakai' ? 3 : character.currentBook - 12
+          const hcBonus = character.cycle === 'magnakai' ? 3 : 5
+          const canAddWeapon = owned.length < max
+          const available = KAI_WEAPONS.filter(w => !owned.includes(w.key))
+          return (
+            <div className="bg-blue-950/20 border border-blue-900/40 rounded-lg p-3 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-400">
+                  {lang === 'fr' ? 'Armes maîtrisées' : 'Mastered weapons'}
+                  <span className="text-slate-600 ml-1">(+{hcBonus} HC {lang === 'fr' ? 'si portée' : 'if carried'})</span>
+                </span>
+                <span className="text-xs text-slate-600">{owned.length}/{max}</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5 min-h-[24px]">
+                {owned.map(key => {
+                  const w = KAI_WEAPONS.find(ww => ww.key === key)
+                  return (
+                    <span key={key} className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-900/40 border border-blue-800/60 text-xs text-blue-300">
+                      {w ? (lang === 'fr' ? w.fr : w.en) : key}
+                      <button onClick={() => removeWeaponmasteryWeapon(key)} className="text-blue-500 hover:text-blue-200 ml-0.5">×</button>
+                    </span>
+                  )
+                })}
+                {canAddWeapon && !pendingWeaponmastery && (
+                  <button onClick={() => setPendingWeaponmastery(true)} className="px-2 py-0.5 rounded-full border border-slate-700 text-xs text-slate-500 hover:text-slate-300 hover:border-slate-500 transition-colors">
+                    + {lang === 'fr' ? 'Ajouter' : 'Add'}
+                  </button>
+                )}
+              </div>
+              {pendingWeaponmastery && (
+                <div className="flex gap-2 items-center">
+                  <select
+                    value={wmWeaponChoice}
+                    onChange={e => setWmWeaponChoice(e.target.value)}
+                    className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs focus:outline-none focus:border-amber-600"
+                  >
+                    <option value="">— {lang === 'fr' ? 'Choisir' : 'Choose'} —</option>
+                    {available.map(w => <option key={w.key} value={w.key}>{lang === 'fr' ? w.fr : w.en}</option>)}
+                  </select>
+                  <button
+                    onClick={() => { if (wmWeaponChoice) { addWeaponmasteryWeapon(wmWeaponChoice); setPendingWeaponmastery(false); setWmWeaponChoice('') } }}
+                    disabled={!wmWeaponChoice}
+                    className="px-2 py-1 text-xs bg-amber-600 hover:bg-amber-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded transition-colors"
+                  >
+                    OK
+                  </button>
+                  <button
+                    onClick={() => { setPendingWeaponmastery(false); setWmWeaponChoice('') }}
+                    className="px-2 py-1 text-xs border border-slate-700 text-slate-400 hover:text-slate-200 rounded transition-colors"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+            </div>
+          )
+        })()
+      }
 
       {/* Lore circles (Magnakai) */}
       {character.cycle === 'magnakai' && (

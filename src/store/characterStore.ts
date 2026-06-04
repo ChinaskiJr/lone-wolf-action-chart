@@ -53,6 +53,10 @@ interface CharacterState {
   // Kai-specific
   setWeaponskillWeapon: (weapon: string) => void
 
+  // Magnakai / GM / NO weapon mastery
+  addWeaponmasteryWeapon: (weapon: string) => void
+  removeWeaponmasteryWeapon: (weapon: string) => void
+
   // Save to persistent store
   save: () => void
 }
@@ -221,6 +225,21 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     set(updateChar(get, c => {
       if (c.cycle !== 'kai') return {}
       return { weaponskillWeapon: weapon } as Partial<Character>
+    })),
+
+  addWeaponmasteryWeapon: (weapon) =>
+    set(updateChar(get, c => {
+      if (c.cycle === 'kai') return {}
+      const current = (c as any).weaponmasteryWeapons as string[] ?? []
+      if (current.includes(weapon)) return {}
+      return { weaponmasteryWeapons: [...current, weapon] } as Partial<Character>
+    })),
+
+  removeWeaponmasteryWeapon: (weapon) =>
+    set(updateChar(get, c => {
+      if (c.cycle === 'kai') return {}
+      const current = (c as any).weaponmasteryWeapons as string[] ?? []
+      return { weaponmasteryWeapons: current.filter(w => w !== weapon) } as Partial<Character>
     })),
 
   save: () => {

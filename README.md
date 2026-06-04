@@ -161,9 +161,9 @@ Data is sourced from **[Holmgaard Press](https://shop-magnamund.com/)** editions
 - [x] Combat: ×2 / ÷2 manual damage modifier toggles
 - [x] Combat: fight-to-the-death auto-roll (rounds play out automatically until one side falls)
 - [x] Lorestone tracking: Gem icons auto-derived from book progression (Magnakai)
+- [x] Weapon Mastery: selection at creation + chips display on sheet (Magnakai up to 3, GM/NO grows per book)
 
 ### Upcoming
-- [ ] Weapon Mastery management (multiple weapons per cycle)
 - [ ] PWA / offline mode
 - [ ] Import from existing Project Aon sheets
 
