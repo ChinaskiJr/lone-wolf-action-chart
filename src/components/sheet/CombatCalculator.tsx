@@ -324,6 +324,34 @@ export function CombatCalculator({ onClose }: Props) {
         )}
 
         <div className={`p-5 flex flex-col gap-4 ${victory || defeat || escaped ? 'hidden' : ''}`}>
+          {/* Enemy quick-entry */}
+          <div className="flex gap-3">
+            <div className="flex-1 flex flex-col gap-1">
+              <div className="text-xs text-slate-500 uppercase tracking-wide text-center">{t('combat.enemyCS')}</div>
+              <input
+                type="number"
+                value={enemyCS}
+                onChange={e => setEnemyCS(Number(e.target.value))}
+                onFocus={e => e.target.select()}
+                className="w-full bg-slate-900 border border-slate-600 rounded-lg text-center text-3xl font-bold text-cyan-400 focus:outline-none focus:border-amber-600 py-1"
+              />
+            </div>
+            <div className="flex-1 flex flex-col gap-1">
+              <div className="text-xs text-slate-500 uppercase tracking-wide text-center">{t('combat.enemyEP')}</div>
+              <input
+                type="number"
+                value={enemyEP}
+                onChange={e => {
+                  const v = Math.max(0, Number(e.target.value))
+                  setEnemyEP(v)
+                  setEnemyCurrentEP(v)
+                }}
+                onFocus={e => e.target.select()}
+                className="w-full bg-slate-900 border border-slate-600 rounded-lg text-center text-3xl font-bold text-slate-100 focus:outline-none focus:border-amber-600 py-1"
+              />
+            </div>
+          </div>
+
           {/* CS display */}
           <div className="grid grid-cols-4 gap-2 text-center bg-slate-800/40 rounded-xl p-4">
             <div>
@@ -348,13 +376,7 @@ export function CombatCalculator({ onClose }: Props) {
             </div>
             <div>
               <div className="text-xs text-slate-500 mb-1">{t('combat.enemyCS')}</div>
-              <input
-                type="number"
-                value={enemyCS}
-                onChange={e => setEnemyCS(Number(e.target.value))}
-                onFocus={e => e.target.select()}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg text-center text-3xl font-bold text-red-400 focus:outline-none focus:border-amber-600 py-0"
-              />
+              <div className="text-3xl font-bold text-cyan-400">{enemyCS}</div>
             </div>
           </div>
 
@@ -469,13 +491,7 @@ export function CombatCalculator({ onClose }: Props) {
                   className="w-20 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-center text-lg font-bold text-slate-100 focus:outline-none focus:border-amber-600"
                 />
                 <span className="text-slate-500 text-sm">/</span>
-                <input
-                  type="number"
-                  value={enemyEP}
-                  onChange={e => { setEnemyEP(Number(e.target.value)); setEnemyCurrentEP(Number(e.target.value)) }}
-                  onFocus={e => e.target.select()}
-                  className="w-20 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-center text-lg font-bold text-slate-400 focus:outline-none focus:border-amber-600"
-                />
+                <span className="text-lg font-bold text-slate-400">{enemyEP}</span>
               </div>
             </div>
             <div className="h-2 rounded-full bg-slate-700 overflow-hidden">
@@ -606,7 +622,7 @@ export function CombatCalculator({ onClose }: Props) {
                             -{total}
                             {ignite > 0 && <span className="text-xs text-orange-400 ml-1">({t('combat.ignite')} +1)</span>}
                             {enemyDmgMult === 'x2' && <span className="text-xs text-emerald-400 ml-1">(×2)</span>}
-                            {enemyDmgMult === 'half' && <span className="text-xs text-violet-400 ml-1">(÷2)</span>}
+                            {enemyDmgMult === 'half' && <span className="text-xs text-cyan-400 ml-1">(÷2)</span>}
                           </div>
                           <div className="text-xs text-slate-500 mt-1">
                             PE: {enemyCurrentEP} → {Math.max(0, enemyCurrentEP - total)}
