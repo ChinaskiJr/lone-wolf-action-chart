@@ -37,6 +37,7 @@ export function CombatCalculator({ onClose }: Props) {
   const [igniteActive, setIgniteActive] = useState(false)
   const [enemyDmgMult, setEnemyDmgMult] = useState<'x2' | 'half' | null>(null)
   const [autoFighting, setAutoFighting] = useState(false)
+  const [roundCount, setRoundCount] = useState(0)
   const autoFightRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => () => { if (autoFightRef.current) clearInterval(autoFightRef.current) }, [])
@@ -122,6 +123,7 @@ export function CombatCalculator({ onClose }: Props) {
       // Evasion: enemy losses are ignored, only Lone Wolf may lose EP.
       setLastRound(null)
       setEvading(false)
+      setRoundCount(prev => prev + 1)
       if (newPlayerEP <= 0) {
         setTimeout(() => setDefeat(true), 150)
       } else {
@@ -134,6 +136,7 @@ export function CombatCalculator({ onClose }: Props) {
     const newEnemyEP = lastRound.enemyKilled ? 0 : Math.max(0, enemyCurrentEP - finalEnemyLoss)
     setEnemyCurrentEP(newEnemyEP)
     setLastRound(null)
+    setRoundCount(prev => prev + 1)
     if (lastRound.enemyKilled || newEnemyEP <= 0) {
       setTimeout(() => setVictory(true), 150)
     } else if (newPlayerEP <= 0) {
@@ -156,6 +159,7 @@ export function CombatCalculator({ onClose }: Props) {
     setBowActive(false)
     setIgniteActive(false)
     setEnemyDmgMult(null)
+    setRoundCount(0)
   }
 
   function handleSimulate() {
@@ -192,7 +196,10 @@ export function CombatCalculator({ onClose }: Props) {
     const capturedIgnitePossible = ignitePossible
     const capturedDmgMult = enemyDmgMult
 
+    let autoRounds = 0
     autoFightRef.current = setInterval(() => {
+      autoRounds++
+      setRoundCount(autoRounds)
       const round = resolveCombatRound(playerCS, enemyCS, rollNumber())
 
       const newPlayerEP = round.playerKilled ? 0 : Math.max(0, currentPlayerEP - round.playerLoss - epCostPerRound)
@@ -279,6 +286,7 @@ export function CombatCalculator({ onClose }: Props) {
               <div className="text-sm text-slate-400">
                 {t('combat.epAfter')} : <span className="text-green-400 font-medium">{character.endurance.current}</span>
               </div>
+              <div className="text-sm text-slate-500 mt-1">{t('combat.roundCount', { count: roundCount })}</div>
             </div>
             <div className="flex gap-3 w-full">
               <button
@@ -298,7 +306,7 @@ export function CombatCalculator({ onClose }: Props) {
         )}
 
         {defeat && (
-          <DeathModal onClose={handleClose} onReplay={handleNewCombat} />
+          <DeathModal onClose={handleClose} onReplay={handleNewCombat} roundCount={roundCount} />
         )}
 
         {/* Escaped screen */}
@@ -312,6 +320,7 @@ export function CombatCalculator({ onClose }: Props) {
               <div className="text-sm text-slate-400">
                 {t('combat.epAfter')} : <span className="text-green-400 font-medium">{character.endurance.current}</span>
               </div>
+              <div className="text-sm text-slate-500 mt-1">{t('combat.roundCount', { count: roundCount })}</div>
             </div>
             <div className="flex gap-3 w-full">
               <button

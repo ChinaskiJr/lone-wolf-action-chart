@@ -159,7 +159,8 @@
     "ignite": "Burning blade",
     "surgeLocked": "EP too low",
     "dmgX2": "×2 damage",
-    "dmgHalf": "÷2 damage"
+    "dmgHalf": "÷2 damage",
+    "roundCount": "In {{count}} round(s)"
   },
   "transition": {
     "title": "Cycle Transition",

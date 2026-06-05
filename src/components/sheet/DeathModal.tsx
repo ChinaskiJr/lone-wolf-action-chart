@@ -3,9 +3,10 @@ import { useTranslation } from 'react-i18next'
 interface Props {
   onClose: () => void
   onReplay?: () => void
+  roundCount?: number
 }
 
-export function DeathModal({ onClose, onReplay }: Props) {
+export function DeathModal({ onClose, onReplay, roundCount }: Props) {
   const { t } = useTranslation()
 
   return (
@@ -21,6 +22,9 @@ export function DeathModal({ onClose, onReplay }: Props) {
           <div className="text-center">
             <div className="text-xl font-serif font-semibold text-red-300 mb-1">{t('combat.defeat')}</div>
             <div className="text-sm text-slate-400">{t('combat.defeatSub')}</div>
+            {roundCount != null && roundCount > 0 && (
+              <div className="text-sm text-slate-500 mt-1">{t('combat.roundCount', { count: roundCount })}</div>
+            )}
           </div>
           <div className="flex gap-3 w-full">
             {onReplay && (
