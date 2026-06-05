@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Plus, X, Sword, FlaskConical, Utensils } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { useCharacterStore } from '@/store/characterStore'
+import { useUIStore } from '@/store/uiStore'
 import type { BackpackItem, SpecialItem, Weapon } from '@/types/game'
 import type { Character } from '@/types/character'
 
@@ -30,10 +31,19 @@ export function EquipmentPanel() {
     eatMeal,
     usePotion,
   } = useCharacterStore()
+  const { setCombatPotionBonus, setCombatModalOpen } = useUIStore()
   if (!character) return null
 
   const backpackMax = character.cycle === 'kai' || character.cycle === 'magnakai' ? 8 : 10
   const hasHunting = characterHasHunting(character)
+
+  function handleUseCombatPotion(id: string) {
+    const item = character!.backpack.find(i => i.id === id)
+    if (!item?.csBonus) return
+    setCombatPotionBonus(item.csBonus)
+    removeBackpackItem(id)
+    setCombatModalOpen(true)
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -48,6 +58,7 @@ export function EquipmentPanel() {
         onMealsChange={setMeals}
         onEat={eatMeal}
         onUsePotion={usePotion}
+        onUseCombatPotion={handleUseCombatPotion}
       />
       <SpecialItemsSection items={character.specialItems} onAdd={addSpecialItem} onRemove={removeSpecialItem} onUpdate={updateSpecialItem} />
     </div>
@@ -143,7 +154,7 @@ function WeaponsSection({
 }
 
 function BackpackSection({
-  items, meals, max, hasHunting, onAdd, onRemove, onMealsChange, onEat, onUsePotion
+  items, meals, max, hasHunting, onAdd, onRemove, onMealsChange, onEat, onUsePotion, onUseCombatPotion
 }: {
   items: BackpackItem[]
   meals: number
@@ -154,6 +165,7 @@ function BackpackSection({
   onMealsChange: (n: number) => void
   onEat: () => void
   onUsePotion: (id: string) => void
+  onUseCombatPotion: (id: string) => void
 }) {
   const { t } = useTranslation()
   const [input, setInput] = useState('')
@@ -162,6 +174,10 @@ function BackpackSection({
   const [addingPotion, setAddingPotion] = useState(false)
   const [potionName, setPotionName] = useState('')
   const [potionEP, setPotionEP] = useState(5)
+  const [addingCombatPotion, setAddingCombatPotion] = useState(false)
+  const [combatPotionName, setCombatPotionName] = useState('')
+  const [combatPotionCS, setCombatPotionCS] = useState(2)
+  const [combatPotionConfirm, setCombatPotionConfirm] = useState<string | null>(null)
 
   const slotsUsed = items.reduce((sum, i) => sum + (i.slots ?? 1), 0) + meals
   const isFull = slotsUsed >= max
@@ -199,10 +215,19 @@ function BackpackSection({
     setAddingPotion(false)
   }
 
+  function confirmAddCombatPotion() {
+    if (isFull) return
+    onAdd({ id: uuidv4(), name: combatPotionName.trim() || t('sheet.combatPotion'), csBonus: combatPotionCS })
+    setCombatPotionName('')
+    setCombatPotionCS(2)
+    setAddingCombatPotion(false)
+  }
+
   // Build renderable slot rows with proper slot numbering
   type SlotRow =
     | { type: 'meal'; index: number; startSlot: number }
     | { type: 'potion'; item: BackpackItem; startSlot: number; endSlot: number }
+    | { type: 'combatPotion'; item: BackpackItem; startSlot: number; endSlot: number }
     | { type: 'item'; item: BackpackItem; startSlot: number; endSlot: number }
     | { type: 'empty'; startSlot: number }
 
@@ -214,7 +239,7 @@ function BackpackSection({
   }
   for (const item of items) {
     const s = item.slots ?? 1
-    const type = item.epRestore ? 'potion' as const : 'item' as const
+    const type = item.csBonus ? 'combatPotion' as const : item.epRestore ? 'potion' as const : 'item' as const
     slotRows.push({ type, item, startSlot: slotNum, endSlot: slotNum + s - 1 })
     slotNum += s
   }
@@ -289,6 +314,29 @@ function BackpackSection({
               </button>
             </div>
           )
+          if (slot.type === 'combatPotion') return (
+            <div key={slot.item.id} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-orange-900/50 bg-orange-950/20">
+              <span className="text-xs text-slate-600 w-6 shrink-0">{slotLabel(slot.startSlot, slot.endSlot)}</span>
+              <span className="shrink-0">⚗️</span>
+              <span className="flex-1 text-sm text-orange-200 truncate">{slot.item.name}</span>
+              <span className="text-xs text-orange-400 font-medium shrink-0">+{slot.item.csBonus} HC</span>
+              <button
+                onClick={() => setCombatPotionConfirm(slot.item.id)}
+                aria-label={t('sheet.useCombatPotion')}
+                title={t('sheet.useCombatPotion')}
+                className="relative text-orange-400 hover:text-amber-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
+              >
+                <FlaskConical size={13} />
+              </button>
+              <button
+                onClick={() => onRemove(slot.item.id)}
+                aria-label={t('sheet.removeItem')}
+                className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
+              >
+                <X size={12} />
+              </button>
+            </div>
+          )
           if (slot.type === 'item') return (
             <div key={slot.item.id} className="flex items-start gap-2 rounded-lg px-3 py-2 border border-slate-700 bg-slate-800/60">
               <span className="text-xs text-slate-600 w-6 shrink-0 mt-0.5">{slotLabel(slot.startSlot, slot.endSlot)}</span>
@@ -348,6 +396,37 @@ function BackpackSection({
         </div>
       )}
 
+      {/* Combat potion add form (inline) */}
+      {addingCombatPotion && !isFull && (
+        <div className="flex gap-2 mb-2 p-2.5 rounded-lg border border-orange-900/40 bg-orange-950/10">
+          <span className="text-lg shrink-0">⚗️</span>
+          <input
+            value={combatPotionName}
+            onChange={e => setCombatPotionName(e.target.value)}
+            placeholder={t('sheet.combatPotion')}
+            className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-orange-600"
+          />
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="text-xs text-orange-400">+</span>
+            <input
+              type="number"
+              value={combatPotionCS}
+              onChange={e => setCombatPotionCS(Math.max(1, Number(e.target.value)))}
+              onFocus={e => e.target.select()}
+              min={1}
+              className="w-14 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-orange-400 font-bold text-center focus:outline-none focus:border-orange-600"
+            />
+            <span className="text-xs text-slate-500">HC</span>
+          </div>
+          <button onClick={confirmAddCombatPotion} className="px-2 py-1 rounded bg-orange-700 hover:bg-orange-600 text-white text-xs font-medium transition-colors shrink-0">
+            OK
+          </button>
+          <button onClick={() => setAddingCombatPotion(false)} aria-label={t('common.cancel')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
       {/* Add controls */}
       {!isFull && (
         <div className="flex flex-col gap-1.5">
@@ -371,6 +450,19 @@ function BackpackSection({
             >
               <Plus size={12} />
               🧪
+            </button>
+            <button
+              onClick={() => setAddingCombatPotion(v => !v)}
+              aria-label={t('sheet.combatPotion')}
+              aria-pressed={addingCombatPotion}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium transition-colors shrink-0 ${
+                addingCombatPotion
+                  ? 'border-orange-700 bg-orange-900/30 text-orange-300'
+                  : 'border-orange-900/50 text-orange-500 hover:bg-orange-950/30 hover:text-orange-400'
+              }`}
+            >
+              <Plus size={12} />
+              ⚗️
             </button>
             <input
               value={input}
@@ -400,6 +492,36 @@ function BackpackSection({
               />
               {t('sheet.twoSlots')}
             </label>
+          </div>
+        </div>
+      )}
+
+      {/* Combat potion confirmation modal */}
+      {combatPotionConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="bg-slate-900 border border-orange-900/60 rounded-xl p-6 max-w-sm w-full shadow-xl">
+            <div className="flex items-center gap-2 mb-4 text-orange-300">
+              <FlaskConical size={18} />
+              <span className="font-semibold text-sm">{t('sheet.combatPotion')}</span>
+            </div>
+            <p className="text-sm text-slate-300 mb-5">{t('sheet.combatPotionConfirm')}</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setCombatPotionConfirm(null)}
+                className="px-4 py-2 rounded-lg border border-slate-600 text-slate-300 hover:border-slate-500 text-sm transition-colors"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={() => {
+                  onUseCombatPotion(combatPotionConfirm)
+                  setCombatPotionConfirm(null)
+                }}
+                className="px-4 py-2 rounded-lg bg-orange-700 hover:bg-orange-600 text-white text-sm font-medium transition-colors"
+              >
+                {t('common.confirm')}
+              </button>
+            </div>
           </div>
         </div>
       )}

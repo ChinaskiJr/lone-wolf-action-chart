@@ -11,6 +11,8 @@ interface UIState {
   setActiveSection: (section: ActiveSection) => void
   combatModalOpen: boolean
   setCombatModalOpen: (open: boolean) => void
+  combatPotionBonus: number | null
+  setCombatPotionBonus: (bonus: number | null) => void
 }
 
 export const useUIStore = create<UIState>()(
@@ -22,6 +24,8 @@ export const useUIStore = create<UIState>()(
       setActiveSection: (activeSection) => set({ activeSection }),
       combatModalOpen: false,
       setCombatModalOpen: (combatModalOpen) => set({ combatModalOpen }),
+      combatPotionBonus: null,
+      setCombatPotionBonus: (combatPotionBonus) => set({ combatPotionBonus }),
     }),
     { name: 'lonewolf_ui', partialize: (s) => ({ language: s.language }) }
   )

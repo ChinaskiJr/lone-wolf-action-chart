@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { X, Dices, Swords, SkipForward, Footprints, HeartPulse, Crosshair, Flame, Skull } from 'lucide-react'
+import { X, Dices, Swords, SkipForward, Footprints, HeartPulse, Crosshair, Flame, Skull, FlaskConical } from 'lucide-react'
 import { useCharacterStore } from '@/store/characterStore'
+import { useUIStore } from '@/store/uiStore'
 import { getTotalCS, getTotalEPMax, hasDisciplineForModifier, getEffectiveModifier, getBowBonus, canIgnite } from '@/utils/character'
 import { DeathModal } from './DeathModal'
 import { resolveCombatRound, simulateCombat, type CombatRound } from '@/utils/combat'
@@ -16,6 +17,7 @@ export function CombatCalculator({ onClose }: Props) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'fr' | 'en'
   const { character, setEnduranceCurrent, useDeliverance } = useCharacterStore()
+  const { combatPotionBonus, setCombatPotionBonus } = useUIStore()
   if (!character) return null
 
   const basePlayerCS = getTotalCS(character)
@@ -30,7 +32,7 @@ export function CombatCalculator({ onClose }: Props) {
   const [escaped, setEscaped] = useState(false)
   const [evading, setEvading] = useState(false)
   const [activeModifiers, setActiveModifiers] = useState<Set<string>>(new Set())
-  const [situationalMod, setSituationalMod] = useState(0)
+  const [situationalMod, setSituationalMod] = useState(combatPotionBonus ?? 0)
   const [bowActive, setBowActive] = useState(false)
   const [igniteActive, setIgniteActive] = useState(false)
   const [enemyDmgMult, setEnemyDmgMult] = useState<'x2' | 'half' | null>(null)
@@ -38,6 +40,11 @@ export function CombatCalculator({ onClose }: Props) {
   const autoFightRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => () => { if (autoFightRef.current) clearInterval(autoFightRef.current) }, [])
+
+  function handleClose() {
+    setCombatPotionBonus(null)
+    onClose()
+  }
 
   const visibleModifiers = COMBAT_MODIFIERS.filter(m => m.visibleFor.includes(character.cycle))
 
@@ -253,7 +260,7 @@ export function CombatCalculator({ onClose }: Props) {
             <Swords size={18} />
             {t('combat.title')}
           </div>
-          <button onClick={onClose} aria-label={t('common.close')} className="relative p-1 text-slate-500 hover:text-slate-300 transition-colors before:absolute before:inset-[-8px]">
+          <button onClick={handleClose} aria-label={t('common.close')} className="relative p-1 text-slate-500 hover:text-slate-300 transition-colors before:absolute before:inset-[-8px]">
             <X size={18} />
           </button>
         </div>
@@ -281,7 +288,7 @@ export function CombatCalculator({ onClose }: Props) {
                 {t('combat.newCombat')}
               </button>
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="flex-1 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium transition-colors"
               >
                 {t('common.close')}
@@ -291,7 +298,7 @@ export function CombatCalculator({ onClose }: Props) {
         )}
 
         {defeat && (
-          <DeathModal onClose={onClose} onReplay={handleNewCombat} />
+          <DeathModal onClose={handleClose} onReplay={handleNewCombat} />
         )}
 
         {/* Escaped screen */}
@@ -314,7 +321,7 @@ export function CombatCalculator({ onClose }: Props) {
                 {t('combat.newCombat')}
               </button>
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="flex-1 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium transition-colors"
               >
                 {t('common.close')}
@@ -367,6 +374,12 @@ export function CombatCalculator({ onClose }: Props) {
                 onFocus={e => e.target.select()}
                 className={`w-full bg-slate-900 border border-slate-700 rounded-lg text-center text-3xl font-bold focus:outline-none focus:border-amber-600 py-0 ${modColor}`}
               />
+              {combatPotionBonus !== null && (
+                <div className="flex items-center justify-center gap-1 text-xs text-orange-400 mt-0.5">
+                  <FlaskConical size={10} />
+                  <span>+{combatPotionBonus}</span>
+                </div>
+              )}
             </div>
             <div>
               <div className="text-xs text-slate-500 mb-1">Ratio</div>
