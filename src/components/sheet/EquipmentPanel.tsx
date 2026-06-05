@@ -315,16 +315,16 @@ function BackpackSection({
             </div>
           )
           if (slot.type === 'combatPotion') return (
-            <div key={slot.item.id} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-orange-900/50 bg-orange-950/20">
+            <div key={slot.item.id} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-violet-900/50 bg-violet-950/20">
               <span className="text-xs text-slate-600 w-6 shrink-0">{slotLabel(slot.startSlot, slot.endSlot)}</span>
               <span className="shrink-0">⚗️</span>
-              <span className="flex-1 text-sm text-orange-200 truncate">{slot.item.name}</span>
-              <span className="text-xs text-orange-400 font-medium shrink-0">+{slot.item.csBonus} HC</span>
+              <span className="flex-1 text-sm text-violet-200 truncate">{slot.item.name}</span>
+              <span className="text-xs text-violet-400 font-medium shrink-0">+{slot.item.csBonus} HC</span>
               <button
                 onClick={() => setCombatPotionConfirm(slot.item.id)}
                 aria-label={t('sheet.useCombatPotion')}
                 title={t('sheet.useCombatPotion')}
-                className="relative text-orange-400 hover:text-amber-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
+                className="relative text-violet-400 hover:text-violet-300 transition-colors shrink-0 before:absolute before:inset-[-10px]"
               >
                 <FlaskConical size={13} />
               </button>
