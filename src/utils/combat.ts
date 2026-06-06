@@ -34,7 +34,10 @@ export function simulateCombat(
   enemyEP: number,
   maxRounds = 50,
   surprisedParty: 'hero' | 'enemy' | null = null,
-  surpriseRounds = 0
+  surpriseRounds = 0,
+  psychicTarget: 'hero' | 'enemy' | null = null,
+  psychicDmgPerRound = 0,
+  psychicRounds = 0
 ): CombatRound[] {
   const rounds: CombatRound[] = []
   let pEP = playerEP
@@ -46,9 +49,11 @@ export function simulateCombat(
 
     const heroImmune = surprisedParty === 'hero' && i < surpriseRounds
     const enemyImmune = surprisedParty === 'enemy' && i < surpriseRounds
+    const psychicHero = psychicTarget === 'hero' && i < psychicRounds ? psychicDmgPerRound : 0
+    const psychicEnemy = psychicTarget === 'enemy' && i < psychicRounds ? psychicDmgPerRound : 0
 
-    if (round.playerKilled) { pEP = 0 } else { pEP -= heroImmune ? 0 : round.playerLoss }
-    if (round.enemyKilled)  { eEP = 0 } else { eEP -= enemyImmune ? 0 : round.enemyLoss }
+    if (round.playerKilled) { pEP = 0 } else { pEP -= (heroImmune ? 0 : round.playerLoss) + psychicHero }
+    if (round.enemyKilled)  { eEP = 0 } else { eEP -= (enemyImmune ? 0 : round.enemyLoss) + psychicEnemy }
 
     if (eEP <= 0 || pEP <= 0) break
   }

@@ -42,7 +42,12 @@ export function CombatCalculator({ onClose }: Props) {
   const [surprisedParty, setSurprisedParty] = useState<'hero' | 'enemy' | null>(null)
   const [surpriseRoundsTotal, setSurpriseRoundsTotal] = useState(1)
   const [surpriseRoundsLeft, setSurpriseRoundsLeft] = useState(0)
-  const [surpriseConfigOpen, setSurpriseConfigOpen] = useState(false)
+  const [psychicTarget, setPsychicTarget] = useState<'hero' | 'enemy' | null>(null)
+  const [psychicDamagePerRound, setPsychicDamagePerRound] = useState(1)
+  const [psychicRoundsTotal, setPsychicRoundsTotal] = useState(1)
+  const [psychicRoundsLeft, setPsychicRoundsLeft] = useState(0)
+  const [psychicInfinite, setPsychicInfinite] = useState(false)
+  const [combatEffectsOpen, setCombatEffectsOpen] = useState(false)
 
   useEffect(() => () => { if (autoFightRef.current) clearInterval(autoFightRef.current) }, [])
 
@@ -118,6 +123,10 @@ export function CombatCalculator({ onClose }: Props) {
     const currentEnemyImmune = surprisedParty === 'enemy' && surpriseRoundsLeft > 0
     if (surpriseRoundsLeft > 0) setSurpriseRoundsLeft(prev => prev - 1)
 
+    const psychicHeroDmg = psychicTarget === 'hero' && (psychicInfinite || psychicRoundsLeft > 0) ? psychicDamagePerRound : 0
+    const psychicEnemyDmg = psychicTarget === 'enemy' && (psychicInfinite || psychicRoundsLeft > 0) ? psychicDamagePerRound : 0
+    if (!psychicInfinite && psychicRoundsLeft > 0) setPsychicRoundsLeft(prev => prev - 1)
+
     const epCostModifiers = effectiveActiveIds.reduce((sum, id) => {
       const mod = COMBAT_MODIFIERS.find(m => m.id === id)
       return sum + (mod ? getEffectiveModifier(character!, mod).epCostPerRound : 0)
@@ -125,11 +134,10 @@ export function CombatCalculator({ onClose }: Props) {
     const playerLoss = currentHeroImmune ? 0 : lastRound.playerLoss
     const newPlayerEP = lastRound.playerKilled
       ? 0
-      : Math.max(0, character!.endurance.current - playerLoss - epCostModifiers)
+      : Math.max(0, character!.endurance.current - playerLoss - epCostModifiers - psychicHeroDmg)
     setEnduranceCurrent(newPlayerEP)
 
     if (evading) {
-      // Evasion: enemy losses are ignored, only Lone Wolf may lose EP.
       setLastRound(null)
       setEvading(false)
       setRoundCount(prev => prev + 1)
@@ -142,7 +150,7 @@ export function CombatCalculator({ onClose }: Props) {
     }
 
     const finalEnemyLoss = currentEnemyImmune ? 0 : computeEnemyLoss(lastRound)
-    const newEnemyEP = lastRound.enemyKilled ? 0 : Math.max(0, enemyCurrentEP - finalEnemyLoss)
+    const newEnemyEP = lastRound.enemyKilled ? 0 : Math.max(0, enemyCurrentEP - finalEnemyLoss - psychicEnemyDmg)
     setEnemyCurrentEP(newEnemyEP)
     setLastRound(null)
     setRoundCount(prev => prev + 1)
@@ -172,11 +180,16 @@ export function CombatCalculator({ onClose }: Props) {
     setSurprisedParty(null)
     setSurpriseRoundsTotal(1)
     setSurpriseRoundsLeft(0)
-    setSurpriseConfigOpen(false)
+    setPsychicTarget(null)
+    setPsychicDamagePerRound(1)
+    setPsychicRoundsTotal(1)
+    setPsychicRoundsLeft(0)
+    setPsychicInfinite(false)
+    setCombatEffectsOpen(false)
   }
 
   function handleSimulate() {
-    const rounds = simulateCombat(playerCS, character!.endurance.current, enemyCS, enemyCurrentEP, 50, surprisedParty, surpriseRoundsLeft)
+    const rounds = simulateCombat(playerCS, character!.endurance.current, enemyCS, enemyCurrentEP, 50, surprisedParty, surpriseRoundsLeft, psychicTarget, psychicDamagePerRound, psychicInfinite ? 50 : psychicRoundsLeft)
     setSimulationRounds(rounds)
     setShowSim(true)
     setLastRound(null)
@@ -210,6 +223,10 @@ export function CombatCalculator({ onClose }: Props) {
     const capturedDmgMult = enemyDmgMult
     const capturedSurprisedParty = surprisedParty
     let surpriseLeft = surpriseRoundsLeft
+    const capturedPsychicTarget = psychicTarget
+    const capturedPsychicDmg = psychicDamagePerRound
+    const capturedPsychicInfinite = psychicInfinite
+    let psychicLeft = psychicRoundsLeft
 
     let autoRounds = 0
     autoFightRef.current = setInterval(() => {
@@ -221,8 +238,12 @@ export function CombatCalculator({ onClose }: Props) {
       const enemyImmune = capturedSurprisedParty === 'enemy' && surpriseLeft > 0
       if (surpriseLeft > 0) { surpriseLeft--; setSurpriseRoundsLeft(surpriseLeft) }
 
+      const psychicHeroDmg = capturedPsychicTarget === 'hero' && (capturedPsychicInfinite || psychicLeft > 0) ? capturedPsychicDmg : 0
+      const psychicEnemyDmg = capturedPsychicTarget === 'enemy' && (capturedPsychicInfinite || psychicLeft > 0) ? capturedPsychicDmg : 0
+      if (!capturedPsychicInfinite && psychicLeft > 0) { psychicLeft--; setPsychicRoundsLeft(psychicLeft) }
+
       const effectivePlayerLoss = heroImmune ? 0 : round.playerLoss
-      const newPlayerEP = round.playerKilled ? 0 : Math.max(0, currentPlayerEP - effectivePlayerLoss - epCostPerRound)
+      const newPlayerEP = round.playerKilled ? 0 : Math.max(0, currentPlayerEP - effectivePlayerLoss - epCostPerRound - psychicHeroDmg)
       setEnduranceCurrent(newPlayerEP)
       currentPlayerEP = newPlayerEP
 
@@ -232,7 +253,7 @@ export function CombatCalculator({ onClose }: Props) {
         if (capturedDmgMult === 'x2') enemyDmgTotal *= 2
         else if (capturedDmgMult === 'half') enemyDmgTotal = Math.floor(enemyDmgTotal / 2)
       }
-      const newEnemyEP = round.enemyKilled ? 0 : Math.max(0, currentEnemyEP - enemyDmgTotal)
+      const newEnemyEP = round.enemyKilled ? 0 : Math.max(0, currentEnemyEP - enemyDmgTotal - psychicEnemyDmg)
       setEnemyCurrentEP(newEnemyEP)
       currentEnemyEP = newEnemyEP
 
@@ -263,6 +284,9 @@ export function CombatCalculator({ onClose }: Props) {
 
   const heroImmune = surprisedParty === 'hero' && surpriseRoundsLeft > 0
   const enemyImmune = surprisedParty === 'enemy' && surpriseRoundsLeft > 0
+  const psychicActive = psychicInfinite || psychicRoundsLeft > 0
+  const pendingPsychicHeroDmg = psychicTarget === 'hero' && psychicActive ? psychicDamagePerRound : 0
+  const pendingPsychicEnemyDmg = psychicTarget === 'enemy' && psychicActive ? psychicDamagePerRound : 0
 
   const ratio = playerCS - enemyCS
   const ratioColor = ratio > 0 ? 'text-green-400' : ratio < 0 ? 'text-red-400' : 'text-slate-400'
@@ -391,59 +415,127 @@ export function CombatCalculator({ onClose }: Props) {
             </div>
           </div>
 
-          {/* Surprise effect config */}
-          {!surpriseConfigOpen && (
-            surpriseRoundsLeft > 0 ? (
-              <div className="flex items-center gap-1.5 self-start px-2.5 py-1 rounded-lg border border-amber-700/50 bg-amber-900/20 text-amber-400 text-xs">
-                ⚡ {t('combat.surprise')}
+          {/* Combat effects (surprise + psychic damage) */}
+          {combatEffectsOpen ? (
+            <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-3">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold text-slate-400">⚡ {t('combat.combatEffects')}</span>
+                <button onClick={() => setCombatEffectsOpen(false)} className="p-1 text-slate-500 hover:text-slate-300 transition-colors" aria-label={t('common.close')}>
+                  <X size={12} />
+                </button>
               </div>
-            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {/* Surprise column */}
+                <div className="flex flex-col gap-2">
+                  <div className="text-xs font-medium text-amber-400/80 uppercase tracking-wide">{t('combat.surprise')}</div>
+                  <select
+                    value={surprisedParty ?? 'hero'}
+                    onChange={e => setSurprisedParty(e.target.value as 'hero' | 'enemy')}
+                    className="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-amber-600"
+                  >
+                    <option value="hero">{t('combat.surprisedHero')}</option>
+                    <option value="enemy">{t('combat.surprisedEnemy')}</option>
+                  </select>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="number"
+                      min={1}
+                      max={10}
+                      value={surpriseRoundsTotal}
+                      onChange={e => setSurpriseRoundsTotal(Math.max(1, Math.min(10, Number(e.target.value))))}
+                      onFocus={e => e.target.select()}
+                      className="w-10 bg-slate-800 border border-slate-700 rounded px-1 py-1 text-center text-xs text-slate-200 focus:outline-none focus:border-amber-600"
+                    />
+                    <span className="text-xs text-slate-500">{lang === 'fr' ? 'assaut(s)' : 'round(s)'}</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSurprisedParty(surprisedParty ?? 'hero')
+                      setSurpriseRoundsLeft(surpriseRoundsTotal)
+                      setCombatEffectsOpen(false)
+                    }}
+                    className="px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white text-xs transition-colors w-fit"
+                  >
+                    {t('combat.activate')}
+                  </button>
+                </div>
+                {/* Psychic damage column */}
+                <div className="flex flex-col gap-2">
+                  <div className="text-xs font-medium text-purple-400/80 uppercase tracking-wide">{t('combat.psychicDamage')}</div>
+                  <select
+                    value={psychicTarget ?? 'enemy'}
+                    onChange={e => setPsychicTarget(e.target.value as 'hero' | 'enemy')}
+                    className="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-purple-600"
+                  >
+                    <option value="hero">{t('combat.surprisedHero')}</option>
+                    <option value="enemy">{t('combat.surprisedEnemy')}</option>
+                  </select>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={psychicDamagePerRound}
+                      onChange={e => setPsychicDamagePerRound(Math.max(1, Math.min(20, Number(e.target.value))))}
+                      onFocus={e => e.target.select()}
+                      className="w-10 bg-slate-800 border border-slate-700 rounded px-1 py-1 text-center text-xs text-slate-200 focus:outline-none focus:border-purple-600"
+                    />
+                    <span className="text-xs text-slate-500">PE/r</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="number"
+                      min={1}
+                      max={10}
+                      value={psychicRoundsTotal}
+                      disabled={psychicInfinite}
+                      onChange={e => setPsychicRoundsTotal(Math.max(1, Math.min(10, Number(e.target.value))))}
+                      onFocus={e => e.target.select()}
+                      className={`w-10 bg-slate-800 border border-slate-700 rounded px-1 py-1 text-center text-xs text-slate-200 focus:outline-none focus:border-purple-600 ${psychicInfinite ? 'opacity-40 cursor-not-allowed' : ''}`}
+                    />
+                    <span className="text-xs text-slate-500">{lang === 'fr' ? 'assaut(s)' : 'round(s)'}</span>
+                  </div>
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={psychicInfinite}
+                      onChange={e => setPsychicInfinite(e.target.checked)}
+                      className="accent-purple-500 w-3.5 h-3.5 shrink-0"
+                    />
+                    <span className="text-xs text-slate-400">{t('combat.psychicInfinite')}</span>
+                  </label>
+                  <button
+                    onClick={() => {
+                      setPsychicTarget(psychicTarget ?? 'enemy')
+                      setPsychicRoundsLeft(psychicInfinite ? 0 : psychicRoundsTotal)
+                      setCombatEffectsOpen(false)
+                    }}
+                    className="px-2 py-1 rounded bg-purple-700 hover:bg-purple-600 text-white text-xs transition-colors w-fit"
+                  >
+                    {t('combat.activate')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 flex-wrap">
+              {surpriseRoundsLeft > 0 && (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-amber-700/50 bg-amber-900/20 text-amber-400 text-xs">
+                  <span>⚡ {surprisedParty === 'hero' ? t('combat.surprisedHero') : t('combat.surprisedEnemy')} — {t('combat.surpriseRoundsLeft', { count: surpriseRoundsLeft })}</span>
+                  <button onClick={() => { setSurpriseRoundsLeft(0); setSurprisedParty(null) }} className="text-amber-500 hover:text-amber-300 ml-1 transition-colors" aria-label={t('common.close')}><X size={10} /></button>
+                </div>
+              )}
+              {psychicActive && psychicTarget !== null && (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-purple-700/50 bg-purple-900/20 text-purple-400 text-xs">
+                  <span>⚡ −{psychicDamagePerRound} PE/r {psychicTarget === 'hero' ? t('combat.surprisedHero') : t('combat.surprisedEnemy')} — {psychicInfinite ? '∞' : t('combat.psychicRoundsLeft', { count: psychicRoundsLeft })}</span>
+                  <button onClick={() => { setPsychicRoundsLeft(0); setPsychicTarget(null); setPsychicInfinite(false) }} className="text-purple-500 hover:text-purple-300 ml-1 transition-colors" aria-label={t('common.close')}><X size={10} /></button>
+                </div>
+              )}
               <button
-                onClick={() => setSurpriseConfigOpen(true)}
-                className="flex items-center gap-1.5 self-start px-2.5 py-1 rounded-lg border border-slate-700 text-slate-500 hover:text-amber-400 hover:border-amber-800 text-xs transition-colors"
+                onClick={() => setCombatEffectsOpen(true)}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-700 text-slate-500 hover:text-amber-400 hover:border-amber-800 text-xs transition-colors"
               >
-                ⚡ {t('combat.surprise')}
-              </button>
-            )
-          )}
-          {surpriseConfigOpen && (
-            <div className="flex items-center gap-2 flex-wrap bg-slate-800/30 border border-slate-700/50 rounded-xl px-3 py-2">
-              <span className="text-amber-400 text-sm">⚡</span>
-              <select
-                value={surprisedParty ?? 'hero'}
-                onChange={e => setSurprisedParty(e.target.value as 'hero' | 'enemy')}
-                className="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-amber-600"
-              >
-                <option value="hero">{t('combat.surprisedHero')}</option>
-                <option value="enemy">{t('combat.surprisedEnemy')}</option>
-              </select>
-              <input
-                type="number"
-                min={1}
-                max={10}
-                value={surpriseRoundsTotal}
-                onChange={e => setSurpriseRoundsTotal(Math.max(1, Math.min(10, Number(e.target.value))))}
-                onFocus={e => e.target.select()}
-                className="w-12 bg-slate-800 border border-slate-700 rounded px-1 py-1 text-center text-xs text-slate-200 focus:outline-none focus:border-amber-600"
-              />
-              <span className="text-xs text-slate-400">{lang === 'fr' ? 'assault(s)' : 'round(s)'}</span>
-              <button
-                onClick={() => {
-                  const party = surprisedParty ?? 'hero'
-                  setSurprisedParty(party)
-                  setSurpriseRoundsLeft(surpriseRoundsTotal)
-                  setSurpriseConfigOpen(false)
-                }}
-                className="px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white text-xs transition-colors"
-              >
-                {t('combat.activate')}
-              </button>
-              <button
-                onClick={() => { setSurpriseConfigOpen(false); setSurprisedParty(null) }}
-                className="p-1 text-slate-500 hover:text-slate-300 transition-colors"
-                aria-label={t('common.close')}
-              >
-                <X size={12} />
+                ⚡ {t('combat.combatEffects')}
               </button>
             </div>
           )}
@@ -678,19 +770,6 @@ export function CombatCalculator({ onClose }: Props) {
             </button>
           )}
 
-          {/* Active surprise badge */}
-          {surpriseRoundsLeft > 0 && (
-            <div className="flex items-center justify-between rounded-md bg-amber-900/30 border border-amber-700/50 px-3 py-1.5 text-xs text-amber-300">
-              <span>⚡ {surprisedParty === 'hero' ? t('combat.surprisedHero') : t('combat.surprisedEnemy')} — {t('combat.surpriseRoundsLeft', { count: surpriseRoundsLeft })}</span>
-              <button
-                onClick={() => { setSurpriseRoundsLeft(0); setSurprisedParty(null) }}
-                className="text-amber-500 hover:text-amber-300 transition-colors ml-2"
-                aria-label={t('common.close')}
-              >
-                <X size={10} />
-              </button>
-            </div>
-          )}
 
           {/* Single round result */}
           {lastRound && !showSim && (
@@ -724,11 +803,14 @@ export function CombatCalculator({ onClose }: Props) {
                       -{lastRound.playerLoss}
                     </div>
                   )}
+                  {pendingPsychicHeroDmg > 0 && (
+                    <div className="text-xs text-purple-400 mt-0.5">⚡ −{pendingPsychicHeroDmg} PE</div>
+                  )}
                   <div className="text-xs text-slate-500 mt-1">
                     PE: {character.endurance.current} → {
                       lastRound.playerKilled ? 0 :
-                      heroImmune ? character.endurance.current :
-                      Math.max(0, character.endurance.current - lastRound.playerLoss)
+                      heroImmune ? Math.max(0, character.endurance.current - pendingPsychicHeroDmg) :
+                      Math.max(0, character.endurance.current - lastRound.playerLoss - pendingPsychicHeroDmg)
                     }
                   </div>
                 </div>
@@ -753,8 +835,11 @@ export function CombatCalculator({ onClose }: Props) {
                           <span className="text-2xl font-bold text-slate-500 line-through">-{lastRound.enemyLoss}</span>
                           <span className="text-xs font-semibold text-amber-400 bg-amber-900/40 rounded px-1">{t('combat.immunized')}</span>
                         </div>
+                        {pendingPsychicEnemyDmg > 0 && (
+                          <div className="text-xs text-purple-400 mt-0.5">⚡ −{pendingPsychicEnemyDmg} PE</div>
+                        )}
                         <div className="text-xs text-slate-500 mt-1">
-                          PE: {enemyCurrentEP} → {enemyCurrentEP}
+                          PE: {enemyCurrentEP} → {Math.max(0, enemyCurrentEP - pendingPsychicEnemyDmg)}
                         </div>
                       </>
                     ) : (() => {
@@ -768,8 +853,11 @@ export function CombatCalculator({ onClose }: Props) {
                             {enemyDmgMult === 'x2' && <span className="text-xs text-emerald-400 ml-1">(×2)</span>}
                             {enemyDmgMult === 'half' && <span className="text-xs text-cyan-400 ml-1">(÷2)</span>}
                           </div>
+                          {pendingPsychicEnemyDmg > 0 && (
+                            <div className="text-xs text-purple-400 mt-0.5">⚡ −{pendingPsychicEnemyDmg} PE</div>
+                          )}
                           <div className="text-xs text-slate-500 mt-1">
-                            PE: {enemyCurrentEP} → {Math.max(0, enemyCurrentEP - total)}
+                            PE: {enemyCurrentEP} → {Math.max(0, enemyCurrentEP - total - pendingPsychicEnemyDmg)}
                           </div>
                         </>
                       )

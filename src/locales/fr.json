@@ -167,7 +167,12 @@
     "surpriseRoundsLeft_one": "{{count}} assault immunisé",
     "surpriseRoundsLeft_other": "{{count}} assaults immunisés",
     "immunized": "IMMUN",
-    "activate": "Activer"
+    "activate": "Activer",
+    "combatEffects": "Effets de combat",
+    "psychicDamage": "Dommages psychiques",
+    "psychicRoundsLeft_one": "{{count}} assaut",
+    "psychicRoundsLeft_other": "{{count}} assauts",
+    "psychicInfinite": "Tout le combat"
   },
   "transition": {
     "title": "Transition de Cycle",
