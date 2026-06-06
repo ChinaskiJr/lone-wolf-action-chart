@@ -893,10 +893,13 @@ export function CombatCalculator({ onClose }: Props) {
                 ))}
               </div>
               {(() => {
+                const effectivePsychicRounds = psychicInfinite ? simulationRounds.length : psychicRoundsLeft
                 const totalPlayerLoss = simulationRounds.reduce((s, r, i) =>
-                  s + (surprisedParty === 'hero' && i < surpriseRoundsLeft ? 0 : r.playerLoss), 0)
+                  s + (surprisedParty === 'hero' && i < surpriseRoundsLeft ? 0 : r.playerLoss)
+                    + (psychicTarget === 'hero' && i < effectivePsychicRounds ? psychicDamagePerRound : 0), 0)
                 const totalEnemyLoss = simulationRounds.reduce((s, r, i) =>
-                  s + (surprisedParty === 'enemy' && i < surpriseRoundsLeft ? 0 : r.enemyLoss), 0)
+                  s + (surprisedParty === 'enemy' && i < surpriseRoundsLeft ? 0 : r.enemyLoss)
+                    + (psychicTarget === 'enemy' && i < effectivePsychicRounds ? psychicDamagePerRound : 0), 0)
                 const lastRoundData = simulationRounds[simulationRounds.length - 1]
                 const enemyDead = lastRoundData.enemyKilled || totalEnemyLoss >= enemyCurrentEP
                 const playerDead = simulationRounds.some(r => r.playerKilled) || totalPlayerLoss >= character.endurance.current
