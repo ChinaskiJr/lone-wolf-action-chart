@@ -98,7 +98,9 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
   addWeapon: (weapon) =>
     set(updateChar(get, c => {
       if (c.weapons.length >= 2) return {}
-      return { weapons: [...c.weapons, weapon] }
+      const hasEquipped = c.weapons.some(w => w.equipped !== false)
+      const newWeapon = hasEquipped ? { ...weapon, equipped: false } : weapon
+      return { weapons: [...c.weapons, newWeapon] }
     })),
 
   updateWeapon: (index, weapon) =>
