@@ -39,6 +39,10 @@ export function CombatCalculator({ onClose }: Props) {
   const [autoFighting, setAutoFighting] = useState(false)
   const [roundCount, setRoundCount] = useState(0)
   const autoFightRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [surprisedParty, setSurprisedParty] = useState<'hero' | 'enemy' | null>(null)
+  const [surpriseRoundsTotal, setSurpriseRoundsTotal] = useState(1)
+  const [surpriseRoundsLeft, setSurpriseRoundsLeft] = useState(0)
+  const [surpriseConfigOpen, setSurpriseConfigOpen] = useState(false)
 
   useEffect(() => () => { if (autoFightRef.current) clearInterval(autoFightRef.current) }, [])
 
@@ -110,13 +114,18 @@ export function CombatCalculator({ onClose }: Props) {
 
   function handleApplyDamage() {
     if (!lastRound) return
+    const currentHeroImmune = surprisedParty === 'hero' && surpriseRoundsLeft > 0
+    const currentEnemyImmune = surprisedParty === 'enemy' && surpriseRoundsLeft > 0
+    if (surpriseRoundsLeft > 0) setSurpriseRoundsLeft(prev => prev - 1)
+
     const epCostModifiers = effectiveActiveIds.reduce((sum, id) => {
       const mod = COMBAT_MODIFIERS.find(m => m.id === id)
       return sum + (mod ? getEffectiveModifier(character!, mod).epCostPerRound : 0)
     }, 0)
+    const playerLoss = currentHeroImmune ? 0 : lastRound.playerLoss
     const newPlayerEP = lastRound.playerKilled
       ? 0
-      : Math.max(0, character!.endurance.current - lastRound.playerLoss - epCostModifiers)
+      : Math.max(0, character!.endurance.current - playerLoss - epCostModifiers)
     setEnduranceCurrent(newPlayerEP)
 
     if (evading) {
@@ -132,7 +141,7 @@ export function CombatCalculator({ onClose }: Props) {
       return
     }
 
-    const finalEnemyLoss = computeEnemyLoss(lastRound)
+    const finalEnemyLoss = currentEnemyImmune ? 0 : computeEnemyLoss(lastRound)
     const newEnemyEP = lastRound.enemyKilled ? 0 : Math.max(0, enemyCurrentEP - finalEnemyLoss)
     setEnemyCurrentEP(newEnemyEP)
     setLastRound(null)
@@ -160,10 +169,14 @@ export function CombatCalculator({ onClose }: Props) {
     setIgniteActive(false)
     setEnemyDmgMult(null)
     setRoundCount(0)
+    setSurprisedParty(null)
+    setSurpriseRoundsTotal(1)
+    setSurpriseRoundsLeft(0)
+    setSurpriseConfigOpen(false)
   }
 
   function handleSimulate() {
-    const rounds = simulateCombat(playerCS, character!.endurance.current, enemyCS, enemyCurrentEP)
+    const rounds = simulateCombat(playerCS, character!.endurance.current, enemyCS, enemyCurrentEP, 50, surprisedParty, surpriseRoundsLeft)
     setSimulationRounds(rounds)
     setShowSim(true)
     setLastRound(null)
@@ -195,6 +208,8 @@ export function CombatCalculator({ onClose }: Props) {
     const capturedIgnite = igniteActive
     const capturedIgnitePossible = ignitePossible
     const capturedDmgMult = enemyDmgMult
+    const capturedSurprisedParty = surprisedParty
+    let surpriseLeft = surpriseRoundsLeft
 
     let autoRounds = 0
     autoFightRef.current = setInterval(() => {
@@ -202,13 +217,18 @@ export function CombatCalculator({ onClose }: Props) {
       setRoundCount(autoRounds)
       const round = resolveCombatRound(playerCS, enemyCS, rollNumber())
 
-      const newPlayerEP = round.playerKilled ? 0 : Math.max(0, currentPlayerEP - round.playerLoss - epCostPerRound)
+      const heroImmune = capturedSurprisedParty === 'hero' && surpriseLeft > 0
+      const enemyImmune = capturedSurprisedParty === 'enemy' && surpriseLeft > 0
+      if (surpriseLeft > 0) { surpriseLeft--; setSurpriseRoundsLeft(surpriseLeft) }
+
+      const effectivePlayerLoss = heroImmune ? 0 : round.playerLoss
+      const newPlayerEP = round.playerKilled ? 0 : Math.max(0, currentPlayerEP - effectivePlayerLoss - epCostPerRound)
       setEnduranceCurrent(newPlayerEP)
       currentPlayerEP = newPlayerEP
 
       const igniteBonus = capturedIgnite && capturedIgnitePossible && !round.enemyKilled && round.enemyLoss > 0 ? 1 : 0
-      let enemyDmgTotal = round.enemyKilled ? 0 : round.enemyLoss + igniteBonus
-      if (!round.enemyKilled && enemyDmgTotal > 0) {
+      let enemyDmgTotal = (enemyImmune || round.enemyKilled) ? 0 : round.enemyLoss + igniteBonus
+      if (!enemyImmune && !round.enemyKilled && enemyDmgTotal > 0) {
         if (capturedDmgMult === 'x2') enemyDmgTotal *= 2
         else if (capturedDmgMult === 'half') enemyDmgTotal = Math.floor(enemyDmgTotal / 2)
       }
@@ -240,6 +260,9 @@ export function CombatCalculator({ onClose }: Props) {
     if (enemyDmgMult === 'half') return Math.floor(base / 2)
     return base
   }
+
+  const heroImmune = surprisedParty === 'hero' && surpriseRoundsLeft > 0
+  const enemyImmune = surprisedParty === 'enemy' && surpriseRoundsLeft > 0
 
   const ratio = playerCS - enemyCS
   const ratioColor = ratio > 0 ? 'text-green-400' : ratio < 0 ? 'text-red-400' : 'text-slate-400'
@@ -367,6 +390,63 @@ export function CombatCalculator({ onClose }: Props) {
               />
             </div>
           </div>
+
+          {/* Surprise effect config */}
+          {!surpriseConfigOpen && (
+            surpriseRoundsLeft > 0 ? (
+              <div className="flex items-center gap-1.5 self-start px-2.5 py-1 rounded-lg border border-amber-700/50 bg-amber-900/20 text-amber-400 text-xs">
+                ⚡ {t('combat.surprise')}
+              </div>
+            ) : (
+              <button
+                onClick={() => setSurpriseConfigOpen(true)}
+                className="flex items-center gap-1.5 self-start px-2.5 py-1 rounded-lg border border-slate-700 text-slate-500 hover:text-amber-400 hover:border-amber-800 text-xs transition-colors"
+              >
+                ⚡ {t('combat.surprise')}
+              </button>
+            )
+          )}
+          {surpriseConfigOpen && (
+            <div className="flex items-center gap-2 flex-wrap bg-slate-800/30 border border-slate-700/50 rounded-xl px-3 py-2">
+              <span className="text-amber-400 text-sm">⚡</span>
+              <select
+                value={surprisedParty ?? 'hero'}
+                onChange={e => setSurprisedParty(e.target.value as 'hero' | 'enemy')}
+                className="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-amber-600"
+              >
+                <option value="hero">{t('combat.surprisedHero')}</option>
+                <option value="enemy">{t('combat.surprisedEnemy')}</option>
+              </select>
+              <input
+                type="number"
+                min={1}
+                max={10}
+                value={surpriseRoundsTotal}
+                onChange={e => setSurpriseRoundsTotal(Math.max(1, Math.min(10, Number(e.target.value))))}
+                onFocus={e => e.target.select()}
+                className="w-12 bg-slate-800 border border-slate-700 rounded px-1 py-1 text-center text-xs text-slate-200 focus:outline-none focus:border-amber-600"
+              />
+              <span className="text-xs text-slate-400">{lang === 'fr' ? 'assault(s)' : 'round(s)'}</span>
+              <button
+                onClick={() => {
+                  const party = surprisedParty ?? 'hero'
+                  setSurprisedParty(party)
+                  setSurpriseRoundsLeft(surpriseRoundsTotal)
+                  setSurpriseConfigOpen(false)
+                }}
+                className="px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white text-xs transition-colors"
+              >
+                {t('combat.activate')}
+              </button>
+              <button
+                onClick={() => { setSurpriseConfigOpen(false); setSurprisedParty(null) }}
+                className="p-1 text-slate-500 hover:text-slate-300 transition-colors"
+                aria-label={t('common.close')}
+              >
+                <X size={12} />
+              </button>
+            </div>
+          )}
 
           {/* CS display */}
           <div className="grid grid-cols-4 gap-2 text-center bg-slate-800/40 rounded-xl p-4">
@@ -598,6 +678,20 @@ export function CombatCalculator({ onClose }: Props) {
             </button>
           )}
 
+          {/* Active surprise badge */}
+          {surpriseRoundsLeft > 0 && (
+            <div className="flex items-center justify-between rounded-md bg-amber-900/30 border border-amber-700/50 px-3 py-1.5 text-xs text-amber-300">
+              <span>⚡ {surprisedParty === 'hero' ? t('combat.surprisedHero') : t('combat.surprisedEnemy')} — {t('combat.surpriseRoundsLeft', { count: surpriseRoundsLeft })}</span>
+              <button
+                onClick={() => { setSurpriseRoundsLeft(0); setSurprisedParty(null) }}
+                className="text-amber-500 hover:text-amber-300 transition-colors ml-2"
+                aria-label={t('common.close')}
+              >
+                <X size={10} />
+              </button>
+            </div>
+          )}
+
           {/* Single round result */}
           {lastRound && !showSim && (
             <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
@@ -611,17 +705,31 @@ export function CombatCalculator({ onClose }: Props) {
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className={`text-center rounded-lg p-3 ${lastRound.playerLoss > 0 || lastRound.playerKilled ? 'bg-red-950/40 border border-red-900' : 'bg-green-950/30 border border-green-900'}`}>
+                <div className={`text-center rounded-lg p-3 ${
+                  lastRound.playerKilled ? 'bg-red-950/40 border border-red-900' :
+                  heroImmune ? 'bg-amber-950/30 border border-amber-900/50' :
+                  lastRound.playerLoss > 0 ? 'bg-red-950/40 border border-red-900' :
+                  'bg-green-950/30 border border-green-900'
+                }`}>
                   <div className="text-xs text-slate-400 mb-1">{t('combat.playerLoss')}</div>
                   {lastRound.playerKilled ? (
                     <div className="text-lg font-bold text-red-400">{t('combat.instantKill')}</div>
+                  ) : heroImmune ? (
+                    <div className="flex items-center justify-center gap-1.5">
+                      <span className="text-2xl font-bold text-slate-500 line-through">-{lastRound.playerLoss}</span>
+                      <span className="text-xs font-semibold text-amber-400 bg-amber-900/40 rounded px-1">{t('combat.immunized')}</span>
+                    </div>
                   ) : (
                     <div className={`text-2xl font-bold ${lastRound.playerLoss > 0 ? 'text-red-400' : 'text-green-400'}`}>
                       -{lastRound.playerLoss}
                     </div>
                   )}
                   <div className="text-xs text-slate-500 mt-1">
-                    PE: {character.endurance.current} → {lastRound.playerKilled ? 0 : Math.max(0, character.endurance.current - lastRound.playerLoss)}
+                    PE: {character.endurance.current} → {
+                      lastRound.playerKilled ? 0 :
+                      heroImmune ? character.endurance.current :
+                      Math.max(0, character.endurance.current - lastRound.playerLoss)
+                    }
                   </div>
                 </div>
                 {evading ? (
@@ -631,10 +739,24 @@ export function CombatCalculator({ onClose }: Props) {
                     <div className="text-xs text-slate-500 mt-1">{t('combat.enemyLossIgnored')}</div>
                   </div>
                 ) : (
-                  <div className={`text-center rounded-lg p-3 ${lastRound.enemyKilled ? 'bg-green-950/40 border border-green-700' : 'bg-red-950/30 border border-red-900'}`}>
+                  <div className={`text-center rounded-lg p-3 ${
+                    lastRound.enemyKilled ? 'bg-green-950/40 border border-green-700' :
+                    enemyImmune ? 'bg-amber-950/30 border border-amber-900/50' :
+                    'bg-red-950/30 border border-red-900'
+                  }`}>
                     <div className="text-xs text-slate-400 mb-1">{t('combat.enemyLoss')}</div>
                     {lastRound.enemyKilled ? (
                       <div className="text-lg font-bold text-green-400">{t('combat.instantKill')}</div>
+                    ) : enemyImmune ? (
+                      <>
+                        <div className="flex items-center justify-center gap-1.5">
+                          <span className="text-2xl font-bold text-slate-500 line-through">-{lastRound.enemyLoss}</span>
+                          <span className="text-xs font-semibold text-amber-400 bg-amber-900/40 rounded px-1">{t('combat.immunized')}</span>
+                        </div>
+                        <div className="text-xs text-slate-500 mt-1">
+                          PE: {enemyCurrentEP} → {enemyCurrentEP}
+                        </div>
+                      </>
                     ) : (() => {
                       const total = computeEnemyLoss(lastRound)
                       const ignite = igniteActive && ignitePossible && lastRound.enemyLoss > 0 ? 1 : 0
@@ -683,9 +805,12 @@ export function CombatCalculator({ onClose }: Props) {
                 ))}
               </div>
               {(() => {
-                const totalPlayerLoss = simulationRounds.reduce((s, r) => s + r.playerLoss, 0)
+                const totalPlayerLoss = simulationRounds.reduce((s, r, i) =>
+                  s + (surprisedParty === 'hero' && i < surpriseRoundsLeft ? 0 : r.playerLoss), 0)
+                const totalEnemyLoss = simulationRounds.reduce((s, r, i) =>
+                  s + (surprisedParty === 'enemy' && i < surpriseRoundsLeft ? 0 : r.enemyLoss), 0)
                 const lastRoundData = simulationRounds[simulationRounds.length - 1]
-                const enemyDead = lastRoundData.enemyKilled || simulationRounds.reduce((s, r) => s + r.enemyLoss, 0) >= enemyCurrentEP
+                const enemyDead = lastRoundData.enemyKilled || totalEnemyLoss >= enemyCurrentEP
                 const playerDead = simulationRounds.some(r => r.playerKilled) || totalPlayerLoss >= character.endurance.current
                 return (
                   <div className={`text-sm font-medium text-center py-2 rounded-lg ${

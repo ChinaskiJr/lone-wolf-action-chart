@@ -32,7 +32,9 @@ export function simulateCombat(
   playerEP: number,
   enemyCS: number,
   enemyEP: number,
-  maxRounds = 50
+  maxRounds = 50,
+  surprisedParty: 'hero' | 'enemy' | null = null,
+  surpriseRounds = 0
 ): CombatRound[] {
   const rounds: CombatRound[] = []
   let pEP = playerEP
@@ -42,8 +44,11 @@ export function simulateCombat(
     const round = resolveCombatRound(playerCS, enemyCS)
     rounds.push(round)
 
-    if (round.playerKilled) { pEP = 0 } else { pEP -= round.playerLoss }
-    if (round.enemyKilled)  { eEP = 0 } else { eEP -= round.enemyLoss }
+    const heroImmune = surprisedParty === 'hero' && i < surpriseRounds
+    const enemyImmune = surprisedParty === 'enemy' && i < surpriseRounds
+
+    if (round.playerKilled) { pEP = 0 } else { pEP -= heroImmune ? 0 : round.playerLoss }
+    if (round.enemyKilled)  { eEP = 0 } else { eEP -= enemyImmune ? 0 : round.enemyLoss }
 
     if (eEP <= 0 || pEP <= 0) break
   }

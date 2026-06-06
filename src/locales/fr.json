@@ -160,7 +160,14 @@
     "surgeLocked": "PE trop bas",
     "dmgX2": "×2 dégâts",
     "dmgHalf": "÷2 dégâts",
-    "roundCount": "En {{count}} round(s)"
+    "roundCount": "En {{count}} round(s)",
+    "surprise": "Surprise",
+    "surprisedHero": "Héros",
+    "surprisedEnemy": "Ennemi",
+    "surpriseRoundsLeft_one": "{{count}} assault immunisé",
+    "surpriseRoundsLeft_other": "{{count}} assaults immunisés",
+    "immunized": "IMMUN",
+    "activate": "Activer"
   },
   "transition": {
     "title": "Transition de Cycle",
