@@ -17,8 +17,6 @@ export function DisciplinesPanel() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'fr' | 'en'
   const { character, addDiscipline, setWeaponskillWeapon, addWeaponmasteryWeapon, removeWeaponmasteryWeapon } = useCharacterStore()
-  const [pendingWeaponskill, setPendingWeaponskill] = useState(false)
-  const [weaponChoice, setWeaponChoice] = useState('')
   const [pendingWeaponmastery, setPendingWeaponmastery] = useState(false)
   const [wmWeaponChoice, setWmWeaponChoice] = useState('')
 
@@ -41,17 +39,12 @@ export function DisciplinesPanel() {
   function handlePickDiscipline(key: string) {
     if (!canAdd || selected.includes(key)) return
     if (character!.cycle === 'kai' && key === 'weaponskill') {
-      setPendingWeaponskill(true)
+      const idx = Math.floor(Math.random() * KAI_WEAPONS.length)
+      addDiscipline('weaponskill')
+      setWeaponskillWeapon(KAI_WEAPONS[idx].key)
       return
     }
     addDiscipline(key)
-  }
-
-  function confirmWeaponskill() {
-    addDiscipline('weaponskill')
-    setWeaponskillWeapon(weaponChoice)
-    setPendingWeaponskill(false)
-    setWeaponChoice('')
   }
 
   const completedCircles = character.cycle === 'magnakai'
@@ -69,40 +62,6 @@ export function DisciplinesPanel() {
               ? `Vous pouvez apprendre ${slotsLeft} nouvelle${slotsLeft > 1 ? 's' : ''} discipline${slotsLeft > 1 ? 's' : ''} — cliquez sur une discipline ci-dessous`
               : `You can learn ${slotsLeft} new discipline${slotsLeft > 1 ? 's' : ''} — click one below`}
           </span>
-        </div>
-      )}
-
-      {/* Weaponskill weapon picker (Kai only) */}
-      {pendingWeaponskill && (
-        <div className="bg-blue-950/30 border border-blue-900/50 rounded-lg p-3 flex flex-col gap-2">
-          <div className="text-sm text-blue-300 font-medium">
-            {lang === 'fr' ? 'Choisissez votre arme maîtrisée' : 'Choose your mastered weapon'}
-          </div>
-          <select
-            value={weaponChoice}
-            onChange={e => setWeaponChoice(e.target.value)}
-            className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-slate-200 text-sm focus:outline-none focus:border-amber-600"
-          >
-            <option value="">— {lang === 'fr' ? 'Choisir' : 'Choose'} —</option>
-            {KAI_WEAPONS.map(w => (
-              <option key={w.key} value={w.key}>{lang === 'fr' ? w.fr : w.en}</option>
-            ))}
-          </select>
-          <div className="flex gap-2">
-            <button
-              onClick={() => { setPendingWeaponskill(false); setWeaponChoice('') }}
-              className="px-3 py-1 text-xs text-slate-400 border border-slate-700 rounded hover:text-slate-200 transition-colors"
-            >
-              {lang === 'fr' ? 'Annuler' : 'Cancel'}
-            </button>
-            <button
-              onClick={confirmWeaponskill}
-              disabled={!weaponChoice}
-              className="px-3 py-1 text-xs bg-amber-600 hover:bg-amber-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded transition-colors"
-            >
-              {lang === 'fr' ? 'Confirmer' : 'Confirm'}
-            </button>
-          </div>
         </div>
       )}
 
