@@ -883,14 +883,19 @@ export function CombatCalculator({ onClose }: Props) {
                 {t('combat.roundsResult', { rounds: simulationRounds.length })}
               </div>
               <div className="max-h-32 overflow-y-auto space-y-1 mb-3">
-                {simulationRounds.map((r, i) => (
-                  <div key={i} className="flex items-center gap-2 text-xs">
-                    <span className="text-slate-500 w-14 shrink-0">Round {i + 1}:</span>
-                    <span className="text-amber-600">{t('combat.die')} {r.randomNumber}</span>
-                    <span className="text-red-400">{r.playerKilled ? t('combat.instantKill') : `-${r.playerLoss} PE`}</span>
-                    <span className="text-green-400">{r.enemyKilled ? t('combat.killed') : `-${r.enemyLoss} PE ${t('combat.enemy')}`}</span>
-                  </div>
-                ))}
+                {simulationRounds.map((r, i) => {
+                  const ep = psychicInfinite ? simulationRounds.length : psychicRoundsLeft
+                  const phero = psychicTarget === 'hero' && i < ep ? psychicDamagePerRound : 0
+                  const penemy = psychicTarget === 'enemy' && i < ep ? psychicDamagePerRound : 0
+                  return (
+                    <div key={i} className="flex items-center gap-2 text-xs">
+                      <span className="text-slate-500 w-14 shrink-0">Round {i + 1}:</span>
+                      <span className="text-amber-600">{t('combat.die')} {r.randomNumber}</span>
+                      <span className="text-red-400">{r.playerKilled ? t('combat.instantKill') : `-${r.playerLoss + phero} PE`}</span>
+                      <span className="text-green-400">{r.enemyKilled ? t('combat.killed') : `-${r.enemyLoss + penemy} PE ${t('combat.enemy')}`}</span>
+                    </div>
+                  )
+                })}
               </div>
               {(() => {
                 const effectivePsychicRounds = psychicInfinite ? simulationRounds.length : psychicRoundsLeft
