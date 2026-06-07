@@ -74,9 +74,9 @@ export function StatsPanel() {
                 <div className="text-slate-600">{t('sheet.weaponBonus')}</div>
               </div>
             )}
-            {itemsHC > 0 && (
+            {itemsHC !== 0 && (
               <div className="mt-1 text-xs text-slate-500 leading-tight">
-                {totalCS - itemsHC} <span className="text-blue-400 font-semibold">+{itemsHC}</span>
+                {totalCS - itemsHC} <span className={`font-semibold ${itemsHC > 0 ? 'text-blue-400' : 'text-red-400'}`}>{itemsHC > 0 ? `+${itemsHC}` : itemsHC}</span>
                 <div className="text-slate-600">{t('sheet.itemBonus')}</div>
               </div>
             )}
@@ -98,9 +98,9 @@ export function StatsPanel() {
           <div className="text-right">
             <div className="text-xs text-slate-500 mb-0.5">{t('sheet.epMax')}</div>
             <div className="text-xl font-semibold text-slate-400 tabular-nums">{maxEP}</div>
-            {itemsPE > 0 && (
+            {itemsPE !== 0 && (
               <div className="mt-1 text-xs text-slate-600 leading-tight">
-                {maxEP - itemsPE} <span className="text-green-400/80 font-semibold">+{itemsPE}</span>
+                {maxEP - itemsPE} <span className={`font-semibold ${itemsPE > 0 ? 'text-green-400/80' : 'text-red-400'}`}>{itemsPE > 0 ? `+${itemsPE}` : itemsPE}</span>
                 <div className="text-slate-700">{t('sheet.itemBonus')}</div>
               </div>
             )}

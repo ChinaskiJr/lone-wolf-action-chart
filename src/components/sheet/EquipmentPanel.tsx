@@ -579,12 +579,12 @@ function SpecialItemsSection({
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="text-sm text-amber-100 font-medium">{item.name}</span>
                   {item.hcBonus != null && item.hcBonus !== 0 && (
-                    <span className={`text-xs font-semibold rounded px-1 ${isEquipped ? 'text-amber-400 bg-amber-900/40' : 'text-slate-500 bg-slate-700/40'}`}>
+                    <span className={`text-xs font-semibold rounded px-1 ${isEquipped ? (item.hcBonus > 0 ? 'text-amber-400 bg-amber-900/40' : 'text-red-400 bg-red-900/40') : 'text-slate-500 bg-slate-700/40'}`}>
                       {item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC
                     </span>
                   )}
                   {item.peBonus != null && item.peBonus !== 0 && (
-                    <span className={`text-xs font-semibold rounded px-1 ${isEquipped ? 'text-green-400 bg-green-900/40' : 'text-slate-500 bg-slate-700/40'}`}>
+                    <span className={`text-xs font-semibold rounded px-1 ${isEquipped ? (item.peBonus > 0 ? 'text-green-400 bg-green-900/40' : 'text-red-400 bg-red-900/40') : 'text-slate-500 bg-slate-700/40'}`}>
                       {item.peBonus > 0 ? '+' : ''}{item.peBonus} PE
                     </span>
                   )}
