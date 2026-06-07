@@ -114,6 +114,13 @@
     "d10": {
       "roll": "Lancer",
       "reroll": "Relancer"
+    },
+    "bookWizard": {
+      "disciplineTitle": "Nouvelle discipline",
+      "disciplineConfirm": "Confirmer",
+      "equipmentTitle": "Équipement de départ",
+      "equipmentSkip": "Passer",
+      "equipmentDone": "Terminer"
     }
   },
   "combat": {

@@ -16,6 +16,8 @@ import { NotesPanel } from './NotesPanel'
 import { CombatCalculator } from './CombatCalculator'
 import { DeathModal } from './DeathModal'
 import { CompleteBookModal } from './CompleteBookModal'
+import { BookChangeDisciplineModal } from './BookChangeDisciplineModal'
+import { BookChangeEquipmentModal } from './BookChangeEquipmentModal'
 import { PersistentStatBar } from './PersistentStatBar'
 import { MapPanel } from './MapPanel'
 import { D10Roll } from './D10Roll'
@@ -31,6 +33,8 @@ export function AdventureSheet() {
   const { activeSection, setActiveSection, combatModalOpen, setCombatModalOpen } = useUIStore()
   const [showDeathModal, setShowDeathModal] = useState(false)
   const [showCompleteModal, setShowCompleteModal] = useState(false)
+  const [showBookChangeDiscipline, setShowBookChangeDiscipline] = useState(false)
+  const [showBookChangeEquipment, setShowBookChangeEquipment] = useState(false)
 
   useAutoSave()
 
@@ -67,8 +71,18 @@ export function AdventureSheet() {
       const nextBook = character!.currentBook + 1
       setCurrentBook(nextBook)
       setEnduranceCurrent(getTotalEPMax(character!))
-      save()
+      setShowBookChangeDiscipline(true)
     }
+  }
+
+  function handleDisciplineConfirmed() {
+    setShowBookChangeDiscipline(false)
+    setShowBookChangeEquipment(true)
+  }
+
+  function handleEquipmentFinished() {
+    setShowBookChangeEquipment(false)
+    save()
   }
 
   const characterName = character.cycle === 'neworder' && (character as any).kaiName
@@ -194,6 +208,16 @@ export function AdventureSheet() {
           onConfirm={() => { setShowCompleteModal(false); handleCompleteBook() }}
           onCancel={() => setShowCompleteModal(false)}
         />
+      )}
+
+      {/* Book change wizard — discipline step */}
+      {showBookChangeDiscipline && (
+        <BookChangeDisciplineModal onConfirm={handleDisciplineConfirmed} />
+      )}
+
+      {/* Book change wizard — equipment step */}
+      {showBookChangeEquipment && (
+        <BookChangeEquipmentModal onDone={handleEquipmentFinished} onSkip={handleEquipmentFinished} />
       )}
     </div>
   )

@@ -111,6 +111,13 @@
     "eatMeal": "Eat",
     "noFoodPenalty": "No food: −3 EP",
     "huntingHint": "Hunting: meal often not needed",
+    "bookWizard": {
+      "disciplineTitle": "New Discipline",
+      "disciplineConfirm": "Confirm",
+      "equipmentTitle": "Starting Equipment",
+      "equipmentSkip": "Skip",
+      "equipmentDone": "Done"
+    },
     "d10": {
       "roll": "Roll",
       "reroll": "Reroll"
