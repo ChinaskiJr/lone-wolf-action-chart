@@ -19,12 +19,14 @@ export function BookChangeEquipmentModal({ onDone, onSkip }: Props) {
     addBackpackItem, removeBackpackItem,
     addSpecialItem, removeSpecialItem,
     setMeals: storeMeals,
+    setGold,
   } = useCharacterStore()
 
   const [localWeapons, setLocalWeapons] = useState<Weapon[]>(() => character?.weapons ?? [])
   const [localBackpack, setLocalBackpack] = useState<BackpackItem[]>(() => character?.backpack ?? [])
   const [localSpecialItems, setLocalSpecialItems] = useState<SpecialItem[]>(() => character?.specialItems ?? [])
   const [localMeals, setLocalMeals] = useState(() => character?.meals ?? 0)
+  const [localGold, setLocalGold] = useState(() => character?.goldCrowns ?? 0)
 
   if (!character) return null
 
@@ -41,6 +43,9 @@ export function BookChangeEquipmentModal({ onDone, onSkip }: Props) {
 
     // Meals
     storeMeals(localMeals)
+
+    // Gold
+    setGold(localGold)
 
     // Backpack diff
     const originalBackpackIds = new Set((character!.backpack ?? []).map(i => i.id))
@@ -97,6 +102,8 @@ export function BookChangeEquipmentModal({ onDone, onSkip }: Props) {
             specialItems={localSpecialItems}
             onSpecialItemsChange={setLocalSpecialItems}
             maxBackpackSlots={maxBackpackSlots}
+            gold={localGold}
+            onGoldChange={setLocalGold}
           />
         </div>
 

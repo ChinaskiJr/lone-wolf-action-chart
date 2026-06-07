@@ -14,6 +14,8 @@ interface Props {
   specialItems: SpecialItem[]
   onSpecialItemsChange: (items: SpecialItem[]) => void
   maxBackpackSlots: number
+  gold?: number
+  onGoldChange?: (amount: number) => void
 }
 
 export function EquipmentFields({
@@ -22,6 +24,7 @@ export function EquipmentFields({
   meals, onMealsChange,
   specialItems, onSpecialItemsChange,
   maxBackpackSlots,
+  gold, onGoldChange,
 }: Props) {
   const { t } = useTranslation()
 
@@ -402,6 +405,37 @@ export function EquipmentFields({
           </div>
         )}
       </div>
+
+      {/* Gold */}
+      {gold !== undefined && onGoldChange && (
+        <div>
+          <div className="flex items-center justify-between mb-2.5">
+            <span className="text-sm font-semibold text-slate-200">{t('sheet.goldCrowns')}</span>
+            <span className="text-xs text-slate-500">{gold} / 50</span>
+          </div>
+          <div className="flex items-center gap-3 bg-slate-800/60 border border-amber-900/30 rounded-lg px-4 py-3">
+            <button
+              onClick={() => onGoldChange(Math.max(0, gold - 1))}
+              disabled={gold <= 0}
+              className="w-7 h-7 rounded-md bg-slate-700 hover:bg-slate-600 disabled:opacity-30 text-slate-300 flex items-center justify-center text-lg leading-none transition-colors"
+            >−</button>
+            <input
+              type="number"
+              min={0}
+              max={50}
+              value={gold}
+              onChange={e => onGoldChange(Math.max(0, Math.min(50, Number(e.target.value))))}
+              onFocus={e => e.target.select()}
+              className="flex-1 bg-transparent text-center text-2xl font-bold text-amber-400 tabular-nums focus:outline-none"
+            />
+            <button
+              onClick={() => onGoldChange(Math.min(50, gold + 1))}
+              disabled={gold >= 50}
+              className="w-7 h-7 rounded-md bg-slate-700 hover:bg-slate-600 disabled:opacity-30 text-slate-300 flex items-center justify-center text-lg leading-none transition-colors"
+            >+</button>
+          </div>
+        </div>
+      )}
 
       {/* Special items */}
       <div>
