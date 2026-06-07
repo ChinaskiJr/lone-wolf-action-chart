@@ -516,6 +516,45 @@ export function CombatCalculator({ onClose }: Props) {
                   </button>
                 </div>
               </div>
+              {/* Damage multiplier */}
+              <div className="border-t border-slate-700/50 pt-3 mt-1 flex flex-col gap-2">
+                <div className="text-xs font-medium text-slate-400/80 uppercase tracking-wide">{t('combat.dmgMultiplier')}</div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setEnemyDmgMult(null)}
+                    aria-pressed={enemyDmgMult === null}
+                    className={`flex-1 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                      enemyDmgMult === null
+                        ? 'border-slate-500 bg-slate-700/60 text-slate-200'
+                        : 'border-slate-700 text-slate-500 hover:text-slate-300'
+                    }`}
+                  >
+                    {t('combat.dmgNormal')}
+                  </button>
+                  <button
+                    onClick={() => setEnemyDmgMult(v => v === 'x2' ? null : 'x2')}
+                    aria-pressed={enemyDmgMult === 'x2'}
+                    className={`flex-1 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                      enemyDmgMult === 'x2'
+                        ? 'border-emerald-700 bg-emerald-900/30 text-emerald-200'
+                        : 'border-slate-700 text-slate-500 hover:text-slate-300'
+                    }`}
+                  >
+                    {t('combat.dmgX2')}
+                  </button>
+                  <button
+                    onClick={() => setEnemyDmgMult(v => v === 'half' ? null : 'half')}
+                    aria-pressed={enemyDmgMult === 'half'}
+                    className={`flex-1 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                      enemyDmgMult === 'half'
+                        ? 'border-violet-700 bg-violet-900/30 text-violet-200'
+                        : 'border-slate-700 text-slate-500 hover:text-slate-300'
+                    }`}
+                  >
+                    {t('combat.dmgHalf')}
+                  </button>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="flex items-center gap-2 flex-wrap">
@@ -529,6 +568,18 @@ export function CombatCalculator({ onClose }: Props) {
                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-purple-700/50 bg-purple-900/20 text-purple-400 text-xs">
                   <span>⚡ −{psychicDamagePerRound} PE/r {psychicTarget === 'hero' ? t('combat.surprisedHero') : t('combat.surprisedEnemy')} — {psychicInfinite ? '∞' : t('combat.psychicRoundsLeft', { count: psychicRoundsLeft })}</span>
                   <button onClick={() => { setPsychicRoundsLeft(0); setPsychicTarget(null); setPsychicInfinite(false) }} className="text-purple-500 hover:text-purple-300 ml-1 transition-colors" aria-label={t('common.close')}><X size={10} /></button>
+                </div>
+              )}
+              {enemyDmgMult === 'x2' && (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-emerald-700/50 bg-emerald-900/20 text-emerald-400 text-xs">
+                  <span>{t('combat.dmgX2')}</span>
+                  <button onClick={() => setEnemyDmgMult(null)} className="text-emerald-500 hover:text-emerald-300 ml-1 transition-colors" aria-label={t('common.close')}><X size={10} /></button>
+                </div>
+              )}
+              {enemyDmgMult === 'half' && (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-violet-700/50 bg-violet-900/20 text-violet-400 text-xs">
+                  <span>{t('combat.dmgHalf')}</span>
+                  <button onClick={() => setEnemyDmgMult(null)} className="text-violet-500 hover:text-violet-300 ml-1 transition-colors" aria-label={t('common.close')}><X size={10} /></button>
                 </div>
               )}
               <button
@@ -647,24 +698,6 @@ export function CombatCalculator({ onClose }: Props) {
                 {t('combat.ignite')}
               </button>
             )}
-            <button
-              onClick={() => setEnemyDmgMult(v => v === 'x2' ? null : 'x2')}
-              aria-pressed={enemyDmgMult === 'x2'}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
-                enemyDmgMult === 'x2' ? 'border-emerald-700 bg-emerald-900/30 text-emerald-200' : 'border-slate-700 text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              {t('combat.dmgX2')}
-            </button>
-            <button
-              onClick={() => setEnemyDmgMult(v => v === 'half' ? null : 'half')}
-              aria-pressed={enemyDmgMult === 'half'}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
-                enemyDmgMult === 'half' ? 'border-violet-700 bg-violet-900/30 text-violet-200' : 'border-slate-700 text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              {t('combat.dmgHalf')}
-            </button>
           </div>
 
           {/* Enemy EP */}

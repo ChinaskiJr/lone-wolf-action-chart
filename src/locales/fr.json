@@ -167,6 +167,8 @@
     "surgeLocked": "PE trop bas",
     "dmgX2": "×2 dégâts",
     "dmgHalf": "÷2 dégâts",
+    "dmgMultiplier": "Multiplicateur de dégât",
+    "dmgNormal": "Normal",
     "roundCount": "En {{count}} round(s)",
     "surprise": "Surprise",
     "surprisedHero": "Héros",
