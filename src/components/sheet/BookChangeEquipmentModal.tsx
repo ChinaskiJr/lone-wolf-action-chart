@@ -57,14 +57,12 @@ export function BookChangeEquipmentModal({ onDone, onSkip }: Props) {
       if (!originalBackpackIds.has(item.id)) addBackpackItem(item)
     }
 
-    // Special items diff
-    const originalSpecialIds = new Set((character!.specialItems ?? []).map(i => i.id))
-    const localSpecialIds = new Set(localSpecialItems.map(i => i.id))
-    for (const id of originalSpecialIds) {
-      if (!localSpecialIds.has(id)) removeSpecialItem(id)
+    // Special items: remove all existing, re-add local (handles equipped toggles too)
+    for (const item of (character!.specialItems ?? [])) {
+      removeSpecialItem(item.id)
     }
     for (const item of localSpecialItems) {
-      if (!originalSpecialIds.has(item.id)) addSpecialItem(item)
+      addSpecialItem(item)
     }
 
     onDone()
