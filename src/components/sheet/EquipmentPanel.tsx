@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, X, Sword, FlaskConical, Utensils } from 'lucide-react'
+import { Plus, X, Sword, FlaskConical, Utensils, Lock, PackageOpen } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { useCharacterStore } from '@/store/characterStore'
 import { useUIStore } from '@/store/uiStore'
-import type { BackpackItem, SpecialItem, Weapon } from '@/types/game'
+import type { BackpackItem, ConfiscatedEquipment, SpecialItem, Weapon } from '@/types/game'
 import type { Character } from '@/types/character'
+import { ConfiscationRecoverModal } from './ConfiscationRecoverModal'
 
 // Hunting (Kai) / Huntmastery (Magnakai+) often remove the need to eat a meal.
 function characterHasHunting(char: Character): boolean {
@@ -30,8 +31,11 @@ export function EquipmentPanel() {
     setMeals,
     eatMeal,
     usePotion,
+    confiscateEquipment, recoverEquipment,
   } = useCharacterStore()
   const { setCombatPotionBonus, setCombatModalOpen } = useUIStore()
+  const [confirmConfiscate, setConfirmConfiscate] = useState(false)
+  const [recovering, setRecovering] = useState(false)
   if (!character) return null
 
   const backpackMax = character.cycle === 'kai' || character.cycle === 'magnakai' ? 8 : 10
@@ -45,8 +49,18 @@ export function EquipmentPanel() {
     setCombatModalOpen(true)
   }
 
+  function handleRecover(selection: ConfiscatedEquipment) {
+    recoverEquipment(selection)
+    setRecovering(false)
+  }
+
   return (
     <div className="flex flex-col gap-6">
+      <ConfiscationBar
+        confiscated={character.confiscated}
+        onConfiscate={() => setConfirmConfiscate(true)}
+        onRecover={() => setRecovering(true)}
+      />
       <WeaponsSection weapons={character.weapons} onAdd={addWeapon} onRemove={removeWeapon} onEquip={equipWeapon} />
       <BackpackSection
         items={character.backpack}
@@ -61,6 +75,105 @@ export function EquipmentPanel() {
         onUseCombatPotion={handleUseCombatPotion}
       />
       <SpecialItemsSection items={character.specialItems} onAdd={addSpecialItem} onRemove={removeSpecialItem} onUpdate={updateSpecialItem} />
+
+      {confirmConfiscate && (
+        <ConfiscateConfirmModal
+          onCancel={() => setConfirmConfiscate(false)}
+          onConfirm={() => {
+            confiscateEquipment()
+            setConfirmConfiscate(false)
+          }}
+        />
+      )}
+
+      {recovering && character.confiscated && (
+        <ConfiscationRecoverModal
+          confiscated={character.confiscated}
+          current={character}
+          onConfirm={handleRecover}
+          onCancel={() => setRecovering(false)}
+        />
+      )}
+    </div>
+  )
+}
+
+function ConfiscationBar({
+  confiscated, onConfiscate, onRecover,
+}: {
+  confiscated: ConfiscatedEquipment | undefined
+  onConfiscate: () => void
+  onRecover: () => void
+}) {
+  const { t } = useTranslation()
+
+  if (confiscated) {
+    const count =
+      confiscated.weapons.length +
+      confiscated.backpack.length +
+      confiscated.specialItems.length +
+      confiscated.meals +
+      (confiscated.goldCrowns > 0 ? 1 : 0)
+    return (
+      <div className="flex items-center gap-3 rounded-lg border border-red-900/50 bg-red-950/20 px-3 py-2.5">
+        <Lock size={15} className="text-red-400 shrink-0" />
+        <span className="flex-1 text-sm text-red-200/90">
+          {t('sheet.confiscation.banner', { count })}
+        </span>
+        <button
+          onClick={onRecover}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 text-white text-xs font-medium transition-colors shrink-0"
+        >
+          <PackageOpen size={13} />
+          {t('sheet.confiscation.recover')}
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex justify-end">
+      <button
+        onClick={onConfiscate}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-900/50 text-amber-600 hover:bg-amber-950/30 hover:text-amber-400 text-xs font-medium transition-colors"
+      >
+        <Lock size={13} />
+        {t('sheet.confiscation.button')}
+      </button>
+    </div>
+  )
+}
+
+function ConfiscateConfirmModal({
+  onConfirm, onCancel,
+}: {
+  onConfirm: () => void
+  onCancel: () => void
+}) {
+  const { t } = useTranslation()
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+      <div className="bg-slate-900 border border-amber-900/60 rounded-xl p-6 max-w-sm w-full shadow-xl">
+        <div className="flex items-center gap-2 mb-4 text-amber-300">
+          <Lock size={18} />
+          <span className="font-semibold text-sm">{t('sheet.confiscation.confirmTitle')}</span>
+        </div>
+        <p className="text-sm text-slate-300 mb-5">{t('sheet.confiscation.confirmText')}</p>
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 rounded-lg border border-slate-600 text-slate-300 hover:border-slate-500 text-sm transition-colors"
+          >
+            {t('common.cancel')}
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 rounded-lg bg-amber-700 hover:bg-amber-600 text-white text-sm font-medium transition-colors"
+          >
+            {t('sheet.confiscation.confirmAction')}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import type {
   BackpackItem,
+  ConfiscatedEquipment,
   GrandMasterDiscipline,
   GrandMasterRank,
   KaiDiscipline,
@@ -25,6 +26,8 @@ interface BaseCharacter {
   goldCrowns: number
   meals: number
   notes: string
+  // Present while the inventory is confiscated; holds the stashed snapshot.
+  confiscated?: ConfiscatedEquipment
   createdAt: string
   updatedAt: string
 }

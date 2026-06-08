@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { Character } from '@/types/character'
-import type { BackpackItem, SpecialItem, Weapon } from '@/types/game'
+import type { BackpackItem, ConfiscatedEquipment, SpecialItem, Weapon } from '@/types/game'
 import { useSavesStore } from './savesStore'
 
 interface CharacterState {
@@ -34,6 +34,10 @@ interface CharacterState {
   removeSpecialItem: (id: string) => void
   updateSpecialItem: (id: string, updates: Partial<SpecialItem>) => void
 
+  // Confiscation (inventory seized for a period, then recovered)
+  confiscateEquipment: () => void
+  recoverEquipment: (selection: ConfiscatedEquipment) => void
+
   // Gold
   setGold: (amount: number) => void
 
@@ -60,6 +64,11 @@ interface CharacterState {
 
   // Save to persistent store
   save: () => void
+}
+
+// Total EP bonus contributed by currently-equipped special items.
+function equippedPeBonus(items: SpecialItem[]): number {
+  return items.reduce((s, i) => s + (i.equipped !== false ? (i.peBonus ?? 0) : 0), 0)
 }
 
 function updateChar(get: () => CharacterState, updater: (c: Character) => Partial<Character>): { character: Character | null } {
@@ -189,6 +198,43 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
         specialItems: c.specialItems.map(i => i.id === id ? { ...i, ...updates } : i),
         endurance: { ...c.endurance, current: Math.max(0, c.endurance.current + peDelta) },
       }
+    })),
+
+  confiscateEquipment: () =>
+    set(updateChar(get, c => {
+      if (c.confiscated) return {}
+      // Equipped special items contributed EP; remove that while seized.
+      const peDelta = equippedPeBonus(c.specialItems)
+      return {
+        confiscated: {
+          weapons: c.weapons,
+          goldCrowns: c.goldCrowns,
+          meals: c.meals,
+          backpack: c.backpack,
+          specialItems: c.specialItems,
+        },
+        weapons: [],
+        goldCrowns: 0,
+        meals: 0,
+        backpack: [],
+        specialItems: [],
+        endurance: { ...c.endurance, current: Math.max(0, c.endurance.current - peDelta) },
+      } as Partial<Character>
+    })),
+
+  recoverEquipment: (selection) =>
+    set(updateChar(get, c => {
+      // Current special items already contribute their EP; reconcile to the selection.
+      const peDelta = equippedPeBonus(selection.specialItems) - equippedPeBonus(c.specialItems)
+      return {
+        weapons: selection.weapons,
+        goldCrowns: Math.max(0, Math.min(50, selection.goldCrowns)),
+        meals: Math.max(0, selection.meals),
+        backpack: selection.backpack,
+        specialItems: selection.specialItems,
+        endurance: { ...c.endurance, current: Math.max(0, c.endurance.current + peDelta) },
+        confiscated: undefined,
+      } as Partial<Character>
     })),
 
   setGold: (amount) =>

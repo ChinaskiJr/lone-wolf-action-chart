@@ -25,6 +25,15 @@ export interface SpecialItem {
   equipped?: boolean   // undefined = équipé (rétrocompat sauvegardes existantes)
 }
 
+// Snapshot of the whole inventory while it is confiscated (prison, capture...).
+export interface ConfiscatedEquipment {
+  weapons: Weapon[]
+  goldCrowns: number
+  meals: number
+  backpack: BackpackItem[]
+  specialItems: SpecialItem[]
+}
+
 // --- Kai ---
 export type KaiDiscipline =
   | 'camouflage'

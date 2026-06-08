@@ -111,6 +111,22 @@
     "eatMeal": "Eat",
     "noFoodPenalty": "No food: −3 EP",
     "huntingHint": "Hunting: meal often not needed",
+    "confiscation": {
+      "button": "Equipment confiscated",
+      "confirmTitle": "Confiscate all equipment?",
+      "confirmText": "Your weapons, gold, backpack and special items will be set aside. You can recover them later via \"Recover inventory\".",
+      "confirmAction": "Confiscate",
+      "banner_one": "Equipment confiscated — {{count}} item pending",
+      "banner_other": "Equipment confiscated — {{count}} items pending",
+      "recover": "Recover inventory",
+      "recoverTitle": "Recover inventory",
+      "recoverDesc": "Choose what you take back. You cannot exceed the maximums: weapons, gold, backpack slots and special items.",
+      "newItems": "New items",
+      "stashedItems": "Confiscated",
+      "goldCappedNote": "Gold capped at {{max}}: {{lost}} lost.",
+      "empty": "None",
+      "confirm": "Recover"
+    },
     "bookWizard": {
       "disciplineTitle": "New Discipline",
       "disciplineConfirm": "Confirm",

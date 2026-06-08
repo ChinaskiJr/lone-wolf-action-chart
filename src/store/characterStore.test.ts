@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useCharacterStore } from './characterStore'
 import { makeKaiChar, makeGrandMasterChar } from '@/test/fixtures'
-import type { BackpackItem } from '@/types/game'
+import type { BackpackItem, SpecialItem } from '@/types/game'
 
 function makeItem(overrides: Partial<BackpackItem> = {}): BackpackItem {
   return { id: `item-${Math.random()}`, name: 'Test Item', ...overrides }
@@ -209,6 +209,120 @@ describe('setCombatSkillBonus', () => {
     useCharacterStore.setState({ character: makeKaiChar({ combatSkill: { base: 15, bonus: 0 } }) })
     useCharacterStore.getState().setCombatSkillBonus(-3)
     expect(useCharacterStore.getState().character?.combatSkill.bonus).toBe(-3)
+  })
+})
+
+describe('confiscateEquipment', () => {
+  function special(overrides: Partial<SpecialItem> = {}): SpecialItem {
+    return { id: `sp-${Math.random()}`, name: 'Amulet', ...overrides }
+  }
+
+  it('moves the whole inventory into the confiscated stash and empties it', () => {
+    useCharacterStore.setState({ character: makeKaiChar({
+      weapons: [{ name: 'Sword' }],
+      goldCrowns: 20,
+      meals: 2,
+      backpack: [makeItem({ id: 'a' })],
+      specialItems: [special({ id: 's1' })],
+    }) })
+    useCharacterStore.getState().confiscateEquipment()
+    const c = useCharacterStore.getState().character!
+    expect(c.weapons).toHaveLength(0)
+    expect(c.goldCrowns).toBe(0)
+    expect(c.meals).toBe(0)
+    expect(c.backpack).toHaveLength(0)
+    expect(c.specialItems).toHaveLength(0)
+    expect(c.confiscated).toEqual({
+      weapons: [{ name: 'Sword' }],
+      goldCrowns: 20,
+      meals: 2,
+      backpack: [expect.objectContaining({ id: 'a' })],
+      specialItems: [expect.objectContaining({ id: 's1' })],
+    })
+  })
+
+  it('deducts EP bonus of equipped special items from current endurance', () => {
+    useCharacterStore.setState({ character: makeKaiChar({
+      endurance: { current: 25, max: 25 },
+      specialItems: [
+        special({ id: 'equipped', peBonus: 4 }),
+        special({ id: 'unequipped', peBonus: 3, equipped: false }),
+      ],
+    }) })
+    useCharacterStore.getState().confiscateEquipment()
+    expect(useCharacterStore.getState().character!.endurance.current).toBe(21)
+  })
+
+  it('is a no-op when already confiscated', () => {
+    useCharacterStore.setState({ character: makeKaiChar({
+      goldCrowns: 5,
+      confiscated: { weapons: [], goldCrowns: 99, meals: 0, backpack: [], specialItems: [] },
+    }) })
+    useCharacterStore.getState().confiscateEquipment()
+    const c = useCharacterStore.getState().character!
+    expect(c.goldCrowns).toBe(5)
+    expect(c.confiscated!.goldCrowns).toBe(99)
+  })
+})
+
+describe('recoverEquipment', () => {
+  function special(overrides: Partial<SpecialItem> = {}): SpecialItem {
+    return { id: `sp-${Math.random()}`, name: 'Amulet', ...overrides }
+  }
+
+  it('applies the selection, caps gold at 50 and clears the stash', () => {
+    useCharacterStore.setState({ character: makeKaiChar({
+      goldCrowns: 0,
+      confiscated: { weapons: [], goldCrowns: 0, meals: 0, backpack: [], specialItems: [] },
+    }) })
+    useCharacterStore.getState().recoverEquipment({
+      weapons: [{ name: 'Axe' }],
+      goldCrowns: 80,
+      meals: 1,
+      backpack: [makeItem({ id: 'r' })],
+      specialItems: [],
+    })
+    const c = useCharacterStore.getState().character!
+    expect(c.weapons).toEqual([{ name: 'Axe' }])
+    expect(c.goldCrowns).toBe(50)
+    expect(c.meals).toBe(1)
+    expect(c.backpack).toHaveLength(1)
+    expect(c.confiscated).toBeUndefined()
+  })
+
+  it('re-applies EP for a recovered equipped special item not currently counted', () => {
+    // During confiscation the stash item EP was already removed; current EP is 21.
+    useCharacterStore.setState({ character: makeKaiChar({
+      endurance: { current: 21, max: 25 },
+      specialItems: [],
+      confiscated: { weapons: [], goldCrowns: 0, meals: 0, backpack: [],
+        specialItems: [special({ id: 'equipped', peBonus: 4 })] },
+    }) })
+    useCharacterStore.getState().recoverEquipment({
+      weapons: [],
+      goldCrowns: 0,
+      meals: 0,
+      backpack: [],
+      specialItems: [special({ id: 'equipped', peBonus: 4 })],
+    })
+    expect(useCharacterStore.getState().character!.endurance.current).toBe(25)
+  })
+
+  it('removes EP for a new equipped special item dropped during recovery', () => {
+    // A +5 PE item acquired during confiscation already counts in current EP (30).
+    useCharacterStore.setState({ character: makeKaiChar({
+      endurance: { current: 30, max: 40 },
+      specialItems: [special({ id: 'new', peBonus: 5 })],
+      confiscated: { weapons: [], goldCrowns: 0, meals: 0, backpack: [], specialItems: [] },
+    }) })
+    useCharacterStore.getState().recoverEquipment({
+      weapons: [],
+      goldCrowns: 0,
+      meals: 0,
+      backpack: [],
+      specialItems: [], // dropped the new +5 PE item
+    })
+    expect(useCharacterStore.getState().character!.endurance.current).toBe(25)
   })
 })
 

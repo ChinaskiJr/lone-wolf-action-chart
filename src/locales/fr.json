@@ -111,6 +111,22 @@
     "eatMeal": "Manger",
     "noFoodPenalty": "Aucune ration : −3 PE",
     "huntingHint": "Chasse : ration souvent superflue",
+    "confiscation": {
+      "button": "Équipement confisqué",
+      "confirmTitle": "Confisquer tout l'équipement ?",
+      "confirmText": "Vos armes, votre or, votre sac à dos et vos objets spéciaux seront mis de côté. Vous pourrez les récupérer plus tard via « Retrouver l'inventaire ».",
+      "confirmAction": "Confisquer",
+      "banner_one": "Équipement confisqué — {{count}} objet en attente",
+      "banner_other": "Équipement confisqué — {{count}} objets en attente",
+      "recover": "Retrouver l'inventaire",
+      "recoverTitle": "Retrouver l'inventaire",
+      "recoverDesc": "Choisissez ce que vous reprenez. Vous ne pouvez pas dépasser les maximums : armes, or, emplacements du sac et objets spéciaux.",
+      "newItems": "Nouveaux objets",
+      "stashedItems": "Confisqués",
+      "goldCappedNote": "Or plafonné à {{max}} : {{lost}} perdu(s).",
+      "empty": "Aucun",
+      "confirm": "Récupérer"
+    },
     "d10": {
       "roll": "Lancer",
       "reroll": "Relancer"
