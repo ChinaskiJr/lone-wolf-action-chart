@@ -20,6 +20,7 @@ import {
   MAGNAKAI_WEAPONS,
 } from '@/data/disciplines'
 import { CARRY_OVER_SPECIAL_ITEMS, CARRY_OVER_SPECIAL_ITEMS_KAI_TO_MAGNAKAI } from '@/data/carryOverItems'
+import { LoreCirclesWidget } from '@/components/LoreCirclesWidget'
 import type { DisciplineData } from '@/types/game'
 
 const MAX_DISCIPLINES: Record<string, number> = {
@@ -177,6 +178,10 @@ export function CycleTransitionWizard() {
                 )
               })}
             </div>
+            {nextCycle === 'magnakai' && (
+              <LoreCirclesWidget selected={selectedDisciplines} lang={lang} />
+            )}
+
             <div className="flex gap-3 justify-between">
               <button onClick={() => setStep('intro')} className="px-5 py-2 rounded border border-slate-700 text-slate-400 text-sm hover:text-slate-200 transition-colors">
                 {t('creation.back')}

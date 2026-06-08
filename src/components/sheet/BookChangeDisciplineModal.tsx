@@ -10,6 +10,7 @@ import {
   KAI_WEAPONS,
   MAGNAKAI_WEAPONS,
 } from '@/data/disciplines'
+import { LoreCirclesWidget } from '@/components/LoreCirclesWidget'
 
 interface Props {
   onConfirm: () => void
@@ -247,6 +248,14 @@ export function BookChangeDisciplineModal({ onConfirm }: Props) {
                 ))}
               </select>
             </div>
+          )}
+
+          {/* Lore circles — Magnakai only */}
+          {character.cycle === 'magnakai' && (
+            <LoreCirclesWidget
+              selected={selected ? [...owned, selected] : owned}
+              lang={lang}
+            />
           )}
         </div>
 

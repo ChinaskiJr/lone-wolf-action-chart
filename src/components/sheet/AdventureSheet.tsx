@@ -8,6 +8,12 @@ import { useUIStore } from '@/store/uiStore'
 import { useAutoSave } from '@/hooks/useAutoSave'
 import { BOOKS, CYCLE_LAST_BOOK } from '@/data/books'
 import { getTotalEPMax } from '@/utils/character'
+import {
+  KAI_DISCIPLINES,
+  MAGNAKAI_DISCIPLINES,
+  GRAND_MASTER_DISCIPLINES,
+  NEW_ORDER_DISCIPLINES,
+} from '@/data/disciplines'
 import { StatsPanel } from './StatsPanel'
 import { DisciplinesPanel } from './DisciplinesPanel'
 import { EquipmentPanel } from './EquipmentPanel'
@@ -35,6 +41,7 @@ export function AdventureSheet() {
   const [showCompleteModal, setShowCompleteModal] = useState(false)
   const [showBookChangeDiscipline, setShowBookChangeDiscipline] = useState(false)
   const [showBookChangeEquipment, setShowBookChangeEquipment] = useState(false)
+  const [pendingCycleTransition, setPendingCycleTransition] = useState(false)
 
   useAutoSave()
 
@@ -65,8 +72,21 @@ export function AdventureSheet() {
   function handleCompleteBook() {
     completeBook(character!.currentBook)
     if (isLastBookOfCycle) {
-      save()
-      navigate(`/transition/${character!.id}`)
+      const cycleDisciplineMap =
+        character!.cycle === 'kai' ? KAI_DISCIPLINES :
+        character!.cycle === 'magnakai' ? MAGNAKAI_DISCIPLINES :
+        character!.cycle === 'grandmaster' ? GRAND_MASTER_DISCIPLINES :
+        NEW_ORDER_DISCIPLINES
+      const ownedDiscs = character!.disciplines as string[]
+      const hasMissingDisc = Object.keys(cycleDisciplineMap).some(d => !ownedDiscs.includes(d))
+      if (hasMissingDisc) {
+        setCurrentBook(character!.currentBook + 1)
+        setPendingCycleTransition(true)
+        setShowBookChangeDiscipline(true)
+      } else {
+        save()
+        navigate(`/transition/${character!.id}`)
+      }
     } else {
       const nextBook = character!.currentBook + 1
       setCurrentBook(nextBook)
@@ -77,7 +97,13 @@ export function AdventureSheet() {
 
   function handleDisciplineConfirmed() {
     setShowBookChangeDiscipline(false)
-    setShowBookChangeEquipment(true)
+    if (pendingCycleTransition) {
+      setPendingCycleTransition(false)
+      save()
+      navigate(`/transition/${character!.id}`)
+    } else {
+      setShowBookChangeEquipment(true)
+    }
   }
 
   function handleEquipmentFinished() {
