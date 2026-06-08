@@ -18,7 +18,7 @@ import {
   NEW_ORDER_DISCIPLINES,
   MAGNAKAI_WEAPONS,
 } from '@/data/disciplines'
-import { CARRY_OVER_SPECIAL_ITEMS } from '@/data/carryOverItems'
+import { CARRY_OVER_SPECIAL_ITEMS, CARRY_OVER_SPECIAL_ITEMS_KAI_TO_MAGNAKAI } from '@/data/carryOverItems'
 import type { DisciplineData } from '@/types/game'
 
 const MAX_DISCIPLINES: Record<string, number> = {
@@ -65,17 +65,33 @@ export function CycleTransitionWizard() {
   const maxD = MAX_DISCIPLINES[nextCycle]
 
   const needsWeaponsStep = nextCycle === 'magnakai' && selectedDisciplines.includes('weaponmastery')
+  const sourceSpecialItems = (source as any).specialItems as import('@/types/game').SpecialItem[] ?? []
+  const allowedCarryOverItems =
+    nextCycle === 'magnakai' ? CARRY_OVER_SPECIAL_ITEMS_KAI_TO_MAGNAKAI : CARRY_OVER_SPECIAL_ITEMS
+  const needsItemsStep =
+    (nextCycle === 'magnakai' || nextCycle === 'grandmaster') && sourceSpecialItems.length > 0
 
   function stepAfterDisciplines() {
     if (needsWeaponsStep) return 'weapons' as const
-    if (nextCycle === 'grandmaster' && (source as MagnakaiCharacter).specialItems.length > 0) return 'items' as const
+    if (needsItemsStep) return 'items' as const
     return 'done' as const
+  }
+
+  function stepAfterWeapons() {
+    if (needsItemsStep) return 'items' as const
+    return 'done' as const
+  }
+
+  function stepBeforeItems() {
+    if (needsWeaponsStep) return 'weapons' as const
+    return 'disciplines' as const
   }
 
   function buildTransitionedChar(): Character {
     if (nextCycle === 'magnakai') {
       const char = createNewMagnakaiCharacter(source!.cycle === 'kai' ? source as any : undefined)
-      return { ...char, disciplines: selectedDisciplines as any, weaponmasteryWeapons: selectedWeapons }
+      const kept = filterCarryOverItems(sourceSpecialItems, selectedCarryOverItems)
+      return { ...char, disciplines: selectedDisciplines as any, weaponmasteryWeapons: selectedWeapons, specialItems: kept }
     } else if (nextCycle === 'grandmaster') {
       const char = createNewGrandMasterCharacter(source!.cycle === 'magnakai' ? source as MagnakaiCharacter : undefined)
       const kept = filterCarryOverItems((source as MagnakaiCharacter).specialItems, selectedCarryOverItems)
@@ -216,7 +232,7 @@ export function CycleTransitionWizard() {
                 {t('creation.back')}
               </button>
               <button
-                onClick={() => setStep('done')}
+                onClick={() => setStep(stepAfterWeapons())}
                 disabled={selectedWeapons.length === 0}
                 className="px-6 py-2 rounded bg-amber-600 hover:bg-amber-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-medium transition-colors"
               >
@@ -226,7 +242,7 @@ export function CycleTransitionWizard() {
           </div>
         )}
 
-        {step === 'items' && nextCycle === 'grandmaster' && (
+        {step === 'items' && needsItemsStep && (
           <div className="flex flex-col gap-5">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-serif font-semibold text-amber-100">{t('transition.carryOverItems')}</h2>
@@ -239,7 +255,7 @@ export function CycleTransitionWizard() {
             <div className="text-xs bg-slate-800/40 border border-slate-700/50 rounded-lg p-3">
               <div className="font-medium text-slate-400 mb-1.5">{t('transition.allowedItems')}</div>
               <div className="flex flex-wrap gap-1.5">
-                {CARRY_OVER_SPECIAL_ITEMS.map(item => (
+                {allowedCarryOverItems.map(item => (
                   <span key={item.key} className="px-2 py-0.5 rounded bg-slate-700/60 text-slate-400">
                     {lang === 'fr' ? item.fr : item.en}
                   </span>
@@ -249,7 +265,7 @@ export function CycleTransitionWizard() {
 
             {/* Player's actual items */}
             <div className="space-y-2 max-h-64 overflow-y-auto">
-              {(source as MagnakaiCharacter).specialItems.map(item => {
+              {sourceSpecialItems.map(item => {
                 const isSelected = selectedCarryOverItems.includes(item.id)
                 return (
                   <button
@@ -282,7 +298,7 @@ export function CycleTransitionWizard() {
             </div>
 
             <div className="flex gap-3 justify-between">
-              <button onClick={() => setStep('disciplines')} className="px-5 py-2 rounded border border-slate-700 text-slate-400 text-sm hover:text-slate-200 transition-colors">
+              <button onClick={() => setStep(stepBeforeItems())} className="px-5 py-2 rounded border border-slate-700 text-slate-400 text-sm hover:text-slate-200 transition-colors">
                 {t('creation.back')}
               </button>
               <button
