@@ -11,6 +11,7 @@ import {
   createNewGrandMasterCharacter,
   createNewOrderCharacter,
   filterCarryOverItems,
+  getTotalEPMax,
 } from '@/utils/character'
 import {
   MAGNAKAI_DISCIPLINES,
@@ -91,7 +92,9 @@ export function CycleTransitionWizard() {
     if (nextCycle === 'magnakai') {
       const char = createNewMagnakaiCharacter(source!.cycle === 'kai' ? source as any : undefined)
       const kept = filterCarryOverItems(sourceSpecialItems, selectedCarryOverItems)
-      return { ...char, disciplines: selectedDisciplines as any, weaponmasteryWeapons: selectedWeapons, specialItems: kept }
+      const withItems = { ...char, disciplines: selectedDisciplines as any, weaponmasteryWeapons: selectedWeapons, specialItems: kept }
+      // Restore to full EP including bonuses from carried-over equipped special items.
+      return { ...withItems, endurance: { ...withItems.endurance, current: getTotalEPMax(withItems) } }
     } else if (nextCycle === 'grandmaster') {
       const char = createNewGrandMasterCharacter(source!.cycle === 'magnakai' ? source as MagnakaiCharacter : undefined)
       const kept = filterCarryOverItems((source as MagnakaiCharacter).specialItems, selectedCarryOverItems)
