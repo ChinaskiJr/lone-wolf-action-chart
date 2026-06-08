@@ -285,3 +285,9 @@ export const KAI_WEAPONS = [
   { key: 'quarterstaff', fr: 'Bâton', en: 'Quarterstaff' },
   { key: 'broadsword', fr: 'Glaive', en: 'Broadsword' },
 ]
+
+// Magnakai/Grand Master weaponmastery includes all Kai weapons plus the bow.
+export const MAGNAKAI_WEAPONS = [
+  ...KAI_WEAPONS,
+  { key: 'bow', fr: 'Arc', en: 'Bow' },
+]

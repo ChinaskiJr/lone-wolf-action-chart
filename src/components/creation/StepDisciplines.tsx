@@ -8,6 +8,7 @@ import {
   GRAND_MASTER_DISCIPLINES,
   NEW_ORDER_DISCIPLINES,
   KAI_WEAPONS,
+  MAGNAKAI_WEAPONS,
 } from '@/data/disciplines'
 import type { DisciplineData } from '@/types/game'
 
@@ -143,7 +144,7 @@ export function StepDisciplines({ character, onNext, onBack }: Props) {
           </label>
           <div className="flex flex-wrap gap-1.5 min-h-[24px]">
             {weaponmasteryWeapons.map(key => {
-              const w = KAI_WEAPONS.find(ww => ww.key === key)
+              const w = MAGNAKAI_WEAPONS.find(ww => ww.key === key)
               return (
                 <span key={key} className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-900/40 border border-blue-800/60 text-xs text-blue-300">
                   {w ? (lang === 'fr' ? w.fr : w.en) : key}
@@ -166,7 +167,7 @@ export function StepDisciplines({ character, onNext, onBack }: Props) {
                 className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-slate-200 text-sm focus:outline-none focus:border-amber-600"
               >
                 <option value="">— {lang === 'fr' ? 'Choisir une arme' : 'Choose a weapon'} —</option>
-                {KAI_WEAPONS.filter(w => !weaponmasteryWeapons.includes(w.key)).map(w => (
+                {MAGNAKAI_WEAPONS.filter(w => !weaponmasteryWeapons.includes(w.key)).map(w => (
                   <option key={w.key} value={w.key}>{lang === 'fr' ? w.fr : w.en}</option>
                 ))}
               </select>

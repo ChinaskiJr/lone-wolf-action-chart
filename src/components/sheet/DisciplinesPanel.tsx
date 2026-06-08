@@ -8,6 +8,7 @@ import {
   GRAND_MASTER_DISCIPLINES,
   NEW_ORDER_DISCIPLINES,
   KAI_WEAPONS,
+  MAGNAKAI_WEAPONS,
 } from '@/data/disciplines'
 import { BOOKS } from '@/data/books'
 import { LORE_CIRCLES, getCompletedCircles } from '@/data/loreCircles'
@@ -130,7 +131,7 @@ export function DisciplinesPanel() {
           const max = character.cycle === 'magnakai' ? 3 : character.currentBook - 12
           const hcBonus = character.cycle === 'magnakai' ? 3 : 5
           const canAddWeapon = owned.length < max
-          const available = KAI_WEAPONS.filter(w => !owned.includes(w.key))
+          const available = MAGNAKAI_WEAPONS.filter(w => !owned.includes(w.key))
           return (
             <div className="bg-blue-950/20 border border-blue-900/40 rounded-lg p-3 flex flex-col gap-2">
               <div className="flex items-center justify-between">
@@ -142,7 +143,7 @@ export function DisciplinesPanel() {
               </div>
               <div className="flex flex-wrap gap-1.5 min-h-[24px]">
                 {owned.map(key => {
-                  const w = KAI_WEAPONS.find(ww => ww.key === key)
+                  const w = MAGNAKAI_WEAPONS.find(ww => ww.key === key)
                   return (
                     <span key={key} className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-900/40 border border-blue-800/60 text-xs text-blue-300">
                       {w ? (lang === 'fr' ? w.fr : w.en) : key}

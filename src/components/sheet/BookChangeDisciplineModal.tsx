@@ -8,6 +8,7 @@ import {
   GRAND_MASTER_DISCIPLINES,
   NEW_ORDER_DISCIPLINES,
   KAI_WEAPONS,
+  MAGNAKAI_WEAPONS,
 } from '@/data/disciplines'
 
 interface Props {
@@ -39,7 +40,7 @@ export function BookChangeDisciplineModal({ onConfirm }: Props) {
     ? ({ kai: 'Kaï', magnakai: 'Magnakaï', grandmaster: 'Grand Maître', neworder: 'Nouvel Ordre' })[character.cycle]
     : ({ kai: 'Kai', magnakai: 'Magnakai', grandmaster: 'Grand Master', neworder: 'New Order' })[character.cycle]
 
-  const availableWmWeapons = KAI_WEAPONS.filter(w => {
+  const availableWmWeapons = MAGNAKAI_WEAPONS.filter(w => {
     const currentMastered: string[] = (character as any).weaponmasteryWeapons ?? []
     return !currentMastered.includes(w.key)
   })
