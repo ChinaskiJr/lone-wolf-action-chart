@@ -153,7 +153,7 @@ export function StepDisciplines({ character, onNext, onBack }: Props) {
               )
             })}
           </div>
-          {(needsWeaponmastery ? weaponmasteryWeapons.length < 3 : weaponmasteryWeapons.length < 1) && (
+          {(needsWeaponmastery ? weaponmasteryWeapons.length < character.currentBook - 3 : weaponmasteryWeapons.length < 1) && (
             <div className="flex gap-2 items-center">
               <select
                 defaultValue=""

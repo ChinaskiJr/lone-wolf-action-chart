@@ -128,7 +128,7 @@ export function DisciplinesPanel() {
       {(character.cycle === 'magnakai' || character.cycle === 'grandmaster' || character.cycle === 'neworder') &&
         selected.includes(character.cycle === 'magnakai' ? 'weaponmastery' : 'grandWeaponmastery') && (() => {
           const owned: string[] = (character as any).weaponmasteryWeapons ?? []
-          const max = character.cycle === 'magnakai' ? 3 : character.currentBook - 12
+          const max = character.cycle === 'magnakai' ? character.currentBook - 3 : character.currentBook - 12
           const hcBonus = character.cycle === 'magnakai' ? 3 : 5
           const canAddWeapon = owned.length < max
           const available = MAGNAKAI_WEAPONS.filter(w => !owned.includes(w.key))
