@@ -83,8 +83,8 @@ export const MAGNAKAI_DISCIPLINES: Record<MagnakaiDiscipline, DisciplineData> = 
     key: 'weaponmastery',
     fr: 'Science des Armes',
     en: 'Weaponmastery',
-    effectFr: '+3 HC avec les armes maîtrisées (jusqu\'à 3 types) ; +3 aux jets d\'arc.',
-    effectEn: '+3 CS with mastered weapons (up to 3 types); +3 to bow rolls.',
+    effectFr: '+3 HC avec les armes maîtrisées (jusqu\'à 3 types). Si l\'arc est choisi : +3 aux jets d\'arc.',
+    effectEn: '+3 CS with mastered weapons (up to 3 types). If bow is chosen: +3 to bow rolls.',
   },
   animalControl: {
     key: 'animalControl',
