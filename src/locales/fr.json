@@ -210,7 +210,9 @@
     "statRecalculation": "Recalculer les caractéristiques",
     "keepCurrentStats": "Garder les caractéristiques actuelles",
     "useNewFormula": "Utiliser la nouvelle formule (R10+{{bonus}})",
-    "proceed": "Continuer vers le cycle suivant"
+    "proceed": "Continuer vers le cycle suivant",
+    "masteredWeapons": "Armes maîtrisées",
+    "masteredWeaponsDesc": "Choisissez jusqu'à 3 types d'armes. Vous gagnerez +3 HC quand vous portez une arme maîtrisée."
   },
   "common": {
     "save": "Sauvegarder",

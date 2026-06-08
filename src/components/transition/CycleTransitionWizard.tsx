@@ -16,6 +16,7 @@ import {
   MAGNAKAI_DISCIPLINES,
   GRAND_MASTER_DISCIPLINES,
   NEW_ORDER_DISCIPLINES,
+  MAGNAKAI_WEAPONS,
 } from '@/data/disciplines'
 import { CARRY_OVER_SPECIAL_ITEMS } from '@/data/carryOverItems'
 import type { DisciplineData } from '@/types/game'
@@ -35,8 +36,9 @@ export function CycleTransitionWizard() {
   const { getSave, updateSave } = useSavesStore()
 
   const source = character ?? (id ? getSave(id) : null)
-  const [step, setStep] = useState<'intro' | 'disciplines' | 'items' | 'stats' | 'done'>('intro')
+  const [step, setStep] = useState<'intro' | 'disciplines' | 'weapons' | 'items' | 'stats' | 'done'>('intro')
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([])
+  const [selectedWeapons, setSelectedWeapons] = useState<string[]>([])
   const [selectedCarryOverItems, setSelectedCarryOverItems] = useState<string[]>([])
 
   if (!source) {
@@ -62,10 +64,18 @@ export function CycleTransitionWizard() {
   const availableDisciplines = Object.values(disciplineMap)
   const maxD = MAX_DISCIPLINES[nextCycle]
 
+  const needsWeaponsStep = nextCycle === 'magnakai' && selectedDisciplines.includes('weaponmastery')
+
+  function stepAfterDisciplines() {
+    if (needsWeaponsStep) return 'weapons' as const
+    if (nextCycle === 'grandmaster' && (source as MagnakaiCharacter).specialItems.length > 0) return 'items' as const
+    return 'done' as const
+  }
+
   function buildTransitionedChar(): Character {
     if (nextCycle === 'magnakai') {
       const char = createNewMagnakaiCharacter(source!.cycle === 'kai' ? source as any : undefined)
-      return { ...char, disciplines: selectedDisciplines as any }
+      return { ...char, disciplines: selectedDisciplines as any, weaponmasteryWeapons: selectedWeapons }
     } else if (nextCycle === 'grandmaster') {
       const char = createNewGrandMasterCharacter(source!.cycle === 'magnakai' ? source as MagnakaiCharacter : undefined)
       const kept = filterCarryOverItems((source as MagnakaiCharacter).specialItems, selectedCarryOverItems)
@@ -153,11 +163,61 @@ export function CycleTransitionWizard() {
                 {t('creation.back')}
               </button>
               <button
-                onClick={() => setStep(
-                nextCycle === 'grandmaster' && (source as MagnakaiCharacter).specialItems.length > 0
-                  ? 'items' : 'done'
-              )}
+                onClick={() => setStep(stepAfterDisciplines())}
                 disabled={selectedDisciplines.length < maxD}
+                className="px-6 py-2 rounded bg-amber-600 hover:bg-amber-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-medium transition-colors"
+              >
+                {t('creation.next')}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {step === 'weapons' && (
+          <div className="flex flex-col gap-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-serif font-semibold text-amber-100">
+                {t('transition.masteredWeapons')}
+              </h2>
+              <span className={`text-sm px-2.5 py-1 rounded-full ${selectedWeapons.length === 3 ? 'bg-green-800/50 text-green-300' : 'bg-slate-800 text-slate-400'}`}>
+                {selectedWeapons.length}/3
+              </span>
+            </div>
+            <p className="text-sm text-slate-400">{t('transition.masteredWeaponsDesc')}</p>
+            <div className="grid grid-cols-2 gap-2">
+              {MAGNAKAI_WEAPONS.map(w => {
+                const isSelected = selectedWeapons.includes(w.key)
+                const isDisabled = !isSelected && selectedWeapons.length >= 3
+                return (
+                  <button
+                    key={w.key}
+                    onClick={() => {
+                      if (isDisabled) return
+                      setSelectedWeapons(prev =>
+                        prev.includes(w.key) ? prev.filter(k => k !== w.key) : [...prev, w.key]
+                      )
+                    }}
+                    disabled={isDisabled}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-all
+                      ${isSelected ? 'border-amber-600 bg-amber-900/30 text-amber-100' :
+                        isDisabled ? 'border-slate-800 text-slate-600 cursor-not-allowed' :
+                        'border-slate-700 bg-slate-800/40 text-slate-300 hover:border-slate-500'}`}
+                  >
+                    <div className={`w-5 h-5 shrink-0 rounded flex items-center justify-center border ${isSelected ? 'bg-amber-600 border-amber-500' : 'border-slate-600'}`}>
+                      {isSelected && <Check size={12} />}
+                    </div>
+                    <span className="text-sm font-medium">{lang === 'fr' ? w.fr : w.en}</span>
+                  </button>
+                )
+              })}
+            </div>
+            <div className="flex gap-3 justify-between">
+              <button onClick={() => setStep('disciplines')} className="px-5 py-2 rounded border border-slate-700 text-slate-400 text-sm hover:text-slate-200 transition-colors">
+                {t('creation.back')}
+              </button>
+              <button
+                onClick={() => setStep('done')}
+                disabled={selectedWeapons.length === 0}
                 className="px-6 py-2 rounded bg-amber-600 hover:bg-amber-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-medium transition-colors"
               >
                 {t('creation.next')}

@@ -210,7 +210,9 @@
     "statRecalculation": "Recalculate statistics",
     "keepCurrentStats": "Keep current statistics",
     "useNewFormula": "Use new formula (R10+{{bonus}})",
-    "proceed": "Continue to next cycle"
+    "proceed": "Continue to next cycle",
+    "masteredWeapons": "Mastered weapons",
+    "masteredWeaponsDesc": "Choose up to 3 weapon types. You gain +3 CS when carrying a mastered weapon."
   },
   "common": {
     "save": "Save",
