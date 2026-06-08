@@ -204,6 +204,8 @@ export function createNewMagnakaiCharacter(fromKai?: KaiCharacter): MagnakaiChar
       weaponmasteryWeapons: [],
       loreCirclesCompleted: [],
       lorestones: [],
+      // Restore EP to max on cycle change.
+      endurance: { ...fromKai.endurance, current: fromKai.endurance.max },
       currentBook: 6,
       updatedAt: now,
     }
