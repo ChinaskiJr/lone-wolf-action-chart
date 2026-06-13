@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { Character } from '@/types/character'
-import type { BackpackItem, ConfiscatedEquipment, SpecialItem, Weapon } from '@/types/game'
+import type { BackpackItem, ConfiscatedEquipment, MonasteryStorage, SpecialItem, Weapon } from '@/types/game'
 import { useSavesStore } from './savesStore'
 
 interface CharacterState {
@@ -37,6 +37,12 @@ interface CharacterState {
   // Confiscation (inventory seized for a period, then recovered)
   confiscateEquipment: () => void
   recoverEquipment: (selection: ConfiscatedEquipment) => void
+
+  // Monastery (store/retrieve items at the Kai Monastery between books, book 6+)
+  syncMonastery: (
+    newInventory: { weapons: Weapon[]; goldCrowns: number; backpack: BackpackItem[]; specialItems: SpecialItem[]; meals: number },
+    newMonastery: MonasteryStorage
+  ) => void
 
   // Gold
   setGold: (amount: number) => void
@@ -234,6 +240,20 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
         specialItems: selection.specialItems,
         endurance: { ...c.endurance, current: Math.max(0, c.endurance.current + peDelta) },
         confiscated: undefined,
+      } as Partial<Character>
+    })),
+
+  syncMonastery: (newInventory, newMonastery) =>
+    set(updateChar(get, c => {
+      const peDelta = equippedPeBonus(newInventory.specialItems) - equippedPeBonus(c.specialItems)
+      return {
+        weapons: newInventory.weapons,
+        goldCrowns: Math.max(0, Math.min(50, newInventory.goldCrowns)),
+        meals: Math.max(0, newInventory.meals),
+        backpack: newInventory.backpack,
+        specialItems: newInventory.specialItems,
+        monastery: newMonastery,
+        endurance: { ...c.endurance, current: Math.max(0, c.endurance.current + peDelta) },
       } as Partial<Character>
     })),
 

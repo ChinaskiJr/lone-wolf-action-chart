@@ -34,6 +34,14 @@ export interface ConfiscatedEquipment {
   specialItems: SpecialItem[]
 }
 
+// Items stored at the Kai Monastery between books (from book 6 onwards). No upper limit.
+export interface MonasteryStorage {
+  weapons: Weapon[]
+  goldCrowns: number
+  backpack: BackpackItem[]
+  specialItems: SpecialItem[]
+}
+
 // --- Kai ---
 export type KaiDiscipline =
   | 'camouflage'

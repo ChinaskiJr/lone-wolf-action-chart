@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ChevronRight, Check } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Check, Archive } from 'lucide-react'
 import { useCharacterStore } from '@/store/characterStore'
 import { useSavesStore } from '@/store/savesStore'
-import type { Character } from '@/types/character'
-import type { MagnakaiCharacter } from '@/types/character'
+import type { Character, MagnakaiCharacter } from '@/types/character'
+import type { MonasteryStorage, SpecialItem, Weapon, BackpackItem } from '@/types/game'
 import {
   createNewMagnakaiCharacter,
   createNewGrandMasterCharacter,
@@ -38,10 +38,15 @@ export function CycleTransitionWizard() {
   const { getSave, updateSave } = useSavesStore()
 
   const source = character ?? (id ? getSave(id) : null)
-  const [step, setStep] = useState<'intro' | 'disciplines' | 'weapons' | 'items' | 'stats' | 'done'>('intro')
+  const [step, setStep] = useState<'intro' | 'disciplines' | 'weapons' | 'items' | 'monastery' | 'done'>('intro')
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([])
   const [selectedWeapons, setSelectedWeapons] = useState<string[]>([])
   const [selectedCarryOverItems, setSelectedCarryOverItems] = useState<string[]>([])
+  const [wizMonastery, setWizMonastery] = useState<MonasteryStorage | null>(null)
+  const [wizPendingSpecialItems, setWizPendingSpecialItems] = useState<SpecialItem[] | null>(null)
+  const [wizPendingWeapons, setWizPendingWeapons] = useState<Weapon[] | null>(null)
+  const [wizPendingBackpack, setWizPendingBackpack] = useState<BackpackItem[] | null>(null)
+  const [wizPendingGold, setWizPendingGold] = useState<number | null>(null)
 
   if (!source) {
     navigate('/')
@@ -76,12 +81,12 @@ export function CycleTransitionWizard() {
   function stepAfterDisciplines() {
     if (needsWeaponsStep) return 'weapons' as const
     if (needsItemsStep) return 'items' as const
-    return 'done' as const
+    return 'monastery' as const
   }
 
   function stepAfterWeapons() {
     if (needsItemsStep) return 'items' as const
-    return 'done' as const
+    return 'monastery' as const
   }
 
   function stepBeforeItems() {
@@ -89,19 +94,31 @@ export function CycleTransitionWizard() {
     return 'disciplines' as const
   }
 
+  const emptyMonastery: MonasteryStorage = { weapons: [], goldCrowns: 0, backpack: [], specialItems: [] }
+
+  function applyWizardInventory<T extends { weapons: Weapon[]; backpack: BackpackItem[]; goldCrowns: number }>(char: T): T {
+    return {
+      ...char,
+      ...(wizPendingWeapons !== null ? { weapons: wizPendingWeapons } : {}),
+      ...(wizPendingBackpack !== null ? { backpack: wizPendingBackpack } : {}),
+      ...(wizPendingGold !== null ? { goldCrowns: Math.max(0, Math.min(50, wizPendingGold)) } : {}),
+    }
+  }
+
   function buildTransitionedChar(): Character {
+    const monastery = wizMonastery ?? (source as any).monastery ?? emptyMonastery
     if (nextCycle === 'magnakai') {
       const char = createNewMagnakaiCharacter(source!.cycle === 'kai' ? source as any : undefined)
-      const kept = filterCarryOverItems(sourceSpecialItems, selectedCarryOverItems)
-      const withItems = { ...char, disciplines: selectedDisciplines as any, weaponmasteryWeapons: selectedWeapons, specialItems: kept }
+      const kept = wizPendingSpecialItems ?? filterCarryOverItems(sourceSpecialItems, selectedCarryOverItems)
+      const withItems = applyWizardInventory({ ...char, disciplines: selectedDisciplines as any, weaponmasteryWeapons: selectedWeapons, specialItems: kept })
       // Restore to full EP including bonuses from carried-over equipped special items.
-      return { ...withItems, endurance: { ...withItems.endurance, current: getTotalEPMax(withItems) } }
+      return { ...withItems, endurance: { ...withItems.endurance, current: getTotalEPMax(withItems) }, monastery }
     } else if (nextCycle === 'grandmaster') {
       const char = createNewGrandMasterCharacter(source!.cycle === 'magnakai' ? source as MagnakaiCharacter : undefined)
-      const kept = filterCarryOverItems((source as MagnakaiCharacter).specialItems, selectedCarryOverItems)
-      return { ...char, disciplines: selectedDisciplines as any, specialItems: kept }
+      const kept = wizPendingSpecialItems ?? filterCarryOverItems((source as MagnakaiCharacter).specialItems, selectedCarryOverItems)
+      return applyWizardInventory({ ...char, disciplines: selectedDisciplines as any, specialItems: kept, monastery } as any) as Character
     } else {
-      return { ...createNewOrderCharacter(), disciplines: selectedDisciplines as any }
+      return { ...createNewOrderCharacter(), disciplines: selectedDisciplines as any, monastery }
     }
   }
 
@@ -310,13 +327,37 @@ export function CycleTransitionWizard() {
                 {t('creation.back')}
               </button>
               <button
-                onClick={() => setStep('done')}
+                onClick={() => setStep('monastery')}
                 className="px-6 py-2 rounded bg-amber-600 hover:bg-amber-500 text-white font-medium transition-colors"
               >
                 {t('creation.next')}
               </button>
             </div>
           </div>
+        )}
+
+        {step === 'monastery' && (
+          <MonasteryStep
+            source={source}
+            sourceSpecialItems={sourceSpecialItems}
+            selectedCarryOverItems={selectedCarryOverItems}
+            needsItemsStep={needsItemsStep}
+            lang={lang}
+            onConfirm={(result) => {
+              setWizPendingSpecialItems(result.pendingSpecialItems)
+              setWizPendingWeapons(result.pendingWeapons)
+              setWizPendingBackpack(result.pendingBackpack)
+              setWizPendingGold(result.pendingGold)
+              setWizMonastery(result.monastery)
+              setStep('done')
+            }}
+            onBack={() => {
+              if (needsItemsStep) setStep('items')
+              else if (needsWeaponsStep) setStep('weapons')
+              else setStep('disciplines')
+            }}
+            t={t}
+          />
         )}
 
         {step === 'done' && (
@@ -336,5 +377,284 @@ export function CycleTransitionWizard() {
         )}
       </div>
     </div>
+  )
+}
+
+interface MonasteryStepResult {
+  pendingSpecialItems: SpecialItem[]
+  pendingWeapons: Weapon[]
+  pendingBackpack: BackpackItem[]
+  pendingGold: number
+  monastery: MonasteryStorage
+}
+
+interface MonasteryStepProps {
+  source: { weapons: Weapon[]; backpack: BackpackItem[]; goldCrowns: number; monastery?: MonasteryStorage }
+  sourceSpecialItems: SpecialItem[]
+  selectedCarryOverItems: string[]
+  needsItemsStep: boolean
+  lang: 'fr' | 'en'
+  onConfirm: (result: MonasteryStepResult) => void
+  onBack: () => void
+  t: (key: string) => string
+}
+
+function MonasteryStep({ source, sourceSpecialItems, selectedCarryOverItems, needsItemsStep, lang, onConfirm, onBack, t }: MonasteryStepProps) {
+  const existing = source.monastery ?? { weapons: [], goldCrowns: 0, backpack: [], specialItems: [] }
+  const totalGold = source.goldCrowns + existing.goldCrowns
+
+  const [leftWeapons, setLeftWeapons] = useState<Weapon[]>(source.weapons)
+  const [leftBackpack, setLeftBackpack] = useState<BackpackItem[]>(source.backpack)
+  const [leftSpecialItems, setLeftSpecialItems] = useState<SpecialItem[]>(sourceSpecialItems)
+  const [leftGold, setLeftGold] = useState(source.goldCrowns)
+
+  const [rightWeapons, setRightWeapons] = useState<Weapon[]>(existing.weapons)
+  const [rightBackpack, setRightBackpack] = useState<BackpackItem[]>(existing.backpack)
+  const [rightSpecialItems, setRightSpecialItems] = useState<SpecialItem[]>(existing.specialItems)
+  const [rightGold, setRightGold] = useState(existing.goldCrowns)
+
+  // lang is used for item display if needed in future
+  void lang
+
+  function depositWeapon(idx: number) {
+    const item = leftWeapons[idx]
+    setLeftWeapons(prev => prev.filter((_, i) => i !== idx))
+    setRightWeapons(prev => [...prev, item])
+  }
+
+  function retrieveWeapon(idx: number) {
+    const item = rightWeapons[idx]
+    setRightWeapons(prev => prev.filter((_, i) => i !== idx))
+    setLeftWeapons(prev => [...prev, item])
+  }
+
+  function depositBackpack(id: string) {
+    const item = leftBackpack.find(i => i.id === id)!
+    setLeftBackpack(prev => prev.filter(i => i.id !== id))
+    setRightBackpack(prev => [...prev, item])
+  }
+
+  function retrieveBackpack(id: string) {
+    const item = rightBackpack.find(i => i.id === id)!
+    setRightBackpack(prev => prev.filter(i => i.id !== id))
+    setLeftBackpack(prev => [...prev, item])
+  }
+
+  function depositSpecial(id: string) {
+    const item = leftSpecialItems.find(i => i.id === id)!
+    setLeftSpecialItems(prev => prev.filter(i => i.id !== id))
+    setRightSpecialItems(prev => [...prev, item])
+  }
+
+  function retrieveSpecial(id: string) {
+    const item = rightSpecialItems.find(i => i.id === id)!
+    setRightSpecialItems(prev => prev.filter(i => i.id !== id))
+    setLeftSpecialItems(prev => [...prev, item])
+  }
+
+  function handleLeftGold(val: number) {
+    const c = Math.max(0, Math.min(totalGold, val))
+    setLeftGold(c)
+    setRightGold(totalGold - c)
+  }
+
+  function handleRightGold(val: number) {
+    const c = Math.max(0, Math.min(totalGold, val))
+    setRightGold(c)
+    setLeftGold(totalGold - c)
+  }
+
+  function handleConfirm() {
+    const pendingSpecialItems = needsItemsStep
+      ? leftSpecialItems.filter(item => selectedCarryOverItems.includes(item.id))
+      : []
+    onConfirm({
+      pendingSpecialItems,
+      pendingWeapons: leftWeapons,
+      pendingBackpack: leftBackpack,
+      pendingGold: leftGold,
+      monastery: { weapons: rightWeapons, goldCrowns: rightGold, backpack: rightBackpack, specialItems: rightSpecialItems },
+    })
+  }
+
+  const noItems = t('sheet.monastery.noItems')
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-lg bg-amber-900/40 border border-amber-800/50 flex items-center justify-center text-amber-400">
+          <Archive size={16} />
+        </div>
+        <h2 className="text-xl font-serif font-semibold text-amber-100">{t('sheet.monastery.title')}</h2>
+      </div>
+      <p className="text-sm text-slate-400">{t('sheet.monastery.subtitle')}</p>
+
+      <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-1">
+        {/* Left panel */}
+        <div className="flex flex-col gap-2">
+          <div className="text-xs font-semibold text-slate-400 uppercase">{t('sheet.monastery.yourEquipment')}</div>
+
+          <WizSection label={t('sheet.weapons')}>
+            {leftWeapons.length === 0
+              ? <WizEmpty label={noItems} />
+              : leftWeapons.map((w, i) => (
+                <WizRow key={i} name={w.name} badge={t('sheet.monastery.willCarryOver')} badgeGreen>
+                  <WizBtn dir="right" onClick={() => depositWeapon(i)} />
+                </WizRow>
+              ))
+            }
+          </WizSection>
+
+          <WizSection label={t('sheet.backpack')}>
+            {leftBackpack.length === 0
+              ? <WizEmpty label={noItems} />
+              : leftBackpack.map(item => (
+                <WizRow key={item.id} name={item.name} badge={t('sheet.monastery.willCarryOver')} badgeGreen>
+                  <WizBtn dir="right" onClick={() => depositBackpack(item.id)} />
+                </WizRow>
+              ))
+            }
+          </WizSection>
+
+          <WizSection label={t('sheet.specialItems')}>
+            {leftSpecialItems.length === 0
+              ? <WizEmpty label={noItems} />
+              : leftSpecialItems.map(item => {
+                const willCarry = needsItemsStep && selectedCarryOverItems.includes(item.id)
+                return (
+                  <WizRow
+                    key={item.id}
+                    name={item.name}
+                    badge={willCarry ? t('sheet.monastery.willCarryOver') : t('sheet.monastery.willBeLost')}
+                    badgeGreen={willCarry}
+                  >
+                    <WizBtn dir="right" onClick={() => depositSpecial(item.id)} />
+                  </WizRow>
+                )
+              })
+            }
+          </WizSection>
+
+          <WizSection label={t('sheet.goldCrowns')}>
+            <div className="flex items-center gap-1.5 px-2 py-1.5">
+              <input
+                type="number"
+                min={0}
+                max={totalGold}
+                value={leftGold}
+                onChange={e => handleLeftGold(Number(e.target.value))}
+                className="w-14 text-center text-xs bg-slate-800 border border-slate-600 rounded px-1 py-0.5 text-amber-200 focus:outline-none focus:border-amber-500"
+              />
+              <span className="text-xs text-slate-500">/ {totalGold}</span>
+              <WizBtn dir="right" onClick={() => handleRightGold(totalGold)} />
+            </div>
+          </WizSection>
+        </div>
+
+        {/* Right panel */}
+        <div className="flex flex-col gap-2">
+          <div className="text-xs font-semibold text-amber-600/80 uppercase">{t('sheet.monastery.stored')}</div>
+
+          <WizSection label={t('sheet.weapons')}>
+            {rightWeapons.length === 0
+              ? <WizEmpty label={noItems} />
+              : rightWeapons.map((w, i) => (
+                <WizRow key={i} name={w.name}>
+                  <WizBtn dir="left" onClick={() => retrieveWeapon(i)} />
+                </WizRow>
+              ))
+            }
+          </WizSection>
+
+          <WizSection label={t('sheet.backpack')}>
+            {rightBackpack.length === 0
+              ? <WizEmpty label={noItems} />
+              : rightBackpack.map(item => (
+                <WizRow key={item.id} name={item.name}>
+                  <WizBtn dir="left" onClick={() => retrieveBackpack(item.id)} />
+                </WizRow>
+              ))
+            }
+          </WizSection>
+
+          <WizSection label={t('sheet.specialItems')}>
+            {rightSpecialItems.length === 0
+              ? <WizEmpty label={noItems} />
+              : rightSpecialItems.map(item => (
+                <WizRow key={item.id} name={item.name}>
+                  <WizBtn dir="left" onClick={() => retrieveSpecial(item.id)} />
+                </WizRow>
+              ))
+            }
+          </WizSection>
+
+          <WizSection label={t('sheet.goldCrowns')}>
+            <div className="flex items-center gap-1.5 px-2 py-1.5">
+              <WizBtn dir="left" onClick={() => handleLeftGold(totalGold)} />
+              <input
+                type="number"
+                min={0}
+                max={totalGold}
+                value={rightGold}
+                onChange={e => handleRightGold(Number(e.target.value))}
+                className="w-14 text-center text-xs bg-slate-800 border border-slate-600 rounded px-1 py-0.5 text-amber-200 focus:outline-none focus:border-amber-500"
+              />
+            </div>
+          </WizSection>
+        </div>
+      </div>
+
+      <div className="flex gap-3 justify-between">
+        <button onClick={onBack} className="px-5 py-2 rounded border border-slate-700 text-slate-400 text-sm hover:text-slate-200 transition-colors">
+          {t('creation.back')}
+        </button>
+        <button
+          onClick={handleConfirm}
+          className="px-6 py-2 rounded bg-amber-600 hover:bg-amber-500 text-white font-medium transition-colors"
+        >
+          {t('creation.next')}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function WizSection({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="text-xs text-slate-500 mb-0.5">{label}</div>
+      <div className="border border-slate-700/60 rounded overflow-hidden divide-y divide-slate-700/40">
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function WizRow({ name, badge, badgeGreen, children }: { name: string; badge?: string; badgeGreen?: boolean; children?: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-1 px-2 py-1 bg-slate-800/30 text-xs">
+      <span className="flex-1 truncate text-slate-200">{name}</span>
+      {badge && (
+        <span className={`text-[10px] px-1 rounded ${badgeGreen ? 'bg-green-900/40 text-green-400' : 'bg-orange-900/40 text-orange-400'}`}>
+          {badge}
+        </span>
+      )}
+      {children}
+    </div>
+  )
+}
+
+function WizEmpty({ label }: { label: string }) {
+  return <div className="px-2 py-1 bg-slate-800/20 text-xs text-slate-600 italic">{label}</div>
+}
+
+function WizBtn({ dir, onClick }: { dir: 'left' | 'right'; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="text-slate-400 hover:text-amber-400 transition-colors p-0.5 rounded hover:bg-amber-900/20"
+    >
+      {dir === 'right' ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+    </button>
   )
 }

@@ -9,6 +9,7 @@ import type {
   LorestoneId,
   MagnakaiDiscipline,
   MagnakaiRank,
+  MonasteryStorage,
   NewOrderDiscipline,
   NewOrderRank,
   SpecialItem,
@@ -28,6 +29,8 @@ interface BaseCharacter {
   notes: string
   // Present while the inventory is confiscated; holds the stashed snapshot.
   confiscated?: ConfiscatedEquipment
+  // Items stored at the Kai Monastery between books (book 6+). Persists across cycles.
+  monastery?: MonasteryStorage
   createdAt: string
   updatedAt: string
 }

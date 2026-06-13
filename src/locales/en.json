@@ -134,6 +134,22 @@
       "equipmentSkip": "Skip",
       "equipmentDone": "Done"
     },
+    "monastery": {
+      "title": "Kai Monastery",
+      "subtitle": "Store items at the Kai Monastery. They will be kept safe but cannot be used during your adventure.",
+      "yourEquipment": "Your Equipment",
+      "stored": "Kai Monastery",
+      "store": "Store",
+      "retrieve": "Retrieve",
+      "goldYours": "On you",
+      "goldMonastery": "At monastery",
+      "noItems": "None",
+      "inventoryFull": "Inventory full",
+      "skip": "Skip",
+      "confirm": "Confirm",
+      "willBeLost": "Will be lost unless stored",
+      "willCarryOver": "Carried into adventure"
+    },
     "d10": {
       "roll": "Roll",
       "reroll": "Reroll"

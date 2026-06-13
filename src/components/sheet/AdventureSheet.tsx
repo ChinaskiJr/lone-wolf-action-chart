@@ -24,6 +24,7 @@ import { DeathModal } from './DeathModal'
 import { CompleteBookModal } from './CompleteBookModal'
 import { BookChangeDisciplineModal } from './BookChangeDisciplineModal'
 import { BookChangeEquipmentModal } from './BookChangeEquipmentModal'
+import { MonasteryStorageModal } from './MonasteryStorageModal'
 import { PersistentStatBar } from './PersistentStatBar'
 import { MapPanel } from './MapPanel'
 import { D10Roll } from './D10Roll'
@@ -41,6 +42,7 @@ export function AdventureSheet() {
   const [showCompleteModal, setShowCompleteModal] = useState(false)
   const [showBookChangeDiscipline, setShowBookChangeDiscipline] = useState(false)
   const [showBookChangeEquipment, setShowBookChangeEquipment] = useState(false)
+  const [showMonasteryStorage, setShowMonasteryStorage] = useState(false)
   const [pendingCycleTransition, setPendingCycleTransition] = useState(false)
 
   useAutoSave()
@@ -108,6 +110,20 @@ export function AdventureSheet() {
 
   function handleEquipmentFinished() {
     setShowBookChangeEquipment(false)
+    if (character!.currentBook >= 6) {
+      setShowMonasteryStorage(true)
+    } else {
+      save()
+    }
+  }
+
+  function handleMonasteryDone() {
+    setShowMonasteryStorage(false)
+    save()
+  }
+
+  function handleMonasterySkip() {
+    setShowMonasteryStorage(false)
     save()
   }
 
@@ -244,6 +260,11 @@ export function AdventureSheet() {
       {/* Book change wizard — equipment step */}
       {showBookChangeEquipment && (
         <BookChangeEquipmentModal onDone={handleEquipmentFinished} onSkip={handleEquipmentFinished} />
+      )}
+
+      {/* Book change wizard — monastery step (book 6+) */}
+      {showMonasteryStorage && (
+        <MonasteryStorageModal onDone={handleMonasteryDone} onSkip={handleMonasterySkip} />
       )}
     </div>
   )

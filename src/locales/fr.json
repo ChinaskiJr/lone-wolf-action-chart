@@ -137,6 +137,22 @@
       "equipmentTitle": "Équipement de départ",
       "equipmentSkip": "Passer",
       "equipmentDone": "Terminer"
+    },
+    "monastery": {
+      "title": "Monastère Kaï",
+      "subtitle": "Déposez des objets au Monastère Kaï. Ils y seront en sécurité mais inaccessibles pendant votre aventure.",
+      "yourEquipment": "Votre équipement",
+      "stored": "Monastère Kaï",
+      "store": "Déposer",
+      "retrieve": "Récupérer",
+      "goldYours": "Sur vous",
+      "goldMonastery": "Au monastère",
+      "noItems": "Aucun objet",
+      "inventoryFull": "Sac plein",
+      "skip": "Ignorer",
+      "confirm": "Confirmer",
+      "willBeLost": "Sera perdu si non déposé",
+      "willCarryOver": "Porté en aventure"
     }
   },
   "combat": {
