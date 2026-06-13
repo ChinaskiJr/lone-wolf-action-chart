@@ -108,6 +108,8 @@
     "peBonusItem": "+PE",
     "itemDescription": "Description (optionnel)",
     "twoSlots": "2 emplacements",
+    "quiver": "Carquois",
+    "arrows": "flèches",
     "eatMeal": "Manger",
     "noFoodPenalty": "Aucune ration : −3 PE",
     "huntingHint": "Chasse : ration souvent superflue",

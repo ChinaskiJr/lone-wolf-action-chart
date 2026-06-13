@@ -26,6 +26,7 @@ export function EquipmentPanel() {
   const {
     character,
     addWeapon, removeWeapon, equipWeapon,
+    toggleQuiver, setArrows,
     addBackpackItem, removeBackpackItem,
     addSpecialItem, removeSpecialItem, updateSpecialItem,
     setMeals,
@@ -61,7 +62,17 @@ export function EquipmentPanel() {
         onConfiscate={() => setConfirmConfiscate(true)}
         onRecover={() => setRecovering(true)}
       />
-      <WeaponsSection weapons={character.weapons} onAdd={addWeapon} onRemove={removeWeapon} onEquip={equipWeapon} />
+      <WeaponsSection
+        weapons={character.weapons}
+        hasQuiver={character.hasQuiver ?? false}
+        arrows={character.arrows ?? 0}
+        showQuiver={character.cycle !== 'kai'}
+        onAdd={addWeapon}
+        onRemove={removeWeapon}
+        onEquip={equipWeapon}
+        onToggleQuiver={toggleQuiver}
+        onSetArrows={setArrows}
+      />
       <BackpackSection
         items={character.backpack}
         meals={character.meals}
@@ -179,12 +190,17 @@ function ConfiscateConfirmModal({
 }
 
 function WeaponsSection({
-  weapons, onAdd, onRemove, onEquip
+  weapons, hasQuiver, arrows, showQuiver, onAdd, onRemove, onEquip, onToggleQuiver, onSetArrows,
 }: {
   weapons: Weapon[]
+  hasQuiver: boolean
+  arrows: number
+  showQuiver: boolean
   onAdd: (w: Weapon) => void
   onRemove: (i: number) => void
   onEquip: (i: number) => void
+  onToggleQuiver: () => void
+  onSetArrows: (count: number) => void
 }) {
   const { t } = useTranslation()
   const [input, setInput] = useState('')
@@ -237,6 +253,33 @@ function WeaponsSection({
           <div className="text-sm text-slate-600 italic px-3 py-2">Aucune arme</div>
         )}
       </div>
+      {showQuiver && (
+        <div className="flex items-center gap-3 px-3 py-2 mt-1">
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300">
+            <input
+              type="checkbox"
+              checked={hasQuiver}
+              onChange={onToggleQuiver}
+              className="accent-amber-600 w-3.5 h-3.5"
+            />
+            {t('sheet.quiver')}
+          </label>
+          {hasQuiver && (
+            <div className="flex items-center gap-2 ml-auto">
+              <button
+                onClick={() => onSetArrows(arrows - 1)}
+                className="w-6 h-6 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm flex items-center justify-center"
+              >−</button>
+              <span className="tabular-nums text-sm text-slate-200 min-w-[1.5rem] text-center">{arrows}</span>
+              <button
+                onClick={() => onSetArrows(arrows + 1)}
+                className="w-6 h-6 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm flex items-center justify-center"
+              >+</button>
+              <span className="text-xs text-slate-500">{t('sheet.arrows')}</span>
+            </div>
+          )}
+        </div>
+      )}
       {weapons.length < 2 && (
         <div className="flex gap-2">
           <input

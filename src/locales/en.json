@@ -108,6 +108,8 @@
     "peBonusItem": "+EP",
     "itemDescription": "Description (optional)",
     "twoSlots": "2 slots",
+    "quiver": "Quiver",
+    "arrows": "arrows",
     "eatMeal": "Eat",
     "noFoodPenalty": "No food: −3 EP",
     "huntingHint": "Hunting: meal often not needed",

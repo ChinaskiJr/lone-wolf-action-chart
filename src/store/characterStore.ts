@@ -51,6 +51,10 @@ interface CharacterState {
   setMeals: (count: number) => void
   eatMeal: () => void
 
+  // Quiver & arrows
+  toggleQuiver: () => void
+  setArrows: (count: number) => void
+
   // Deliverance (Grand Master)
   useDeliverance: () => void
 
@@ -269,6 +273,12 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       if (c.meals > 0) return { meals: c.meals - 1 }
       return { endurance: { ...c.endurance, current: Math.max(0, c.endurance.current - 3) } }
     })),
+
+  toggleQuiver: () =>
+    set(updateChar(get, c => ({ hasQuiver: !(c.hasQuiver ?? false) }))),
+
+  setArrows: (count) =>
+    set(updateChar(get, _c => ({ arrows: Math.max(0, count) }))),
 
   useDeliverance: () =>
     set(updateChar(get, c => {

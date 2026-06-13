@@ -27,6 +27,8 @@ interface BaseCharacter {
   goldCrowns: number
   meals: number
   notes: string
+  hasQuiver?: boolean
+  arrows?: number
   // Present while the inventory is confiscated; holds the stashed snapshot.
   confiscated?: ConfiscatedEquipment
   // Items stored at the Kai Monastery between books (book 6+). Persists across cycles.
