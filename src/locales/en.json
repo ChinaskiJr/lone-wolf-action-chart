@@ -113,6 +113,10 @@
     "eatMeal": "Eat",
     "noFoodPenalty": "No food: −3 EP",
     "huntingHint": "Hunting: meal often not needed",
+    "herbPouch": "Herb Pouch",
+    "herbPouchOpen": "Open pouch",
+    "herbPouchSlots": "{{used}}/6 herbs",
+    "addHerb": "Add herb",
     "confiscation": {
       "button": "Equipment confiscated",
       "confirmTitle": "Confiscate all equipment?",

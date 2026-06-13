@@ -32,6 +32,8 @@ export interface ConfiscatedEquipment {
   meals: number
   backpack: BackpackItem[]
   specialItems: SpecialItem[]
+  hasHerbPouch?: boolean
+  herbPouch?: BackpackItem[]
 }
 
 // Items stored at the Kai Monastery between books (from book 6 onwards). No upper limit.

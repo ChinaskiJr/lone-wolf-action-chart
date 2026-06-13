@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, X, Sword, FlaskConical, Utensils, Lock, PackageOpen } from 'lucide-react'
+import { Plus, X, Sword, FlaskConical, Utensils, Lock, PackageOpen, Wallet } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { useCharacterStore } from '@/store/characterStore'
 import { useUIStore } from '@/store/uiStore'
@@ -29,6 +29,7 @@ export function EquipmentPanel() {
     toggleQuiver, setArrows,
     addBackpackItem, removeBackpackItem,
     addSpecialItem, removeSpecialItem, updateSpecialItem,
+    toggleHerbPouch, addHerbItem, removeHerbItem, useHerbPotion,
     setMeals,
     eatMeal,
     usePotion,
@@ -37,6 +38,7 @@ export function EquipmentPanel() {
   const { setCombatPotionBonus, setCombatModalOpen } = useUIStore()
   const [confirmConfiscate, setConfirmConfiscate] = useState(false)
   const [recovering, setRecovering] = useState(false)
+  const [herbPouchOpen, setHerbPouchOpen] = useState(false)
   if (!character) return null
 
   const backpackMax = character.cycle === 'kai' || character.cycle === 'magnakai' ? 8 : 10
@@ -85,7 +87,35 @@ export function EquipmentPanel() {
         onUsePotion={usePotion}
         onUseCombatPotion={handleUseCombatPotion}
       />
-      <SpecialItemsSection items={character.specialItems} onAdd={addSpecialItem} onRemove={removeSpecialItem} onUpdate={updateSpecialItem} />
+      <SpecialItemsSection
+        items={character.specialItems}
+        onAdd={addSpecialItem}
+        onRemove={removeSpecialItem}
+        onUpdate={updateSpecialItem}
+        hasHerbPouch={character.hasHerbPouch ?? false}
+        herbPouch={character.herbPouch ?? []}
+        showHerbPouch={character.cycle !== 'kai'}
+        onToggleHerbPouch={toggleHerbPouch}
+        onOpenHerbPouch={() => setHerbPouchOpen(true)}
+      />
+
+      {herbPouchOpen && (
+        <HerbPouchModal
+          herbPouch={character.herbPouch ?? []}
+          onClose={() => setHerbPouchOpen(false)}
+          onAdd={addHerbItem}
+          onRemove={removeHerbItem}
+          onUsePotion={useHerbPotion}
+          onUseCombatPotion={(id) => {
+            const item = character.herbPouch?.find(i => i.id === id)
+            if (!item?.csBonus) return
+            setCombatPotionBonus(item.csBonus)
+            removeHerbItem(id)
+            setCombatModalOpen(true)
+            setHerbPouchOpen(false)
+          }}
+        />
+      )}
 
       {confirmConfiscate && (
         <ConfiscateConfirmModal
@@ -686,12 +716,18 @@ function BackpackSection({
 }
 
 function SpecialItemsSection({
-  items, onAdd, onRemove, onUpdate
+  items, onAdd, onRemove, onUpdate,
+  hasHerbPouch, herbPouch, showHerbPouch, onToggleHerbPouch, onOpenHerbPouch,
 }: {
   items: SpecialItem[]
   onAdd: (item: SpecialItem) => void
   onRemove: (id: string) => void
   onUpdate: (id: string, updates: Partial<SpecialItem>) => void
+  hasHerbPouch: boolean
+  herbPouch: BackpackItem[]
+  showHerbPouch: boolean
+  onToggleHerbPouch: () => void
+  onOpenHerbPouch: () => void
 }) {
   const { t } = useTranslation()
   const [input, setInput] = useState('')
@@ -699,8 +735,10 @@ function SpecialItemsSection({
   const [hcBonus, setHcBonus] = useState('')
   const [peBonus, setPeBonus] = useState('')
 
+  const totalSlots = items.length + (hasHerbPouch ? 1 : 0)
+
   function add() {
-    if (!input.trim() || items.length >= 12) return
+    if (!input.trim() || totalSlots >= 12) return
     const hc = parseInt(hcBonus) || undefined
     const pe = parseInt(peBonus) || undefined
     onAdd({ id: uuidv4(), name: input.trim(), effect: effect.trim() || undefined, hcBonus: hc, peBonus: pe })
@@ -714,8 +752,8 @@ function SpecialItemsSection({
     <div>
       <div className="flex items-center justify-between mb-2.5">
         <div className="text-sm font-semibold text-slate-200">{t('sheet.specialItems')}</div>
-        <span className={`text-xs ${items.length >= 12 ? 'text-red-400' : 'text-slate-500'}`}>
-          {items.length}/12
+        <span className={`text-xs ${totalSlots >= 12 ? 'text-red-400' : 'text-slate-500'}`}>
+          {totalSlots}/12
         </span>
       </div>
       <div className="space-y-1.5 mb-2">
@@ -753,9 +791,33 @@ function SpecialItemsSection({
             </div>
           )
         })}
-        {items.length === 0 && <div className="text-sm text-slate-600 italic px-3 py-2">Aucun objet spécial</div>}
+
+        {hasHerbPouch && (
+          <div className="flex items-center gap-2 bg-green-950/20 border border-green-900/40 rounded-lg px-3 py-2">
+            <div className="w-3.5 h-3.5 shrink-0" />
+            <span className="flex-1 text-sm text-green-100 font-medium">{t('sheet.herbPouch')}</span>
+            <span className="text-xs text-slate-500 shrink-0">{t('sheet.herbPouchSlots', { used: herbPouch.length })}</span>
+            <button
+              onClick={onOpenHerbPouch}
+              aria-label={t('sheet.herbPouchOpen')}
+              title={t('sheet.herbPouchOpen')}
+              className="relative text-green-500 hover:text-green-300 transition-colors shrink-0 before:absolute before:inset-[-10px]"
+            >
+              <Wallet size={14} />
+            </button>
+            <button
+              onClick={onToggleHerbPouch}
+              aria-label={t('sheet.removeItem')}
+              className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
+            >
+              <X size={13} />
+            </button>
+          </div>
+        )}
+
+        {items.length === 0 && !hasHerbPouch && <div className="text-sm text-slate-600 italic px-3 py-2">Aucun objet spécial</div>}
       </div>
-      {items.length < 12 && (
+      {totalSlots < 12 && (
         <div className="flex flex-col gap-1.5">
           <div className="flex gap-2">
             <input
@@ -801,6 +863,235 @@ function SpecialItemsSection({
           </div>
         </div>
       )}
+
+      {showHerbPouch && !hasHerbPouch && (
+        <label className={`flex items-center gap-2 text-xs cursor-pointer px-1 mt-2 ${totalSlots >= 12 ? 'text-slate-600 cursor-not-allowed' : 'text-slate-500 hover:text-slate-400'}`}>
+          <input
+            type="checkbox"
+            checked={false}
+            onChange={onToggleHerbPouch}
+            disabled={totalSlots >= 12}
+            className="accent-amber-600 w-3.5 h-3.5"
+          />
+          {t('sheet.herbPouch')}
+        </label>
+      )}
+    </div>
+  )
+}
+
+function HerbPouchModal({
+  herbPouch, onClose, onAdd, onRemove, onUsePotion, onUseCombatPotion,
+}: {
+  herbPouch: BackpackItem[]
+  onClose: () => void
+  onAdd: (item: BackpackItem) => void
+  onRemove: (id: string) => void
+  onUsePotion: (id: string) => void
+  onUseCombatPotion: (id: string) => void
+}) {
+  const { t } = useTranslation()
+  const [input, setInput] = useState('')
+  const [addingPotion, setAddingPotion] = useState(false)
+  const [potionName, setPotionName] = useState('')
+  const [potionEP, setPotionEP] = useState(5)
+  const [addingCombatPotion, setAddingCombatPotion] = useState(false)
+  const [combatPotionName, setCombatPotionName] = useState('')
+  const [combatPotionCS, setCombatPotionCS] = useState(2)
+  const [combatPotionConfirm, setCombatPotionConfirm] = useState<string | null>(null)
+
+  const isFull = herbPouch.length >= 6
+
+  function addItem() {
+    if (!input.trim() || isFull) return
+    onAdd({ id: uuidv4(), name: input.trim() })
+    setInput('')
+  }
+
+  function confirmAddPotion() {
+    if (isFull) return
+    onAdd({ id: uuidv4(), name: potionName.trim() || t('sheet.potion'), epRestore: potionEP })
+    setPotionName('')
+    setPotionEP(5)
+    setAddingPotion(false)
+  }
+
+  function confirmAddCombatPotion() {
+    if (isFull) return
+    onAdd({ id: uuidv4(), name: combatPotionName.trim() || t('sheet.combatPotion'), csBonus: combatPotionCS })
+    setCombatPotionName('')
+    setCombatPotionCS(2)
+    setAddingCombatPotion(false)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+      <div className="bg-slate-900 border border-green-900/50 rounded-xl p-5 max-w-sm w-full shadow-xl">
+        <div className="flex items-center gap-2 mb-4">
+          <Wallet size={16} className="text-green-400 shrink-0" />
+          <span className="flex-1 font-semibold text-sm text-green-100">{t('sheet.herbPouch')}</span>
+          <span className={`text-xs ${isFull ? 'text-red-400' : 'text-slate-500'}`}>
+            {t('sheet.herbPouchSlots', { used: herbPouch.length })}
+          </span>
+          <button onClick={onClose} aria-label={t('common.cancel')} className="relative text-slate-500 hover:text-slate-300 transition-colors before:absolute before:inset-[-10px]">
+            <X size={15} />
+          </button>
+        </div>
+
+        <div className="space-y-1.5 mb-3">
+          {herbPouch.map(item => {
+            if (item.epRestore) return (
+              <div key={item.id} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-blue-900/50 bg-blue-950/20">
+                <span className="shrink-0">🧪</span>
+                <span className="flex-1 text-sm text-blue-200 truncate">{item.name}</span>
+                <span className="text-xs text-green-400 font-medium shrink-0">+{item.epRestore} PE</span>
+                <button onClick={() => onUsePotion(item.id)} aria-label={t('sheet.usePotion')} title={t('sheet.usePotion')} className="relative text-blue-400 hover:text-green-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                  <FlaskConical size={13} />
+                </button>
+                <button onClick={() => onRemove(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                  <X size={12} />
+                </button>
+              </div>
+            )
+            if (item.csBonus) return (
+              <div key={item.id} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-violet-900/50 bg-violet-950/20">
+                <span className="shrink-0">⚗️</span>
+                <span className="flex-1 text-sm text-violet-200 truncate">{item.name}</span>
+                <span className="text-xs text-violet-400 font-medium shrink-0">+{item.csBonus} HC</span>
+                <button onClick={() => setCombatPotionConfirm(item.id)} aria-label={t('sheet.useCombatPotion')} title={t('sheet.useCombatPotion')} className="relative text-violet-400 hover:text-violet-300 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                  <FlaskConical size={13} />
+                </button>
+                <button onClick={() => onRemove(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                  <X size={12} />
+                </button>
+              </div>
+            )
+            return (
+              <div key={item.id} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-green-900/30 bg-green-950/10">
+                <span className="shrink-0">🌿</span>
+                <span className="flex-1 text-sm text-green-100 truncate">{item.name}</span>
+                <button onClick={() => onRemove(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                  <X size={12} />
+                </button>
+              </div>
+            )
+          })}
+          {herbPouch.length === 0 && (
+            <div className="text-sm text-slate-600 italic px-3 py-2">Poche vide</div>
+          )}
+        </div>
+
+        {addingPotion && !isFull && (
+          <div className="flex gap-2 mb-2 p-2.5 rounded-lg border border-blue-900/40 bg-blue-950/10">
+            <span className="text-lg shrink-0">🧪</span>
+            <input
+              value={potionName}
+              onChange={e => setPotionName(e.target.value)}
+              placeholder={t('sheet.potion')}
+              className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-blue-600"
+            />
+            <div className="flex items-center gap-1 shrink-0">
+              <span className="text-xs text-green-400">+</span>
+              <input
+                type="number"
+                value={potionEP}
+                onChange={e => setPotionEP(Math.max(1, Number(e.target.value)))}
+                onFocus={e => e.target.select()}
+                min={1}
+                className="w-14 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-green-400 font-bold text-center focus:outline-none focus:border-blue-600"
+              />
+              <span className="text-xs text-slate-500">PE</span>
+            </div>
+            <button onClick={confirmAddPotion} className="px-2 py-1 rounded bg-blue-700 hover:bg-blue-600 text-white text-xs font-medium transition-colors shrink-0">OK</button>
+            <button onClick={() => setAddingPotion(false)} aria-label={t('common.cancel')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+              <X size={14} />
+            </button>
+          </div>
+        )}
+
+        {addingCombatPotion && !isFull && (
+          <div className="flex gap-2 mb-2 p-2.5 rounded-lg border border-orange-900/40 bg-orange-950/10">
+            <span className="text-lg shrink-0">⚗️</span>
+            <input
+              value={combatPotionName}
+              onChange={e => setCombatPotionName(e.target.value)}
+              placeholder={t('sheet.combatPotion')}
+              className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-orange-600"
+            />
+            <div className="flex items-center gap-1 shrink-0">
+              <span className="text-xs text-orange-400">+</span>
+              <input
+                type="number"
+                value={combatPotionCS}
+                onChange={e => setCombatPotionCS(Math.max(1, Number(e.target.value)))}
+                onFocus={e => e.target.select()}
+                min={1}
+                className="w-14 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-orange-400 font-bold text-center focus:outline-none focus:border-orange-600"
+              />
+              <span className="text-xs text-slate-500">HC</span>
+            </div>
+            <button onClick={confirmAddCombatPotion} className="px-2 py-1 rounded bg-orange-700 hover:bg-orange-600 text-white text-xs font-medium transition-colors shrink-0">OK</button>
+            <button onClick={() => setAddingCombatPotion(false)} aria-label={t('common.cancel')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+              <X size={14} />
+            </button>
+          </div>
+        )}
+
+        {!isFull && (
+          <div className="flex gap-2">
+            <button
+              onClick={() => setAddingPotion(v => !v)}
+              aria-pressed={addingPotion}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium transition-colors shrink-0 ${addingPotion ? 'border-blue-700 bg-blue-900/30 text-blue-300' : 'border-blue-900/50 text-blue-500 hover:bg-blue-950/30 hover:text-blue-400'}`}
+            >
+              <Plus size={12} />🧪
+            </button>
+            <button
+              onClick={() => setAddingCombatPotion(v => !v)}
+              aria-pressed={addingCombatPotion}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium transition-colors shrink-0 ${addingCombatPotion ? 'border-orange-700 bg-orange-900/30 text-orange-300' : 'border-orange-900/50 text-orange-500 hover:bg-orange-950/30 hover:text-orange-400'}`}
+            >
+              <Plus size={12} />⚗️
+            </button>
+            <input
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addItem()}
+              placeholder={t('sheet.addHerb')}
+              className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-green-700"
+            />
+            <button onClick={addItem} aria-label={t('sheet.addHerb')} className="relative p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors before:absolute before:inset-[-6px]">
+              <Plus size={16} />
+            </button>
+          </div>
+        )}
+
+        {combatPotionConfirm && (
+          <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 px-4">
+            <div className="bg-slate-900 border border-orange-900/60 rounded-xl p-6 max-w-sm w-full shadow-xl">
+              <div className="flex items-center gap-2 mb-4 text-orange-300">
+                <FlaskConical size={18} />
+                <span className="font-semibold text-sm">{t('sheet.combatPotion')}</span>
+              </div>
+              <p className="text-sm text-slate-300 mb-5">{t('sheet.combatPotionConfirm')}</p>
+              <div className="flex gap-3 justify-end">
+                <button onClick={() => setCombatPotionConfirm(null)} className="px-4 py-2 rounded-lg border border-slate-600 text-slate-300 hover:border-slate-500 text-sm transition-colors">
+                  {t('common.cancel')}
+                </button>
+                <button
+                  onClick={() => {
+                    onUseCombatPotion(combatPotionConfirm)
+                    setCombatPotionConfirm(null)
+                  }}
+                  className="px-4 py-2 rounded-lg bg-orange-700 hover:bg-orange-600 text-white text-sm font-medium transition-colors"
+                >
+                  {t('common.confirm')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

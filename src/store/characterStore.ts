@@ -34,6 +34,12 @@ interface CharacterState {
   removeSpecialItem: (id: string) => void
   updateSpecialItem: (id: string, updates: Partial<SpecialItem>) => void
 
+  // Herb pouch (Magnakai+)
+  toggleHerbPouch: () => void
+  addHerbItem: (item: BackpackItem) => void
+  removeHerbItem: (id: string) => void
+  useHerbPotion: (id: string) => void
+
   // Confiscation (inventory seized for a period, then recovered)
   confiscateEquipment: () => void
   recoverEquipment: (selection: ConfiscatedEquipment) => void
@@ -210,6 +216,34 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       }
     })),
 
+  toggleHerbPouch: () =>
+    set(updateChar(get, c => {
+      if (c.hasHerbPouch) return { hasHerbPouch: false, herbPouch: [] }
+      return { hasHerbPouch: true, herbPouch: c.herbPouch ?? [] }
+    })),
+
+  addHerbItem: (item) =>
+    set(updateChar(get, c => {
+      if ((c.herbPouch ?? []).length >= 6) return {}
+      return { herbPouch: [...(c.herbPouch ?? []), item] }
+    })),
+
+  removeHerbItem: (id) =>
+    set(updateChar(get, c => ({
+      herbPouch: (c.herbPouch ?? []).filter(i => i.id !== id),
+    }))),
+
+  useHerbPotion: (id) =>
+    set(updateChar(get, c => {
+      const potion = (c.herbPouch ?? []).find(i => i.id === id)
+      if (!potion?.epRestore) return {}
+      const newEP = Math.min(c.endurance.max, c.endurance.current + potion.epRestore)
+      return {
+        herbPouch: (c.herbPouch ?? []).filter(i => i.id !== id),
+        endurance: { ...c.endurance, current: newEP },
+      }
+    })),
+
   confiscateEquipment: () =>
     set(updateChar(get, c => {
       if (c.confiscated) return {}
@@ -222,12 +256,16 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
           meals: c.meals,
           backpack: c.backpack,
           specialItems: c.specialItems,
+          hasHerbPouch: c.hasHerbPouch,
+          herbPouch: c.herbPouch ?? [],
         },
         weapons: [],
         goldCrowns: 0,
         meals: 0,
         backpack: [],
         specialItems: [],
+        hasHerbPouch: false,
+        herbPouch: [],
         endurance: { ...c.endurance, current: Math.max(0, c.endurance.current - peDelta) },
       } as Partial<Character>
     })),
@@ -242,6 +280,8 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
         meals: Math.max(0, selection.meals),
         backpack: selection.backpack,
         specialItems: selection.specialItems,
+        hasHerbPouch: selection.hasHerbPouch ?? false,
+        herbPouch: selection.herbPouch ?? [],
         endurance: { ...c.endurance, current: Math.max(0, c.endurance.current + peDelta) },
         confiscated: undefined,
       } as Partial<Character>

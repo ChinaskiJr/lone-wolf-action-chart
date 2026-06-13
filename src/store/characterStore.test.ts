@@ -238,6 +238,8 @@ describe('confiscateEquipment', () => {
       meals: 2,
       backpack: [expect.objectContaining({ id: 'a' })],
       specialItems: [expect.objectContaining({ id: 's1' })],
+      hasHerbPouch: undefined,
+      herbPouch: [],
     })
   })
 

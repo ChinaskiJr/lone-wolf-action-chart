@@ -29,6 +29,9 @@ interface BaseCharacter {
   notes: string
   hasQuiver?: boolean
   arrows?: number
+  // Herb pouch (Magnakai+, book 6+): holds up to 6 herbs/potions.
+  hasHerbPouch?: boolean
+  herbPouch?: BackpackItem[]
   // Present while the inventory is confiscated; holds the stashed snapshot.
   confiscated?: ConfiscatedEquipment
   // Items stored at the Kai Monastery between books (book 6+). Persists across cycles.

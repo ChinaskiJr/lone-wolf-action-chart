@@ -113,6 +113,10 @@
     "eatMeal": "Manger",
     "noFoodPenalty": "Aucune ration : −3 PE",
     "huntingHint": "Chasse : ration souvent superflue",
+    "herbPouch": "Poche à herbe",
+    "herbPouchOpen": "Ouvrir la poche",
+    "herbPouchSlots": "{{used}}/6 herbes",
+    "addHerb": "Ajouter une herbe",
     "confiscation": {
       "button": "Équipement confisqué",
       "confirmTitle": "Confisquer tout l'équipement ?",
