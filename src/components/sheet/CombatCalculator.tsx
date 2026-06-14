@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { X, Dices, Swords, SkipForward, Footprints, HeartPulse, Crosshair, Flame, Skull, FlaskConical } from 'lucide-react'
 import { useCharacterStore } from '@/store/characterStore'
 import { useUIStore } from '@/store/uiStore'
-import { getTotalCS, getTotalEPMax, hasDisciplineForModifier, getEffectiveModifier, getBowBonus, canIgnite } from '@/utils/character'
+import { getTotalCS, getTotalEPMax, hasDisciplineForModifier, isModifierSuperseded, getEffectiveModifier, getBowBonus, canIgnite } from '@/utils/character'
 import { DeathModal } from './DeathModal'
 import { resolveCombatRound, simulateCombat, type CombatRound } from '@/utils/combat'
 import { rollD10 } from '@/utils/rng'
@@ -56,7 +56,11 @@ export function CombatCalculator({ onClose }: Props) {
     onClose()
   }
 
-  const visibleModifiers = COMBAT_MODIFIERS.filter(m => m.visibleFor.includes(character.cycle))
+  const visibleModifiers = COMBAT_MODIFIERS.filter(
+    m => m.visibleFor.includes(character.cycle)
+      && !isModifierSuperseded(character, m)
+      && hasDisciplineForModifier(character, m)
+  )
 
   // A surge modifier is locked when current EP is below its minimum.
   function isLocked(mod: typeof COMBAT_MODIFIERS[number]): boolean {

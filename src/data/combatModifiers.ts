@@ -7,6 +7,7 @@ export interface CombatModifier {
   hcBonus: number
   epCostPerRound?: number
   exclusiveWith?: string[]
+  supersededBy?: string[]
   labelFr: string
   labelEn: string
   conditionFr?: string
@@ -19,6 +20,7 @@ export const COMBAT_MODIFIERS: CombatModifier[] = [
     disciplineKey: 'weaponskill',
     visibleFor: ['kai', 'magnakai'],
     hcBonus: 2,
+    supersededBy: ['weaponmastery'],
     labelFr: 'Maîtrise des Armes',
     labelEn: 'Weaponskill',
     conditionFr: 'arme maîtrisée portée',
@@ -30,6 +32,7 @@ export const COMBAT_MODIFIERS: CombatModifier[] = [
     visibleFor: ['kai', 'magnakai'],
     hcBonus: 2,
     exclusiveWith: ['psiSurge_2', 'psiSurge_4'],
+    supersededBy: ['psiSurge'],
     labelFr: 'Puissance Psychique',
     labelEn: 'Mindblast',
     conditionFr: 'ennemi non immunisé',
@@ -40,6 +43,7 @@ export const COMBAT_MODIFIERS: CombatModifier[] = [
     disciplineKey: 'weaponmastery',
     visibleFor: ['magnakai', 'grandmaster'],
     hcBonus: 3,
+    supersededBy: ['grandWeaponmastery'],
     labelFr: 'Science des Armes',
     labelEn: 'Weaponmastery',
     conditionFr: 'arme maîtrisée portée',
@@ -51,6 +55,7 @@ export const COMBAT_MODIFIERS: CombatModifier[] = [
     visibleFor: ['magnakai', 'grandmaster'],
     hcBonus: 2,
     exclusiveWith: ['psiSurge_4', 'mindblast_2'],
+    supersededBy: ['kaiSurge'],
     labelFr: 'Foudroiement Psychique',
     labelEn: 'Psi-surge',
     conditionFr: 'variante faible',
@@ -63,6 +68,7 @@ export const COMBAT_MODIFIERS: CombatModifier[] = [
     hcBonus: 4,
     epCostPerRound: 2,
     exclusiveWith: ['psiSurge_2', 'mindblast_2'],
+    supersededBy: ['kaiSurge'],
     labelFr: 'Foudroiement Psychique',
     labelEn: 'Psi-surge',
     conditionFr: '−2 PE/round',

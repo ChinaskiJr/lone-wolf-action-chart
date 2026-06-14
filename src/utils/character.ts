@@ -64,6 +64,18 @@ export function hasDisciplineForModifier(char: Character, modifier: CombatModifi
   }
 }
 
+export function isModifierSuperseded(char: Character, modifier: CombatModifier): boolean {
+  if (!modifier.supersededBy?.length) return false
+  switch (char.cycle) {
+    case 'magnakai':
+      return modifier.supersededBy.some(key => char.disciplines.includes(key as MagnakaiDiscipline))
+    case 'grandmaster':
+      return modifier.supersededBy.some(key => char.disciplines.includes(key as GrandMasterDiscipline))
+    default:
+      return false
+  }
+}
+
 // Rank-based scaling of combat modifiers (rank position = discipline count).
 // Returns the effective HC bonus, per-round EP cost, and the minimum current EP
 // required to use the modifier (surge lockout); minEP 0 means no restriction.
