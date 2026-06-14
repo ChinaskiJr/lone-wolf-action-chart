@@ -117,6 +117,7 @@
     "herbPouchOpen": "Open pouch",
     "herbPouchSlots": "{{used}}/6 herbs",
     "addHerb": "Add herb",
+    "itemNotes": "Description (optional)",
     "confiscation": {
       "button": "Equipment confiscated",
       "confirmTitle": "Confiscate all equipment?",

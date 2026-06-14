@@ -117,6 +117,7 @@
     "herbPouchOpen": "Ouvrir la poche",
     "herbPouchSlots": "{{used}}/6 herbes",
     "addHerb": "Ajouter une herbe",
+    "itemNotes": "Description (optionnel)",
     "confiscation": {
       "button": "Équipement confisqué",
       "confirmTitle": "Confisquer tout l'équipement ?",

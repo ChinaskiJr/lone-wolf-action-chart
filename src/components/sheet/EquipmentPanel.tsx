@@ -892,11 +892,14 @@ function HerbPouchModal({
 }) {
   const { t } = useTranslation()
   const [input, setInput] = useState('')
+  const [inputNotes, setInputNotes] = useState('')
   const [addingPotion, setAddingPotion] = useState(false)
   const [potionName, setPotionName] = useState('')
+  const [potionNotes, setPotionNotes] = useState('')
   const [potionEP, setPotionEP] = useState(5)
   const [addingCombatPotion, setAddingCombatPotion] = useState(false)
   const [combatPotionName, setCombatPotionName] = useState('')
+  const [combatPotionNotes, setCombatPotionNotes] = useState('')
   const [combatPotionCS, setCombatPotionCS] = useState(2)
   const [combatPotionConfirm, setCombatPotionConfirm] = useState<string | null>(null)
 
@@ -904,22 +907,25 @@ function HerbPouchModal({
 
   function addItem() {
     if (!input.trim() || isFull) return
-    onAdd({ id: uuidv4(), name: input.trim() })
+    onAdd({ id: uuidv4(), name: input.trim(), notes: inputNotes.trim() || undefined })
     setInput('')
+    setInputNotes('')
   }
 
   function confirmAddPotion() {
     if (isFull) return
-    onAdd({ id: uuidv4(), name: potionName.trim() || t('sheet.potion'), epRestore: potionEP })
+    onAdd({ id: uuidv4(), name: potionName.trim() || t('sheet.potion'), epRestore: potionEP, notes: potionNotes.trim() || undefined })
     setPotionName('')
+    setPotionNotes('')
     setPotionEP(5)
     setAddingPotion(false)
   }
 
   function confirmAddCombatPotion() {
     if (isFull) return
-    onAdd({ id: uuidv4(), name: combatPotionName.trim() || t('sheet.combatPotion'), csBonus: combatPotionCS })
+    onAdd({ id: uuidv4(), name: combatPotionName.trim() || t('sheet.combatPotion'), csBonus: combatPotionCS, notes: combatPotionNotes.trim() || undefined })
     setCombatPotionName('')
+    setCombatPotionNotes('')
     setCombatPotionCS(2)
     setAddingCombatPotion(false)
   }
@@ -941,38 +947,47 @@ function HerbPouchModal({
         <div className="space-y-1.5 mb-3">
           {herbPouch.map(item => {
             if (item.epRestore) return (
-              <div key={item.id} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-blue-900/50 bg-blue-950/20">
-                <span className="shrink-0">🧪</span>
-                <span className="flex-1 text-sm text-blue-200 truncate">{item.name}</span>
-                <span className="text-xs text-green-400 font-medium shrink-0">+{item.epRestore} PE</span>
-                <button onClick={() => onUsePotion(item.id)} aria-label={t('sheet.usePotion')} title={t('sheet.usePotion')} className="relative text-blue-400 hover:text-green-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
-                  <FlaskConical size={13} />
-                </button>
-                <button onClick={() => onRemove(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
-                  <X size={12} />
-                </button>
+              <div key={item.id} className="rounded-lg border border-blue-900/50 bg-blue-950/20 px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <span className="shrink-0">🧪</span>
+                  <span className="flex-1 text-sm text-blue-200 truncate">{item.name}</span>
+                  <span className="text-xs text-green-400 font-medium shrink-0">+{item.epRestore} PE</span>
+                  <button onClick={() => onUsePotion(item.id)} aria-label={t('sheet.usePotion')} title={t('sheet.usePotion')} className="relative text-blue-400 hover:text-green-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                    <FlaskConical size={13} />
+                  </button>
+                  <button onClick={() => onRemove(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                    <X size={12} />
+                  </button>
+                </div>
+                {item.notes && <p className="mt-1 text-xs text-slate-500 leading-snug">{item.notes}</p>}
               </div>
             )
             if (item.csBonus) return (
-              <div key={item.id} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-violet-900/50 bg-violet-950/20">
-                <span className="shrink-0">⚗️</span>
-                <span className="flex-1 text-sm text-violet-200 truncate">{item.name}</span>
-                <span className="text-xs text-violet-400 font-medium shrink-0">+{item.csBonus} HC</span>
-                <button onClick={() => setCombatPotionConfirm(item.id)} aria-label={t('sheet.useCombatPotion')} title={t('sheet.useCombatPotion')} className="relative text-violet-400 hover:text-violet-300 transition-colors shrink-0 before:absolute before:inset-[-10px]">
-                  <FlaskConical size={13} />
-                </button>
-                <button onClick={() => onRemove(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
-                  <X size={12} />
-                </button>
+              <div key={item.id} className="rounded-lg border border-violet-900/50 bg-violet-950/20 px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <span className="shrink-0">⚗️</span>
+                  <span className="flex-1 text-sm text-violet-200 truncate">{item.name}</span>
+                  <span className="text-xs text-violet-400 font-medium shrink-0">+{item.csBonus} HC</span>
+                  <button onClick={() => setCombatPotionConfirm(item.id)} aria-label={t('sheet.useCombatPotion')} title={t('sheet.useCombatPotion')} className="relative text-violet-400 hover:text-violet-300 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                    <FlaskConical size={13} />
+                  </button>
+                  <button onClick={() => onRemove(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                    <X size={12} />
+                  </button>
+                </div>
+                {item.notes && <p className="mt-1 text-xs text-slate-500 leading-snug">{item.notes}</p>}
               </div>
             )
             return (
-              <div key={item.id} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-green-900/30 bg-green-950/10">
-                <span className="shrink-0">🌿</span>
-                <span className="flex-1 text-sm text-green-100 truncate">{item.name}</span>
-                <button onClick={() => onRemove(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
-                  <X size={12} />
-                </button>
+              <div key={item.id} className="rounded-lg border border-green-900/30 bg-green-950/10 px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <span className="shrink-0">🌿</span>
+                  <span className="flex-1 text-sm text-green-100 truncate">{item.name}</span>
+                  <button onClick={() => onRemove(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                    <X size={12} />
+                  </button>
+                </div>
+                {item.notes && <p className="mt-1 text-xs text-slate-500 leading-snug">{item.notes}</p>}
               </div>
             )
           })}
@@ -982,87 +997,112 @@ function HerbPouchModal({
         </div>
 
         {addingPotion && !isFull && (
-          <div className="flex gap-2 mb-2 p-2.5 rounded-lg border border-blue-900/40 bg-blue-950/10">
-            <span className="text-lg shrink-0">🧪</span>
-            <input
-              value={potionName}
-              onChange={e => setPotionName(e.target.value)}
-              placeholder={t('sheet.potion')}
-              className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-blue-600"
-            />
-            <div className="flex items-center gap-1 shrink-0">
-              <span className="text-xs text-green-400">+</span>
+          <div className="mb-2 p-2.5 rounded-lg border border-blue-900/40 bg-blue-950/10 space-y-1.5">
+            <div className="flex gap-2">
+              <span className="text-lg shrink-0">🧪</span>
               <input
-                type="number"
-                value={potionEP}
-                onChange={e => setPotionEP(Math.max(1, Number(e.target.value)))}
-                onFocus={e => e.target.select()}
-                min={1}
-                className="w-14 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-green-400 font-bold text-center focus:outline-none focus:border-blue-600"
+                value={potionName}
+                onChange={e => setPotionName(e.target.value)}
+                placeholder={t('sheet.potion')}
+                className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-blue-600"
               />
-              <span className="text-xs text-slate-500">PE</span>
+              <div className="flex items-center gap-1 shrink-0">
+                <span className="text-xs text-green-400">+</span>
+                <input
+                  type="number"
+                  value={potionEP}
+                  onChange={e => setPotionEP(Math.max(1, Number(e.target.value)))}
+                  onFocus={e => e.target.select()}
+                  min={1}
+                  className="w-14 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-green-400 font-bold text-center focus:outline-none focus:border-blue-600"
+                />
+                <span className="text-xs text-slate-500">PE</span>
+              </div>
+              <button onClick={confirmAddPotion} className="px-2 py-1 rounded bg-blue-700 hover:bg-blue-600 text-white text-xs font-medium transition-colors shrink-0">OK</button>
+              <button onClick={() => setAddingPotion(false)} aria-label={t('common.cancel')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                <X size={14} />
+              </button>
             </div>
-            <button onClick={confirmAddPotion} className="px-2 py-1 rounded bg-blue-700 hover:bg-blue-600 text-white text-xs font-medium transition-colors shrink-0">OK</button>
-            <button onClick={() => setAddingPotion(false)} aria-label={t('common.cancel')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
-              <X size={14} />
-            </button>
+            <input
+              value={potionNotes}
+              onChange={e => setPotionNotes(e.target.value)}
+              placeholder={t('sheet.itemNotes')}
+              className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-slate-400 focus:outline-none focus:border-blue-600 placeholder:text-slate-600"
+            />
           </div>
         )}
 
         {addingCombatPotion && !isFull && (
-          <div className="flex gap-2 mb-2 p-2.5 rounded-lg border border-orange-900/40 bg-orange-950/10">
-            <span className="text-lg shrink-0">⚗️</span>
-            <input
-              value={combatPotionName}
-              onChange={e => setCombatPotionName(e.target.value)}
-              placeholder={t('sheet.combatPotion')}
-              className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-orange-600"
-            />
-            <div className="flex items-center gap-1 shrink-0">
-              <span className="text-xs text-orange-400">+</span>
+          <div className="mb-2 p-2.5 rounded-lg border border-orange-900/40 bg-orange-950/10 space-y-1.5">
+            <div className="flex gap-2">
+              <span className="text-lg shrink-0">⚗️</span>
               <input
-                type="number"
-                value={combatPotionCS}
-                onChange={e => setCombatPotionCS(Math.max(1, Number(e.target.value)))}
-                onFocus={e => e.target.select()}
-                min={1}
-                className="w-14 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-orange-400 font-bold text-center focus:outline-none focus:border-orange-600"
+                value={combatPotionName}
+                onChange={e => setCombatPotionName(e.target.value)}
+                placeholder={t('sheet.combatPotion')}
+                className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-orange-600"
               />
-              <span className="text-xs text-slate-500">HC</span>
+              <div className="flex items-center gap-1 shrink-0">
+                <span className="text-xs text-orange-400">+</span>
+                <input
+                  type="number"
+                  value={combatPotionCS}
+                  onChange={e => setCombatPotionCS(Math.max(1, Number(e.target.value)))}
+                  onFocus={e => e.target.select()}
+                  min={1}
+                  className="w-14 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-orange-400 font-bold text-center focus:outline-none focus:border-orange-600"
+                />
+                <span className="text-xs text-slate-500">HC</span>
+              </div>
+              <button onClick={confirmAddCombatPotion} className="px-2 py-1 rounded bg-orange-700 hover:bg-orange-600 text-white text-xs font-medium transition-colors shrink-0">OK</button>
+              <button onClick={() => setAddingCombatPotion(false)} aria-label={t('common.cancel')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                <X size={14} />
+              </button>
             </div>
-            <button onClick={confirmAddCombatPotion} className="px-2 py-1 rounded bg-orange-700 hover:bg-orange-600 text-white text-xs font-medium transition-colors shrink-0">OK</button>
-            <button onClick={() => setAddingCombatPotion(false)} aria-label={t('common.cancel')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
-              <X size={14} />
-            </button>
+            <input
+              value={combatPotionNotes}
+              onChange={e => setCombatPotionNotes(e.target.value)}
+              placeholder={t('sheet.itemNotes')}
+              className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-slate-400 focus:outline-none focus:border-orange-600 placeholder:text-slate-600"
+            />
           </div>
         )}
 
         {!isFull && (
-          <div className="flex gap-2">
-            <button
-              onClick={() => setAddingPotion(v => !v)}
-              aria-pressed={addingPotion}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium transition-colors shrink-0 ${addingPotion ? 'border-blue-700 bg-blue-900/30 text-blue-300' : 'border-blue-900/50 text-blue-500 hover:bg-blue-950/30 hover:text-blue-400'}`}
-            >
-              <Plus size={12} />🧪
-            </button>
-            <button
-              onClick={() => setAddingCombatPotion(v => !v)}
-              aria-pressed={addingCombatPotion}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium transition-colors shrink-0 ${addingCombatPotion ? 'border-orange-700 bg-orange-900/30 text-orange-300' : 'border-orange-900/50 text-orange-500 hover:bg-orange-950/30 hover:text-orange-400'}`}
-            >
-              <Plus size={12} />⚗️
-            </button>
+          <div className="space-y-1.5">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setAddingPotion(v => !v)}
+                aria-pressed={addingPotion}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium transition-colors shrink-0 ${addingPotion ? 'border-blue-700 bg-blue-900/30 text-blue-300' : 'border-blue-900/50 text-blue-500 hover:bg-blue-950/30 hover:text-blue-400'}`}
+              >
+                <Plus size={12} />🧪
+              </button>
+              <button
+                onClick={() => setAddingCombatPotion(v => !v)}
+                aria-pressed={addingCombatPotion}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium transition-colors shrink-0 ${addingCombatPotion ? 'border-orange-700 bg-orange-900/30 text-orange-300' : 'border-orange-900/50 text-orange-500 hover:bg-orange-950/30 hover:text-orange-400'}`}
+              >
+                <Plus size={12} />⚗️
+              </button>
+              <input
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addItem()}
+                placeholder={t('sheet.addHerb')}
+                className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-green-700"
+              />
+              <button onClick={addItem} aria-label={t('sheet.addHerb')} className="relative p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors before:absolute before:inset-[-6px]">
+                <Plus size={16} />
+              </button>
+            </div>
             <input
-              value={input}
-              onChange={e => setInput(e.target.value)}
+              value={inputNotes}
+              onChange={e => setInputNotes(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && addItem()}
-              placeholder={t('sheet.addHerb')}
-              className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-green-700"
+              placeholder={t('sheet.itemNotes')}
+              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-400 focus:outline-none focus:border-green-700 placeholder:text-slate-600"
             />
-            <button onClick={addItem} aria-label={t('sheet.addHerb')} className="relative p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors before:absolute before:inset-[-6px]">
-              <Plus size={16} />
-            </button>
           </div>
         )}
 
