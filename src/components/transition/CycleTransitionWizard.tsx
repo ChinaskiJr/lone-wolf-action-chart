@@ -43,7 +43,7 @@ export function CycleTransitionWizard() {
   const [selectedWeapons, setSelectedWeapons] = useState<string[]>([])
   const [selectedCarryOverItems, setSelectedCarryOverItems] = useState<string[]>([])
   const [wizMonastery, setWizMonastery] = useState<MonasteryStorage | null>(null)
-  const [wizPendingSpecialItems, setWizPendingSpecialItems] = useState<SpecialItem[] | null>(null)
+  const [wizLeftSpecialItems, setWizLeftSpecialItems] = useState<SpecialItem[] | null>(null)
   const [wizPendingWeapons, setWizPendingWeapons] = useState<Weapon[] | null>(null)
   const [wizPendingBackpack, setWizPendingBackpack] = useState<BackpackItem[] | null>(null)
   const [wizPendingGold, setWizPendingGold] = useState<number | null>(null)
@@ -80,18 +80,11 @@ export function CycleTransitionWizard() {
 
   function stepAfterDisciplines() {
     if (needsWeaponsStep) return 'weapons' as const
-    if (needsItemsStep) return 'items' as const
     return 'monastery' as const
   }
 
   function stepAfterWeapons() {
-    if (needsItemsStep) return 'items' as const
     return 'monastery' as const
-  }
-
-  function stepBeforeItems() {
-    if (needsWeaponsStep) return 'weapons' as const
-    return 'disciplines' as const
   }
 
   const emptyMonastery: MonasteryStorage = { weapons: [], goldCrowns: 0, backpack: [], specialItems: [] }
@@ -109,13 +102,13 @@ export function CycleTransitionWizard() {
     const monastery = wizMonastery ?? (source as any).monastery ?? emptyMonastery
     if (nextCycle === 'magnakai') {
       const char = createNewMagnakaiCharacter(source!.cycle === 'kai' ? source as any : undefined)
-      const kept = wizPendingSpecialItems ?? filterCarryOverItems(sourceSpecialItems, selectedCarryOverItems)
+      const kept = filterCarryOverItems(wizLeftSpecialItems ?? sourceSpecialItems, selectedCarryOverItems)
       const withItems = applyWizardInventory({ ...char, disciplines: selectedDisciplines as any, weaponmasteryWeapons: selectedWeapons, specialItems: kept })
       // Restore to full EP including bonuses from carried-over equipped special items.
       return { ...withItems, endurance: { ...withItems.endurance, current: getTotalEPMax(withItems) }, monastery }
     } else if (nextCycle === 'grandmaster') {
       const char = createNewGrandMasterCharacter(source!.cycle === 'magnakai' ? source as MagnakaiCharacter : undefined)
-      const kept = wizPendingSpecialItems ?? filterCarryOverItems((source as MagnakaiCharacter).specialItems, selectedCarryOverItems)
+      const kept = filterCarryOverItems(wizLeftSpecialItems ?? (source as MagnakaiCharacter).specialItems, selectedCarryOverItems)
       return applyWizardInventory({ ...char, disciplines: selectedDisciplines as any, specialItems: kept, monastery } as any) as Character
     } else {
       return { ...createNewOrderCharacter(), disciplines: selectedDisciplines as any, monastery }
@@ -288,9 +281,9 @@ export function CycleTransitionWizard() {
               </div>
             </div>
 
-            {/* Player's actual items */}
+            {/* Player's actual items (only those not deposited in monastery) */}
             <div className="space-y-2 max-h-64 overflow-y-auto">
-              {sourceSpecialItems.map(item => {
+              {(wizLeftSpecialItems ?? sourceSpecialItems).map(item => {
                 const isSelected = selectedCarryOverItems.includes(item.id)
                 return (
                   <button
@@ -323,11 +316,11 @@ export function CycleTransitionWizard() {
             </div>
 
             <div className="flex gap-3 justify-between">
-              <button onClick={() => setStep(stepBeforeItems())} className="px-5 py-2 rounded border border-slate-700 text-slate-400 text-sm hover:text-slate-200 transition-colors">
+              <button onClick={() => setStep('monastery')} className="px-5 py-2 rounded border border-slate-700 text-slate-400 text-sm hover:text-slate-200 transition-colors">
                 {t('creation.back')}
               </button>
               <button
-                onClick={() => setStep('monastery')}
+                onClick={() => setStep('done')}
                 className="px-6 py-2 rounded bg-amber-600 hover:bg-amber-500 text-white font-medium transition-colors"
               >
                 {t('creation.next')}
@@ -340,20 +333,17 @@ export function CycleTransitionWizard() {
           <MonasteryStep
             source={source}
             sourceSpecialItems={sourceSpecialItems}
-            selectedCarryOverItems={selectedCarryOverItems}
-            needsItemsStep={needsItemsStep}
             lang={lang}
             onConfirm={(result) => {
-              setWizPendingSpecialItems(result.pendingSpecialItems)
+              setWizLeftSpecialItems(result.leftSpecialItems)
               setWizPendingWeapons(result.pendingWeapons)
               setWizPendingBackpack(result.pendingBackpack)
               setWizPendingGold(result.pendingGold)
               setWizMonastery(result.monastery)
-              setStep('done')
+              setStep(needsItemsStep && result.leftSpecialItems.length > 0 ? 'items' : 'done')
             }}
             onBack={() => {
-              if (needsItemsStep) setStep('items')
-              else if (needsWeaponsStep) setStep('weapons')
+              if (needsWeaponsStep) setStep('weapons')
               else setStep('disciplines')
             }}
             t={t}
@@ -381,7 +371,7 @@ export function CycleTransitionWizard() {
 }
 
 interface MonasteryStepResult {
-  pendingSpecialItems: SpecialItem[]
+  leftSpecialItems: SpecialItem[]
   pendingWeapons: Weapon[]
   pendingBackpack: BackpackItem[]
   pendingGold: number
@@ -391,15 +381,13 @@ interface MonasteryStepResult {
 interface MonasteryStepProps {
   source: { weapons: Weapon[]; backpack: BackpackItem[]; goldCrowns: number; monastery?: MonasteryStorage }
   sourceSpecialItems: SpecialItem[]
-  selectedCarryOverItems: string[]
-  needsItemsStep: boolean
   lang: 'fr' | 'en'
   onConfirm: (result: MonasteryStepResult) => void
   onBack: () => void
   t: (key: string) => string
 }
 
-function MonasteryStep({ source, sourceSpecialItems, selectedCarryOverItems, needsItemsStep, lang, onConfirm, onBack, t }: MonasteryStepProps) {
+function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t }: MonasteryStepProps) {
   const existing = source.monastery ?? { weapons: [], goldCrowns: 0, backpack: [], specialItems: [] }
   const totalGold = source.goldCrowns + existing.goldCrowns
 
@@ -465,11 +453,8 @@ function MonasteryStep({ source, sourceSpecialItems, selectedCarryOverItems, nee
   }
 
   function handleConfirm() {
-    const pendingSpecialItems = needsItemsStep
-      ? leftSpecialItems.filter(item => selectedCarryOverItems.includes(item.id))
-      : []
     onConfirm({
-      pendingSpecialItems,
+      leftSpecialItems,
       pendingWeapons: leftWeapons,
       pendingBackpack: leftBackpack,
       pendingGold: leftGold,
@@ -519,19 +504,11 @@ function MonasteryStep({ source, sourceSpecialItems, selectedCarryOverItems, nee
           <WizSection label={t('sheet.specialItems')}>
             {leftSpecialItems.length === 0
               ? <WizEmpty label={noItems} />
-              : leftSpecialItems.map(item => {
-                const willCarry = needsItemsStep && selectedCarryOverItems.includes(item.id)
-                return (
-                  <WizRow
-                    key={item.id}
-                    name={item.name}
-                    badge={willCarry ? t('sheet.monastery.willCarryOver') : t('sheet.monastery.willBeLost')}
-                    badgeGreen={willCarry}
-                  >
-                    <WizBtn dir="right" onClick={() => depositSpecial(item.id)} />
-                  </WizRow>
-                )
-              })
+              : leftSpecialItems.map(item => (
+                <WizRow key={item.id} name={item.name}>
+                  <WizBtn dir="right" onClick={() => depositSpecial(item.id)} />
+                </WizRow>
+              ))
             }
           </WizSection>
 

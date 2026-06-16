@@ -103,6 +103,8 @@ export function AdventureSheet() {
       setPendingCycleTransition(false)
       save()
       navigate(`/transition/${character!.id}`)
+    } else if (character!.currentBook >= 6) {
+      setShowMonasteryStorage(true)
     } else {
       setShowBookChangeEquipment(true)
     }
@@ -110,21 +112,17 @@ export function AdventureSheet() {
 
   function handleEquipmentFinished() {
     setShowBookChangeEquipment(false)
-    if (character!.currentBook >= 6) {
-      setShowMonasteryStorage(true)
-    } else {
-      save()
-    }
+    save()
   }
 
   function handleMonasteryDone() {
     setShowMonasteryStorage(false)
-    save()
+    setShowBookChangeEquipment(true)
   }
 
   function handleMonasterySkip() {
     setShowMonasteryStorage(false)
-    save()
+    setShowBookChangeEquipment(true)
   }
 
   const characterName = character.cycle === 'neworder' && (character as any).kaiName
