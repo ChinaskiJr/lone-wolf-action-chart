@@ -19,6 +19,10 @@ export function getTotalCS(char: Character): number {
   const base = char.combatSkill.base + char.combatSkill.bonus
   const itemsHC = char.specialItems.filter(i => i.equipped !== false).reduce((sum, i) => sum + (i.hcBonus ?? 0), 0)
   const weaponsHC = char.weapons.filter(w => w.equipped !== false).reduce((sum, w) => sum + (w.bonus ?? 0), 0)
+  if (char.cycle === 'magnakai') {
+    const { bonusCS } = computeLoreCircleBonuses(char.disciplines)
+    return base + bonusCS + itemsHC + weaponsHC
+  }
   if (char.cycle === 'grandmaster') {
     const extraDisciplines = Math.max(0, char.disciplines.length - 4)
     return base + extraDisciplines + itemsHC + weaponsHC
@@ -33,6 +37,10 @@ export function getTotalCS(char: Character): number {
 export function getTotalEPMax(char: Character): number {
   const base = char.endurance.max
   const itemsPE = char.specialItems.filter(i => i.equipped !== false).reduce((sum, i) => sum + (i.peBonus ?? 0), 0)
+  if (char.cycle === 'magnakai') {
+    const { bonusEP } = computeLoreCircleBonuses(char.disciplines)
+    return base + bonusEP + itemsPE
+  }
   if (char.cycle === 'grandmaster') {
     const extraDisciplines = Math.max(0, char.disciplines.length - 4)
     return base + extraDisciplines * 2 + itemsPE

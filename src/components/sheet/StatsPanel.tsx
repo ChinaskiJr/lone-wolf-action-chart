@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Minus, Plus } from 'lucide-react'
 import { useCharacterStore } from '@/store/characterStore'
 import { getTotalCS, getTotalEPMax, computeRank, getItemsCSBonus, getItemsEPBonus, getWeaponsCSBonus } from '@/utils/character'
+import { computeLoreCircleBonuses } from '@/data/loreCircles'
 import { KAI_RANKS, MAGNAKAI_RANKS, GRAND_MASTER_RANKS, NEW_ORDER_RANKS } from '@/data/ranks'
 
 export function StatsPanel() {
@@ -15,6 +16,9 @@ export function StatsPanel() {
   const itemsHC = getItemsCSBonus(character)
   const weaponsHC = getWeaponsCSBonus(character)
   const itemsPE = getItemsEPBonus(character)
+  const { bonusCS: circleCS, bonusEP: circleEP } = character.cycle === 'magnakai'
+    ? computeLoreCircleBonuses(character.disciplines)
+    : { bonusCS: 0, bonusEP: 0 }
   const rankKey = computeRank(character)
 
   const ranks =
@@ -80,6 +84,12 @@ export function StatsPanel() {
                 <div className="text-slate-600">{t('sheet.itemBonus')}</div>
               </div>
             )}
+            {circleCS > 0 && (
+              <div className="mt-1 text-xs text-slate-500 leading-tight">
+                {totalCS - circleCS} <span className="font-semibold text-amber-400">+{circleCS}</span>
+                <div className="text-slate-600">{t('sheet.loreCircleBonus')}</div>
+              </div>
+            )}
           </div>
           <div className="bg-amber-900/30 border border-amber-800/50 rounded-lg p-3 flex flex-col items-center justify-center">
             <div className="text-3xl md:text-5xl font-bold text-amber-400 tabular-nums">{totalCS}</div>
@@ -102,6 +112,12 @@ export function StatsPanel() {
               <div className="mt-1 text-xs text-slate-600 leading-tight">
                 {maxEP - itemsPE} <span className={`font-semibold ${itemsPE > 0 ? 'text-green-400/80' : 'text-red-400'}`}>{itemsPE > 0 ? `+${itemsPE}` : itemsPE}</span>
                 <div className="text-slate-700">{t('sheet.itemBonus')}</div>
+              </div>
+            )}
+            {circleEP > 0 && (
+              <div className="mt-1 text-xs text-slate-600 leading-tight">
+                {maxEP - circleEP} <span className="font-semibold text-amber-400/80">+{circleEP}</span>
+                <div className="text-slate-700">{t('sheet.loreCircleBonus')}</div>
               </div>
             )}
           </div>
