@@ -91,6 +91,8 @@
     "useCombatPotion": "Consommer et combattre",
     "combatPotionConfirm": "Êtes-vous sûr de vouloir consommer cette potion et de lancer un combat ?",
     "removeItem": "Retirer",
+    "editItem": "Modifier l'objet",
+    "confirmRemove": "Retirer cet objet ?",
     "equipItem": "Équiper",
     "unequipItem": "Déséquiper",
     "slotsUsed": "{{used}}/{{max}} emplacements",

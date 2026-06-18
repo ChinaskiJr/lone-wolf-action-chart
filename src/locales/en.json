@@ -91,6 +91,8 @@
     "useCombatPotion": "Use and fight",
     "combatPotionConfirm": "Are you sure you want to use this potion and start a combat?",
     "removeItem": "Remove",
+    "editItem": "Edit item",
+    "confirmRemove": "Remove this item?",
     "equipItem": "Equip",
     "unequipItem": "Unequip",
     "slotsUsed": "{{used}}/{{max}} slots",

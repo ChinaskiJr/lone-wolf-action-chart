@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, X, Sword, FlaskConical, Utensils, Lock, PackageOpen, Wallet } from 'lucide-react'
+import { Plus, X, Sword, FlaskConical, Utensils, Lock, PackageOpen, Wallet, Pencil, Check } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { useCharacterStore } from '@/store/characterStore'
 import { useUIStore } from '@/store/uiStore'
@@ -25,11 +25,11 @@ function characterHasHunting(char: Character): boolean {
 export function EquipmentPanel() {
   const {
     character,
-    addWeapon, removeWeapon, equipWeapon,
+    addWeapon, removeWeapon, equipWeapon, updateWeapon,
     toggleQuiver, setArrows,
-    addBackpackItem, removeBackpackItem,
+    addBackpackItem, removeBackpackItem, updateBackpackItem,
     addSpecialItem, removeSpecialItem, updateSpecialItem,
-    toggleHerbPouch, addHerbItem, removeHerbItem, useHerbPotion,
+    toggleHerbPouch, addHerbItem, removeHerbItem, updateHerbItem, useHerbPotion,
     setMeals,
     eatMeal,
     usePotion,
@@ -72,6 +72,7 @@ export function EquipmentPanel() {
         onAdd={addWeapon}
         onRemove={removeWeapon}
         onEquip={equipWeapon}
+        onUpdate={updateWeapon}
         onToggleQuiver={toggleQuiver}
         onSetArrows={setArrows}
       />
@@ -82,6 +83,7 @@ export function EquipmentPanel() {
         hasHunting={hasHunting}
         onAdd={addBackpackItem}
         onRemove={removeBackpackItem}
+        onUpdate={updateBackpackItem}
         onMealsChange={setMeals}
         onEat={eatMeal}
         onUsePotion={usePotion}
@@ -105,6 +107,7 @@ export function EquipmentPanel() {
           onClose={() => setHerbPouchOpen(false)}
           onAdd={addHerbItem}
           onRemove={removeHerbItem}
+          onUpdate={updateHerbItem}
           onUsePotion={useHerbPotion}
           onUseCombatPotion={(id) => {
             const item = character.herbPouch?.find(i => i.id === id)
@@ -220,7 +223,7 @@ function ConfiscateConfirmModal({
 }
 
 function WeaponsSection({
-  weapons, hasQuiver, arrows, showQuiver, onAdd, onRemove, onEquip, onToggleQuiver, onSetArrows,
+  weapons, hasQuiver, arrows, showQuiver, onAdd, onRemove, onEquip, onUpdate, onToggleQuiver, onSetArrows,
 }: {
   weapons: Weapon[]
   hasQuiver: boolean
@@ -229,12 +232,17 @@ function WeaponsSection({
   onAdd: (w: Weapon) => void
   onRemove: (i: number) => void
   onEquip: (i: number) => void
+  onUpdate: (index: number, weapon: Weapon) => void
   onToggleQuiver: () => void
   onSetArrows: (count: number) => void
 }) {
   const { t } = useTranslation()
   const [input, setInput] = useState('')
   const [bonusInput, setBonusInput] = useState('')
+  const [editingIndex, setEditingIndex] = useState<number | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editBonus, setEditBonus] = useState('')
+  const [confirmDeleteIndex, setConfirmDeleteIndex] = useState<number | null>(null)
 
   function add() {
     if (!input.trim() || weapons.length >= 2) return
@@ -242,6 +250,23 @@ function WeaponsSection({
     onAdd({ name: input.trim(), bonus: !isNaN(parsed) && parsed !== 0 ? parsed : undefined })
     setInput('')
     setBonusInput('')
+  }
+
+  function startEdit(i: number, w: Weapon) {
+    setEditingIndex(i)
+    setEditName(w.name)
+    setEditBonus(w.bonus != null ? String(w.bonus) : '')
+  }
+
+  function confirmEdit(i: number, w: Weapon) {
+    const name = editName.trim() || w.name
+    const parsed = parseInt(editBonus, 10)
+    onUpdate(i, { ...w, name, bonus: !isNaN(parsed) && parsed !== 0 ? parsed : undefined })
+    setEditingIndex(null)
+  }
+
+  function cancelEdit() {
+    setEditingIndex(null)
   }
 
   return (
@@ -256,6 +281,35 @@ function WeaponsSection({
       <div className="space-y-2 mb-2">
         {weapons.map((w, i) => {
           const isEquipped = w.equipped !== false
+          if (editingIndex === i) return (
+            <div key={i} className="flex items-center gap-2 bg-slate-800/60 border border-amber-700/50 rounded-lg px-3 py-2">
+              <div className="w-5 h-5 shrink-0 rounded bg-amber-800/40 flex items-center justify-center text-xs text-amber-500">⚔</div>
+              <input
+                autoFocus
+                value={editName}
+                onChange={e => setEditName(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') confirmEdit(i, w); if (e.key === 'Escape') cancelEdit() }}
+                className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-amber-600"
+              />
+              <div className="flex items-center gap-1 shrink-0">
+                <input
+                  type="number"
+                  value={editBonus}
+                  onChange={e => setEditBonus(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') confirmEdit(i, w); if (e.key === 'Escape') cancelEdit() }}
+                  placeholder="0"
+                  className="w-12 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-amber-400 text-center focus:outline-none focus:border-amber-600"
+                />
+                <span className="text-xs text-slate-500">HC</span>
+              </div>
+              <button onClick={() => confirmEdit(i, w)} aria-label={t('common.confirm')} className="relative text-green-500 hover:text-green-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                <Check size={14} />
+              </button>
+              <button onClick={cancelEdit} aria-label={t('common.cancel')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                <X size={14} />
+              </button>
+            </div>
+          )
           return (
             <div key={i} className={`flex items-center gap-2 bg-slate-800/60 border border-slate-700 rounded-lg px-3 py-2.5 transition-opacity ${isEquipped ? '' : 'opacity-50'}`}>
               <label className="flex items-center shrink-0 cursor-pointer" aria-label={isEquipped ? t('sheet.unequipItem') : t('sheet.equipItem')}>
@@ -273,7 +327,10 @@ function WeaponsSection({
                   {w.bonus > 0 ? '+' : ''}{w.bonus} HC
                 </span>
               )}
-              <button onClick={() => onRemove(i)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors before:absolute before:inset-[-10px]">
+              <button onClick={() => startEdit(i, w)} aria-label={t('sheet.editItem')} className="relative text-slate-600 hover:text-slate-400 transition-colors before:absolute before:inset-[-10px]">
+                <Pencil size={12} />
+              </button>
+              <button onClick={() => setConfirmDeleteIndex(i)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors before:absolute before:inset-[-10px]">
                 <X size={14} />
               </button>
             </div>
@@ -335,12 +392,27 @@ function WeaponsSection({
           </button>
         </div>
       )}
+      {confirmDeleteIndex !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="bg-slate-900 border border-red-900/60 rounded-xl p-6 max-w-sm w-full shadow-xl">
+            <p className="text-sm text-slate-300 mb-5">{t('sheet.confirmRemove')} <span className="font-semibold text-slate-100">{weapons[confirmDeleteIndex]?.name}</span></p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setConfirmDeleteIndex(null)} className="px-4 py-2 rounded-lg border border-slate-600 text-slate-300 hover:border-slate-500 text-sm transition-colors">
+                {t('common.cancel')}
+              </button>
+              <button onClick={() => { onRemove(confirmDeleteIndex); setConfirmDeleteIndex(null) }} className="px-4 py-2 rounded-lg bg-red-800 hover:bg-red-700 text-white text-sm font-medium transition-colors">
+                {t('common.confirm')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 function BackpackSection({
-  items, meals, max, hasHunting, onAdd, onRemove, onMealsChange, onEat, onUsePotion, onUseCombatPotion
+  items, meals, max, hasHunting, onAdd, onRemove, onUpdate, onMealsChange, onEat, onUsePotion, onUseCombatPotion
 }: {
   items: BackpackItem[]
   meals: number
@@ -348,6 +420,7 @@ function BackpackSection({
   hasHunting: boolean
   onAdd: (item: BackpackItem) => void
   onRemove: (id: string) => void
+  onUpdate: (id: string, item: BackpackItem) => void
   onMealsChange: (n: number) => void
   onEat: () => void
   onUsePotion: (id: string) => void
@@ -364,6 +437,36 @@ function BackpackSection({
   const [combatPotionName, setCombatPotionName] = useState('')
   const [combatPotionCS, setCombatPotionCS] = useState(2)
   const [combatPotionConfirm, setCombatPotionConfirm] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editNotes, setEditNotes] = useState('')
+  const [editTwoSlots, setEditTwoSlots] = useState(false)
+  const [editValue, setEditValue] = useState(0)
+  const [confirmDelete, setConfirmDelete] = useState<{ type: 'meal' } | { type: 'item'; id: string; label: string } | null>(null)
+
+  function startEdit(item: BackpackItem) {
+    setEditingId(item.id)
+    setEditName(item.name)
+    setEditNotes(item.notes ?? '')
+    setEditTwoSlots((item.slots ?? 1) > 1)
+    setEditValue(item.epRestore ?? item.csBonus ?? 0)
+  }
+
+  function confirmEdit(item: BackpackItem) {
+    const name = editName.trim() || item.name
+    if (item.epRestore != null) {
+      onUpdate(item.id, { ...item, name, epRestore: Math.max(1, editValue) })
+    } else if (item.csBonus != null) {
+      onUpdate(item.id, { ...item, name, csBonus: Math.max(1, editValue) })
+    } else {
+      onUpdate(item.id, { ...item, name, notes: editNotes.trim() || undefined, slots: editTwoSlots ? 2 : undefined })
+    }
+    setEditingId(null)
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+  }
 
   const slotsUsed = items.reduce((sum, i) => sum + (i.slots ?? 1), 0) + meals
   const isFull = slotsUsed >= max
@@ -472,76 +575,189 @@ function BackpackSection({
               <span className="text-xs text-slate-600 w-6 shrink-0">{slot.startSlot}</span>
               <span className="shrink-0">🍖</span>
               <span className="flex-1 text-sm text-amber-200/80">{t('sheet.meals')}</span>
-              <button onClick={removeMeal} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+              <button onClick={() => setConfirmDelete({ type: 'meal' })} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
                 <X size={12} />
               </button>
             </div>
           )
-          if (slot.type === 'potion') return (
-            <div key={slot.item.id} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-blue-900/50 bg-blue-950/20">
-              <span className="text-xs text-slate-600 w-6 shrink-0">{slotLabel(slot.startSlot, slot.endSlot)}</span>
-              <span className="shrink-0">🧪</span>
-              <span className="flex-1 text-sm text-blue-200 truncate">{slot.item.name}</span>
-              <span className="text-xs text-green-400 font-medium shrink-0">+{slot.item.epRestore} PE</span>
-              <button
-                onClick={() => onUsePotion(slot.item.id)}
-                aria-label={t('sheet.usePotion')}
-                title={t('sheet.usePotion')}
-                className="relative text-blue-400 hover:text-green-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
-              >
-                <FlaskConical size={13} />
-              </button>
-              <button
-                onClick={() => onRemove(slot.item.id)}
-                aria-label={t('sheet.removeItem')}
-                className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
-              >
-                <X size={12} />
-              </button>
-            </div>
-          )
-          if (slot.type === 'combatPotion') return (
-            <div key={slot.item.id} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-violet-900/50 bg-violet-950/20">
-              <span className="text-xs text-slate-600 w-6 shrink-0">{slotLabel(slot.startSlot, slot.endSlot)}</span>
-              <span className="shrink-0">⚗️</span>
-              <span className="flex-1 text-sm text-violet-200 truncate">{slot.item.name}</span>
-              <span className="text-xs text-violet-400 font-medium shrink-0">+{slot.item.csBonus} HC</span>
-              <button
-                onClick={() => setCombatPotionConfirm(slot.item.id)}
-                aria-label={t('sheet.useCombatPotion')}
-                title={t('sheet.useCombatPotion')}
-                className="relative text-violet-400 hover:text-violet-300 transition-colors shrink-0 before:absolute before:inset-[-10px]"
-              >
-                <FlaskConical size={13} />
-              </button>
-              <button
-                onClick={() => onRemove(slot.item.id)}
-                aria-label={t('sheet.removeItem')}
-                className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
-              >
-                <X size={12} />
-              </button>
-            </div>
-          )
-          if (slot.type === 'item') return (
-            <div key={slot.item.id} className="flex items-start gap-2 rounded-lg px-3 py-2 border border-slate-700 bg-slate-800/60">
-              <span className="text-xs text-slate-600 w-6 shrink-0 mt-0.5">{slotLabel(slot.startSlot, slot.endSlot)}</span>
-              <div className="flex-1 min-w-0">
+          if (slot.type === 'potion') {
+            if (editingId === slot.item.id) return (
+              <div key={slot.item.id} className="flex items-center gap-1.5 rounded-lg px-3 py-2 border border-blue-700/50 bg-blue-950/20 col-span-full">
+                <span className="text-xs text-slate-600 w-6 shrink-0">{slotLabel(slot.startSlot, slot.endSlot)}</span>
+                <span className="shrink-0">🧪</span>
+                <input
+                  autoFocus
+                  value={editName}
+                  onChange={e => setEditName(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') confirmEdit(slot.item); if (e.key === 'Escape') cancelEdit() }}
+                  className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-blue-600"
+                />
+                <div className="flex items-center gap-1 shrink-0">
+                  <input
+                    type="number"
+                    value={editValue}
+                    onChange={e => setEditValue(Number(e.target.value))}
+                    onKeyDown={e => { if (e.key === 'Enter') confirmEdit(slot.item); if (e.key === 'Escape') cancelEdit() }}
+                    min={1}
+                    className="w-12 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-green-400 text-center focus:outline-none focus:border-blue-600"
+                  />
+                  <span className="text-xs text-slate-500">PE</span>
+                </div>
+                <button onClick={() => confirmEdit(slot.item)} aria-label={t('common.confirm')} className="relative text-green-500 hover:text-green-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                  <Check size={13} />
+                </button>
+                <button onClick={cancelEdit} aria-label={t('common.cancel')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                  <X size={12} />
+                </button>
+              </div>
+            )
+            return (
+              <div key={slot.item.id} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-blue-900/50 bg-blue-950/20">
+                <span className="text-xs text-slate-600 w-6 shrink-0">{slotLabel(slot.startSlot, slot.endSlot)}</span>
+                <span className="shrink-0">🧪</span>
+                <span className="flex-1 text-sm text-blue-200 truncate">{slot.item.name}</span>
+                <span className="text-xs text-green-400 font-medium shrink-0">+{slot.item.epRestore} PE</span>
+                <button
+                  onClick={() => onUsePotion(slot.item.id)}
+                  aria-label={t('sheet.usePotion')}
+                  title={t('sheet.usePotion')}
+                  className="relative text-blue-400 hover:text-green-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
+                >
+                  <FlaskConical size={13} />
+                </button>
+                <button onClick={() => startEdit(slot.item)} aria-label={t('sheet.editItem')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                  <Pencil size={12} />
+                </button>
+                <button
+                  onClick={() => setConfirmDelete({ type: 'item', id: slot.item.id, label: slot.item.name })}
+                  aria-label={t('sheet.removeItem')}
+                  className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            )
+          }
+          if (slot.type === 'combatPotion') {
+            if (editingId === slot.item.id) return (
+              <div key={slot.item.id} className="flex items-center gap-1.5 rounded-lg px-3 py-2 border border-violet-700/50 bg-violet-950/20 col-span-full">
+                <span className="text-xs text-slate-600 w-6 shrink-0">{slotLabel(slot.startSlot, slot.endSlot)}</span>
+                <span className="shrink-0">⚗️</span>
+                <input
+                  autoFocus
+                  value={editName}
+                  onChange={e => setEditName(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') confirmEdit(slot.item); if (e.key === 'Escape') cancelEdit() }}
+                  className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-violet-600"
+                />
+                <div className="flex items-center gap-1 shrink-0">
+                  <input
+                    type="number"
+                    value={editValue}
+                    onChange={e => setEditValue(Number(e.target.value))}
+                    onKeyDown={e => { if (e.key === 'Enter') confirmEdit(slot.item); if (e.key === 'Escape') cancelEdit() }}
+                    min={1}
+                    className="w-12 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-violet-400 text-center focus:outline-none focus:border-violet-600"
+                  />
+                  <span className="text-xs text-slate-500">HC</span>
+                </div>
+                <button onClick={() => confirmEdit(slot.item)} aria-label={t('common.confirm')} className="relative text-green-500 hover:text-green-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                  <Check size={13} />
+                </button>
+                <button onClick={cancelEdit} aria-label={t('common.cancel')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                  <X size={12} />
+                </button>
+              </div>
+            )
+            return (
+              <div key={slot.item.id} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-violet-900/50 bg-violet-950/20">
+                <span className="text-xs text-slate-600 w-6 shrink-0">{slotLabel(slot.startSlot, slot.endSlot)}</span>
+                <span className="shrink-0">⚗️</span>
+                <span className="flex-1 text-sm text-violet-200 truncate">{slot.item.name}</span>
+                <span className="text-xs text-violet-400 font-medium shrink-0">+{slot.item.csBonus} HC</span>
+                <button
+                  onClick={() => setCombatPotionConfirm(slot.item.id)}
+                  aria-label={t('sheet.useCombatPotion')}
+                  title={t('sheet.useCombatPotion')}
+                  className="relative text-violet-400 hover:text-violet-300 transition-colors shrink-0 before:absolute before:inset-[-10px]"
+                >
+                  <FlaskConical size={13} />
+                </button>
+                <button onClick={() => startEdit(slot.item)} aria-label={t('sheet.editItem')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                  <Pencil size={12} />
+                </button>
+                <button
+                  onClick={() => setConfirmDelete({ type: 'item', id: slot.item.id, label: slot.item.name })}
+                  aria-label={t('sheet.removeItem')}
+                  className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            )
+          }
+          if (slot.type === 'item') {
+            if (editingId === slot.item.id) return (
+              <div key={slot.item.id} className="flex flex-col gap-1.5 rounded-lg px-3 py-2 border border-amber-700/50 bg-slate-800/60 col-span-full">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-sm text-slate-200 truncate">{slot.item.name}</span>
-                  {(slot.item.slots ?? 1) > 1 && (
-                    <span className="text-xs text-slate-500 bg-slate-700 rounded px-1 shrink-0">×{slot.item.slots}</span>
+                  <span className="text-xs text-slate-600 w-6 shrink-0">{slotLabel(slot.startSlot, slot.endSlot)}</span>
+                  <input
+                    autoFocus
+                    value={editName}
+                    onChange={e => setEditName(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') confirmEdit(slot.item); if (e.key === 'Escape') cancelEdit() }}
+                    className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-amber-600"
+                  />
+                  <button onClick={() => confirmEdit(slot.item)} aria-label={t('common.confirm')} className="relative text-green-500 hover:text-green-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                    <Check size={13} />
+                  </button>
+                  <button onClick={cancelEdit} aria-label={t('common.cancel')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                    <X size={12} />
+                  </button>
+                </div>
+                <div className="flex items-center gap-1.5 pl-7">
+                  <input
+                    value={editNotes}
+                    onChange={e => setEditNotes(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') confirmEdit(slot.item); if (e.key === 'Escape') cancelEdit() }}
+                    placeholder={t('sheet.itemDescription')}
+                    className="flex-1 bg-slate-900/60 border border-slate-700 rounded px-2 py-1 text-xs text-slate-400 focus:outline-none focus:border-amber-600/60"
+                  />
+                  <label className="flex items-center gap-1 text-xs text-slate-500 cursor-pointer select-none shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={editTwoSlots}
+                      onChange={e => setEditTwoSlots(e.target.checked)}
+                      className="accent-amber-600 w-3 h-3"
+                    />
+                    {t('sheet.twoSlots')}
+                  </label>
+                </div>
+              </div>
+            )
+            return (
+              <div key={slot.item.id} className="flex items-start gap-2 rounded-lg px-3 py-2 border border-slate-700 bg-slate-800/60">
+                <span className="text-xs text-slate-600 w-6 shrink-0 mt-0.5">{slotLabel(slot.startSlot, slot.endSlot)}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm text-slate-200 truncate">{slot.item.name}</span>
+                    {(slot.item.slots ?? 1) > 1 && (
+                      <span className="text-xs text-slate-500 bg-slate-700 rounded px-1 shrink-0">×{slot.item.slots}</span>
+                    )}
+                  </div>
+                  {slot.item.notes && (
+                    <div className="text-xs text-slate-500 mt-0.5 truncate">{slot.item.notes}</div>
                   )}
                 </div>
-                {slot.item.notes && (
-                  <div className="text-xs text-slate-500 mt-0.5 truncate">{slot.item.notes}</div>
-                )}
+                <button onClick={() => startEdit(slot.item)} aria-label={t('sheet.editItem')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 mt-0.5 before:absolute before:inset-[-10px]">
+                  <Pencil size={12} />
+                </button>
+                <button onClick={() => setConfirmDelete({ type: 'item', id: slot.item.id, label: slot.item.name })} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 mt-0.5 before:absolute before:inset-[-10px]">
+                  <X size={12} />
+                </button>
               </div>
-              <button onClick={() => onRemove(slot.item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 mt-0.5 before:absolute before:inset-[-10px]">
-                <X size={12} />
-              </button>
-            </div>
-          )
+            )
+          }
           return (
             <div key={`empty-${i}`} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-slate-800/60 bg-slate-900/30">
               <span className="text-xs text-slate-600 w-6 shrink-0">{slot.startSlot}</span>
@@ -682,6 +898,34 @@ function BackpackSection({
         </div>
       )}
 
+      {/* Delete confirmation modal */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="bg-slate-900 border border-red-900/60 rounded-xl p-6 max-w-sm w-full shadow-xl">
+            <p className="text-sm text-slate-300 mb-5">
+              {t('sheet.confirmRemove')}
+              {confirmDelete.type === 'item' && <span className="font-semibold text-slate-100"> {confirmDelete.label}</span>}
+              {confirmDelete.type === 'meal' && <span className="font-semibold text-slate-100"> {t('sheet.meals')}</span>}
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 rounded-lg border border-slate-600 text-slate-300 hover:border-slate-500 text-sm transition-colors">
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={() => {
+                  if (confirmDelete.type === 'meal') removeMeal()
+                  else onRemove(confirmDelete.id)
+                  setConfirmDelete(null)
+                }}
+                className="px-4 py-2 rounded-lg bg-red-800 hover:bg-red-700 text-white text-sm font-medium transition-colors"
+              >
+                {t('common.confirm')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Combat potion confirmation modal */}
       {combatPotionConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
@@ -734,6 +978,12 @@ function SpecialItemsSection({
   const [effect, setEffect] = useState('')
   const [hcBonus, setHcBonus] = useState('')
   const [peBonus, setPeBonus] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editEffect, setEditEffect] = useState('')
+  const [editHcBonus, setEditHcBonus] = useState('')
+  const [editPeBonus, setEditPeBonus] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState<{ type: 'item'; id: string; name: string } | { type: 'herbPouch' } | null>(null)
 
   const totalSlots = items.length + (hasHerbPouch ? 1 : 0)
 
@@ -748,6 +998,26 @@ function SpecialItemsSection({
     setPeBonus('')
   }
 
+  function startEdit(item: SpecialItem) {
+    setEditingId(item.id)
+    setEditName(item.name)
+    setEditEffect(item.effect ?? '')
+    setEditHcBonus(item.hcBonus != null ? String(item.hcBonus) : '')
+    setEditPeBonus(item.peBonus != null ? String(item.peBonus) : '')
+  }
+
+  function confirmEdit(item: SpecialItem) {
+    const name = editName.trim() || item.name
+    const hc = parseInt(editHcBonus) || undefined
+    const pe = parseInt(editPeBonus) || undefined
+    onUpdate(item.id, { name, effect: editEffect.trim() || undefined, hcBonus: hc, peBonus: pe })
+    setEditingId(null)
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-2.5">
@@ -759,6 +1029,56 @@ function SpecialItemsSection({
       <div className="space-y-1.5 mb-2">
         {items.map(item => {
           const isEquipped = item.equipped !== false
+          if (editingId === item.id) return (
+            <div key={item.id} className="flex flex-col gap-1.5 bg-amber-950/20 border border-amber-700/50 rounded-lg px-3 py-2">
+              <div className="flex items-center gap-1.5">
+                <input
+                  autoFocus
+                  value={editName}
+                  onChange={e => setEditName(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') confirmEdit(item); if (e.key === 'Escape') cancelEdit() }}
+                  className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-amber-100 font-medium focus:outline-none focus:border-amber-600"
+                />
+                <button onClick={() => confirmEdit(item)} aria-label={t('common.confirm')} className="relative text-green-500 hover:text-green-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                  <Check size={13} />
+                </button>
+                <button onClick={cancelEdit} aria-label={t('common.cancel')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                  <X size={13} />
+                </button>
+              </div>
+              <input
+                value={editEffect}
+                onChange={e => setEditEffect(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') confirmEdit(item); if (e.key === 'Escape') cancelEdit() }}
+                placeholder={t('common.effect') + ' (optionnel)'}
+                className="bg-slate-900/60 border border-slate-700 rounded px-2 py-1 text-xs text-slate-400 focus:outline-none focus:border-amber-600/60"
+              />
+              <div className="flex gap-2">
+                <div className="flex-1 flex items-center gap-1.5 bg-slate-900/60 border border-amber-900/30 rounded px-2 py-1">
+                  <span className="text-xs font-semibold text-amber-400 shrink-0">{t('sheet.hcBonusItem')}</span>
+                  <input
+                    type="number"
+                    value={editHcBonus}
+                    onChange={e => setEditHcBonus(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') confirmEdit(item); if (e.key === 'Escape') cancelEdit() }}
+                    placeholder="0"
+                    className="flex-1 bg-transparent text-sm text-slate-200 focus:outline-none text-center tabular-nums min-w-0"
+                  />
+                </div>
+                <div className="flex-1 flex items-center gap-1.5 bg-slate-900/60 border border-green-900/30 rounded px-2 py-1">
+                  <span className="text-xs font-semibold text-green-400 shrink-0">{t('sheet.peBonusItem')}</span>
+                  <input
+                    type="number"
+                    value={editPeBonus}
+                    onChange={e => setEditPeBonus(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') confirmEdit(item); if (e.key === 'Escape') cancelEdit() }}
+                    placeholder="0"
+                    className="flex-1 bg-transparent text-sm text-slate-200 focus:outline-none text-center tabular-nums min-w-0"
+                  />
+                </div>
+              </div>
+            </div>
+          )
           return (
             <div key={item.id} className={`flex gap-2 bg-amber-950/20 border border-amber-900/30 rounded-lg px-3 py-2 transition-opacity ${isEquipped ? '' : 'opacity-50'}`}>
               <label className="flex items-center shrink-0 mt-0.5 cursor-pointer" aria-label={isEquipped ? t('sheet.unequipItem') : t('sheet.equipItem')}>
@@ -785,7 +1105,10 @@ function SpecialItemsSection({
                 </div>
                 {item.effect && <div className="text-xs text-slate-400 mt-0.5">{item.effect}</div>}
               </div>
-              <button onClick={() => onRemove(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 mt-0.5 before:absolute before:inset-[-10px]">
+              <button onClick={() => startEdit(item)} aria-label={t('sheet.editItem')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 mt-0.5 before:absolute before:inset-[-10px]">
+                <Pencil size={12} />
+              </button>
+              <button onClick={() => setConfirmDelete({ type: 'item', id: item.id, name: item.name })} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 mt-0.5 before:absolute before:inset-[-10px]">
                 <X size={13} />
               </button>
             </div>
@@ -806,7 +1129,7 @@ function SpecialItemsSection({
               <Wallet size={14} />
             </button>
             <button
-              onClick={onToggleHerbPouch}
+              onClick={() => setConfirmDelete({ type: 'herbPouch' })}
               aria-label={t('sheet.removeItem')}
               className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
             >
@@ -876,17 +1199,43 @@ function SpecialItemsSection({
           {t('sheet.herbPouch')}
         </label>
       )}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="bg-slate-900 border border-red-900/60 rounded-xl p-6 max-w-sm w-full shadow-xl">
+            <p className="text-sm text-slate-300 mb-5">
+              {t('sheet.confirmRemove')}
+              <span className="font-semibold text-slate-100"> {confirmDelete.type === 'item' ? confirmDelete.name : t('sheet.herbPouch')}</span>
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 rounded-lg border border-slate-600 text-slate-300 hover:border-slate-500 text-sm transition-colors">
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={() => {
+                  if (confirmDelete.type === 'item') onRemove(confirmDelete.id)
+                  else onToggleHerbPouch()
+                  setConfirmDelete(null)
+                }}
+                className="px-4 py-2 rounded-lg bg-red-800 hover:bg-red-700 text-white text-sm font-medium transition-colors"
+              >
+                {t('common.confirm')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 function HerbPouchModal({
-  herbPouch, onClose, onAdd, onRemove, onUsePotion, onUseCombatPotion,
+  herbPouch, onClose, onAdd, onRemove, onUpdate, onUsePotion, onUseCombatPotion,
 }: {
   herbPouch: BackpackItem[]
   onClose: () => void
   onAdd: (item: BackpackItem) => void
   onRemove: (id: string) => void
+  onUpdate: (id: string, item: BackpackItem) => void
   onUsePotion: (id: string) => void
   onUseCombatPotion: (id: string) => void
 }) {
@@ -902,6 +1251,34 @@ function HerbPouchModal({
   const [combatPotionNotes, setCombatPotionNotes] = useState('')
   const [combatPotionCS, setCombatPotionCS] = useState(2)
   const [combatPotionConfirm, setCombatPotionConfirm] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editNotes, setEditNotes] = useState('')
+  const [editValue, setEditValue] = useState(0)
+
+  function startEdit(item: BackpackItem) {
+    setEditingId(item.id)
+    setEditName(item.name)
+    setEditNotes(item.notes ?? '')
+    setEditValue(item.epRestore ?? item.csBonus ?? 0)
+  }
+
+  function confirmEdit(item: BackpackItem) {
+    const name = editName.trim() || item.name
+    if (item.epRestore != null) {
+      onUpdate(item.id, { ...item, name, epRestore: Math.max(1, editValue), notes: editNotes.trim() || undefined })
+    } else if (item.csBonus != null) {
+      onUpdate(item.id, { ...item, name, csBonus: Math.max(1, editValue), notes: editNotes.trim() || undefined })
+    } else {
+      onUpdate(item.id, { ...item, name, notes: editNotes.trim() || undefined })
+    }
+    setEditingId(null)
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+  }
 
   const isFull = herbPouch.length >= 6
 
@@ -946,6 +1323,46 @@ function HerbPouchModal({
 
         <div className="space-y-1.5 mb-3">
           {herbPouch.map(item => {
+            if (editingId === item.id) return (
+              <div key={item.id} className="rounded-lg border border-amber-700/50 bg-slate-800/60 px-3 py-2 space-y-1.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="shrink-0">{item.epRestore ? '🧪' : item.csBonus ? '⚗️' : '🌿'}</span>
+                  <input
+                    autoFocus
+                    value={editName}
+                    onChange={e => setEditName(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') confirmEdit(item); if (e.key === 'Escape') cancelEdit() }}
+                    className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-amber-600"
+                  />
+                  {(item.epRestore != null || item.csBonus != null) && (
+                    <div className="flex items-center gap-1 shrink-0">
+                      <input
+                        type="number"
+                        value={editValue}
+                        onChange={e => setEditValue(Number(e.target.value))}
+                        onKeyDown={e => { if (e.key === 'Enter') confirmEdit(item); if (e.key === 'Escape') cancelEdit() }}
+                        min={1}
+                        className={`w-12 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-center focus:outline-none ${item.epRestore ? 'text-green-400 focus:border-blue-600' : 'text-violet-400 focus:border-violet-600'}`}
+                      />
+                      <span className="text-xs text-slate-500">{item.epRestore ? 'PE' : 'HC'}</span>
+                    </div>
+                  )}
+                  <button onClick={() => confirmEdit(item)} aria-label={t('common.confirm')} className="relative text-green-500 hover:text-green-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                    <Check size={13} />
+                  </button>
+                  <button onClick={cancelEdit} aria-label={t('common.cancel')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                    <X size={12} />
+                  </button>
+                </div>
+                <input
+                  value={editNotes}
+                  onChange={e => setEditNotes(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') confirmEdit(item); if (e.key === 'Escape') cancelEdit() }}
+                  placeholder={t('sheet.itemDescription')}
+                  className="w-full bg-slate-900/60 border border-slate-700 rounded px-2 py-1 text-xs text-slate-400 focus:outline-none focus:border-amber-600/60"
+                />
+              </div>
+            )
             if (item.epRestore) return (
               <div key={item.id} className="rounded-lg border border-blue-900/50 bg-blue-950/20 px-3 py-2">
                 <div className="flex items-center gap-2">
@@ -955,7 +1372,10 @@ function HerbPouchModal({
                   <button onClick={() => onUsePotion(item.id)} aria-label={t('sheet.usePotion')} title={t('sheet.usePotion')} className="relative text-blue-400 hover:text-green-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
                     <FlaskConical size={13} />
                   </button>
-                  <button onClick={() => onRemove(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                  <button onClick={() => startEdit(item)} aria-label={t('sheet.editItem')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                    <Pencil size={12} />
+                  </button>
+                  <button onClick={() => setConfirmDeleteId(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
                     <X size={12} />
                   </button>
                 </div>
@@ -971,7 +1391,10 @@ function HerbPouchModal({
                   <button onClick={() => setCombatPotionConfirm(item.id)} aria-label={t('sheet.useCombatPotion')} title={t('sheet.useCombatPotion')} className="relative text-violet-400 hover:text-violet-300 transition-colors shrink-0 before:absolute before:inset-[-10px]">
                     <FlaskConical size={13} />
                   </button>
-                  <button onClick={() => onRemove(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                  <button onClick={() => startEdit(item)} aria-label={t('sheet.editItem')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                    <Pencil size={12} />
+                  </button>
+                  <button onClick={() => setConfirmDeleteId(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
                     <X size={12} />
                   </button>
                 </div>
@@ -983,7 +1406,10 @@ function HerbPouchModal({
                 <div className="flex items-center gap-2">
                   <span className="shrink-0">🌿</span>
                   <span className="flex-1 text-sm text-green-100 truncate">{item.name}</span>
-                  <button onClick={() => onRemove(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                  <button onClick={() => startEdit(item)} aria-label={t('sheet.editItem')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                    <Pencil size={12} />
+                  </button>
+                  <button onClick={() => setConfirmDeleteId(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
                     <X size={12} />
                   </button>
                 </div>
@@ -1106,6 +1532,27 @@ function HerbPouchModal({
           </div>
         )}
 
+        {confirmDeleteId && (
+          <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 px-4">
+            <div className="bg-slate-900 border border-red-900/60 rounded-xl p-6 max-w-sm w-full shadow-xl">
+              <p className="text-sm text-slate-300 mb-5">
+                {t('sheet.confirmRemove')}
+                <span className="font-semibold text-slate-100"> {herbPouch.find(i => i.id === confirmDeleteId)?.name}</span>
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button onClick={() => setConfirmDeleteId(null)} className="px-4 py-2 rounded-lg border border-slate-600 text-slate-300 hover:border-slate-500 text-sm transition-colors">
+                  {t('common.cancel')}
+                </button>
+                <button
+                  onClick={() => { onRemove(confirmDeleteId); setConfirmDeleteId(null) }}
+                  className="px-4 py-2 rounded-lg bg-red-800 hover:bg-red-700 text-white text-sm font-medium transition-colors"
+                >
+                  {t('common.confirm')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         {combatPotionConfirm && (
           <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 px-4">
             <div className="bg-slate-900 border border-orange-900/60 rounded-xl p-6 max-w-sm w-full shadow-xl">

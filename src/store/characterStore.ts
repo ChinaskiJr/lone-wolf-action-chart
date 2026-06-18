@@ -38,6 +38,7 @@ interface CharacterState {
   toggleHerbPouch: () => void
   addHerbItem: (item: BackpackItem) => void
   removeHerbItem: (id: string) => void
+  updateHerbItem: (id: string, item: BackpackItem) => void
   useHerbPotion: (id: string) => void
 
   // Confiscation (inventory seized for a period, then recovered)
@@ -231,6 +232,11 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
   removeHerbItem: (id) =>
     set(updateChar(get, c => ({
       herbPouch: (c.herbPouch ?? []).filter(i => i.id !== id),
+    }))),
+
+  updateHerbItem: (id, item) =>
+    set(updateChar(get, c => ({
+      herbPouch: (c.herbPouch ?? []).map(i => i.id === id ? item : i),
     }))),
 
   useHerbPotion: (id) =>
