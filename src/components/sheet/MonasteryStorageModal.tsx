@@ -143,7 +143,12 @@ export function MonasteryStorageModal({ onDone, onSkip }: Props) {
               {invSpecialItems.length === 0
                 ? <EmptyRow label={t('sheet.monastery.noItems')} />
                 : invSpecialItems.map(item => (
-                  <ItemRow key={item.id} name={item.name} sub={item.peBonus ? `+${item.peBonus} PE` : item.hcBonus ? `+${item.hcBonus} HC` : undefined}>
+                  <ItemRow key={item.id} name={item.name} sub={
+                    (item.hcBonus != null && item.hcBonus !== 0) || (item.peBonus != null && item.peBonus !== 0) ? <>
+                      {item.hcBonus != null && item.hcBonus !== 0 && <span className="font-semibold rounded px-1 text-amber-400 bg-amber-900/40">{item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC</span>}
+                      {item.peBonus != null && item.peBonus !== 0 && <span className="font-semibold rounded px-1 text-green-400 bg-green-900/40">{item.peBonus > 0 ? '+' : ''}{item.peBonus} PE</span>}
+                    </> : undefined
+                  }>
                     <MoveButton dir="right" onClick={() => depositSpecialItem(item.id)} label={t('sheet.monastery.store')} />
                   </ItemRow>
                 ))
@@ -210,7 +215,12 @@ export function MonasteryStorageModal({ onDone, onSkip }: Props) {
               {monSpecialItems.length === 0
                 ? <EmptyRow label={t('sheet.monastery.noItems')} />
                 : monSpecialItems.map(item => (
-                  <ItemRow key={item.id} name={item.name} sub={item.peBonus ? `+${item.peBonus} PE` : item.hcBonus ? `+${item.hcBonus} HC` : undefined}>
+                  <ItemRow key={item.id} name={item.name} sub={
+                    (item.hcBonus != null && item.hcBonus !== 0) || (item.peBonus != null && item.peBonus !== 0) ? <>
+                      {item.hcBonus != null && item.hcBonus !== 0 && <span className="font-semibold rounded px-1 text-amber-400 bg-amber-900/40">{item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC</span>}
+                      {item.peBonus != null && item.peBonus !== 0 && <span className="font-semibold rounded px-1 text-green-400 bg-green-900/40">{item.peBonus > 0 ? '+' : ''}{item.peBonus} PE</span>}
+                    </> : undefined
+                  }>
                     <MoveButton dir="left" onClick={() => retrieveSpecialItem(item.id)} label={t('sheet.monastery.retrieve')} />
                   </ItemRow>
                 ))
@@ -266,12 +276,12 @@ function Section({ label, children }: { label: string; children: React.ReactNode
   )
 }
 
-function ItemRow({ name, sub, children }: { name: string; sub?: string; children: React.ReactNode }) {
+function ItemRow({ name, sub, children }: { name: string; sub?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-1 px-2 py-1.5 bg-slate-800/30 text-sm">
       <div className="flex-1 min-w-0">
         <div className="text-slate-200 truncate">{name}</div>
-        {sub && <div className="text-xs text-slate-500">{sub}</div>}
+        {sub && <div className="text-xs text-slate-500 flex gap-1 flex-wrap mt-0.5">{sub}</div>}
       </div>
       {children}
     </div>

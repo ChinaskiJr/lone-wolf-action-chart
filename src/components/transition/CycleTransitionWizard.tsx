@@ -505,7 +505,12 @@ function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t 
             {leftSpecialItems.length === 0
               ? <WizEmpty label={noItems} />
               : leftSpecialItems.map(item => (
-                <WizRow key={item.id} name={item.name}>
+                <WizRow key={item.id} name={item.name} sub={
+                  (item.hcBonus != null && item.hcBonus !== 0) || (item.peBonus != null && item.peBonus !== 0) ? <>
+                    {item.hcBonus != null && item.hcBonus !== 0 && <span className="font-semibold rounded px-1 text-amber-400 bg-amber-900/40">{item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC</span>}
+                    {item.peBonus != null && item.peBonus !== 0 && <span className="font-semibold rounded px-1 text-green-400 bg-green-900/40">{item.peBonus > 0 ? '+' : ''}{item.peBonus} PE</span>}
+                  </> : undefined
+                }>
                   <WizBtn dir="right" onClick={() => depositSpecial(item.id)} />
                 </WizRow>
               ))
@@ -558,7 +563,12 @@ function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t 
             {rightSpecialItems.length === 0
               ? <WizEmpty label={noItems} />
               : rightSpecialItems.map(item => (
-                <WizRow key={item.id} name={item.name}>
+                <WizRow key={item.id} name={item.name} sub={
+                  (item.hcBonus != null && item.hcBonus !== 0) || (item.peBonus != null && item.peBonus !== 0) ? <>
+                    {item.hcBonus != null && item.hcBonus !== 0 && <span className="font-semibold rounded px-1 text-amber-400 bg-amber-900/40">{item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC</span>}
+                    {item.peBonus != null && item.peBonus !== 0 && <span className="font-semibold rounded px-1 text-green-400 bg-green-900/40">{item.peBonus > 0 ? '+' : ''}{item.peBonus} PE</span>}
+                  </> : undefined
+                }>
                   <WizBtn dir="left" onClick={() => retrieveSpecial(item.id)} />
                 </WizRow>
               ))
@@ -607,12 +617,15 @@ function WizSection({ label, children }: { label: string; children: React.ReactN
   )
 }
 
-function WizRow({ name, badge, badgeGreen, children }: { name: string; badge?: string; badgeGreen?: boolean; children?: React.ReactNode }) {
+function WizRow({ name, badge, badgeGreen, sub, children }: { name: string; badge?: string; badgeGreen?: boolean; sub?: React.ReactNode; children?: React.ReactNode }) {
   return (
     <div className="flex items-center gap-1 px-2 py-1 bg-slate-800/30 text-xs">
-      <span className="flex-1 truncate text-slate-200">{name}</span>
+      <div className="flex-1 min-w-0">
+        <div className="truncate text-slate-200">{name}</div>
+        {sub && <div className="flex gap-1 flex-wrap mt-0.5">{sub}</div>}
+      </div>
       {badge && (
-        <span className={`text-[10px] px-1 rounded ${badgeGreen ? 'bg-green-900/40 text-green-400' : 'bg-orange-900/40 text-orange-400'}`}>
+        <span className={`text-[10px] px-1 rounded shrink-0 ${badgeGreen ? 'bg-green-900/40 text-green-400' : 'bg-orange-900/40 text-orange-400'}`}>
           {badge}
         </span>
       )}
