@@ -135,7 +135,10 @@
       "stashedItems": "Confiscated",
       "goldCappedNote": "Gold capped at {{max}}: {{lost}} lost.",
       "empty": "None",
-      "confirm": "Recover"
+      "confirm": "Recover",
+      "selectTitle": "Confiscate equipment",
+      "selectDesc": "Choose the items to be seized. The rest will remain in your inventory.",
+      "goldAmount": "Amount seized"
     },
     "bookWizard": {
       "disciplineTitle": "New Discipline",

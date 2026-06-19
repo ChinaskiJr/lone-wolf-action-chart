@@ -43,6 +43,7 @@ interface CharacterState {
 
   // Confiscation (inventory seized for a period, then recovered)
   confiscateEquipment: () => void
+  confiscateSelected: (selection: ConfiscatedEquipment) => void
   recoverEquipment: (selection: ConfiscatedEquipment) => void
 
   // Monastery (store/retrieve items at the Kai Monastery between books, book 6+)
@@ -272,6 +273,24 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
         specialItems: [],
         hasHerbPouch: false,
         herbPouch: [],
+        endurance: { ...c.endurance, current: Math.max(0, c.endurance.current - peDelta) },
+      } as Partial<Character>
+    })),
+
+  confiscateSelected: (selection) =>
+    set(updateChar(get, c => {
+      if (c.confiscated) return {}
+      const peDelta = equippedPeBonus(selection.specialItems)
+      const selBpIds = new Set(selection.backpack.map(i => i.id))
+      const selSpecIds = new Set(selection.specialItems.map(i => i.id))
+      const selWeaponNames = new Set(selection.weapons.map(w => w.name))
+      return {
+        confiscated: { ...selection },
+        weapons: c.weapons.filter(w => !selWeaponNames.has(w.name)),
+        goldCrowns: c.goldCrowns - selection.goldCrowns,
+        meals: c.meals - selection.meals,
+        backpack: c.backpack.filter(i => !selBpIds.has(i.id)),
+        specialItems: c.specialItems.filter(i => !selSpecIds.has(i.id)),
         endurance: { ...c.endurance, current: Math.max(0, c.endurance.current - peDelta) },
       } as Partial<Character>
     })),

@@ -135,7 +135,10 @@
       "stashedItems": "Confisqués",
       "goldCappedNote": "Or plafonné à {{max}} : {{lost}} perdu(s).",
       "empty": "Aucun",
-      "confirm": "Récupérer"
+      "confirm": "Récupérer",
+      "selectTitle": "Confisquer l'équipement",
+      "selectDesc": "Choisissez les objets qui seront saisis. Le reste restera dans votre inventaire.",
+      "goldAmount": "Montant saisi"
     },
     "d10": {
       "roll": "Lancer",

@@ -7,6 +7,7 @@ import { useUIStore } from '@/store/uiStore'
 import type { BackpackItem, ConfiscatedEquipment, SpecialItem, Weapon } from '@/types/game'
 import type { Character } from '@/types/character'
 import { ConfiscationRecoverModal } from './ConfiscationRecoverModal'
+import { ConfiscationSelectModal } from './ConfiscationSelectModal'
 
 // Hunting (Kai) / Huntmastery (Magnakai+) often remove the need to eat a meal.
 function characterHasHunting(char: Character): boolean {
@@ -33,10 +34,10 @@ export function EquipmentPanel() {
     setMeals,
     eatMeal,
     usePotion,
-    confiscateEquipment, recoverEquipment,
+    confiscateSelected, recoverEquipment,
   } = useCharacterStore()
   const { setCombatPotionBonus, setCombatModalOpen } = useUIStore()
-  const [confirmConfiscate, setConfirmConfiscate] = useState(false)
+  const [confiscating, setConfiscating] = useState(false)
   const [recovering, setRecovering] = useState(false)
   const [herbPouchOpen, setHerbPouchOpen] = useState(false)
   if (!character) return null
@@ -61,7 +62,7 @@ export function EquipmentPanel() {
     <div className="flex flex-col gap-6">
       <ConfiscationBar
         confiscated={character.confiscated}
-        onConfiscate={() => setConfirmConfiscate(true)}
+        onConfiscate={() => setConfiscating(true)}
         onRecover={() => setRecovering(true)}
       />
       <WeaponsSection
@@ -120,13 +121,14 @@ export function EquipmentPanel() {
         />
       )}
 
-      {confirmConfiscate && (
-        <ConfiscateConfirmModal
-          onCancel={() => setConfirmConfiscate(false)}
-          onConfirm={() => {
-            confiscateEquipment()
-            setConfirmConfiscate(false)
+      {confiscating && !character.confiscated && (
+        <ConfiscationSelectModal
+          character={character}
+          onConfirm={(selection) => {
+            confiscateSelected(selection)
+            setConfiscating(false)
           }}
+          onCancel={() => setConfiscating(false)}
         />
       )}
 
@@ -184,40 +186,6 @@ function ConfiscationBar({
         <Lock size={13} />
         {t('sheet.confiscation.button')}
       </button>
-    </div>
-  )
-}
-
-function ConfiscateConfirmModal({
-  onConfirm, onCancel,
-}: {
-  onConfirm: () => void
-  onCancel: () => void
-}) {
-  const { t } = useTranslation()
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-      <div className="bg-slate-900 border border-amber-900/60 rounded-xl p-6 max-w-sm w-full shadow-xl">
-        <div className="flex items-center gap-2 mb-4 text-amber-300">
-          <Lock size={18} />
-          <span className="font-semibold text-sm">{t('sheet.confiscation.confirmTitle')}</span>
-        </div>
-        <p className="text-sm text-slate-300 mb-5">{t('sheet.confiscation.confirmText')}</p>
-        <div className="flex gap-3 justify-end">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 rounded-lg border border-slate-600 text-slate-300 hover:border-slate-500 text-sm transition-colors"
-          >
-            {t('common.cancel')}
-          </button>
-          <button
-            onClick={onConfirm}
-            className="px-4 py-2 rounded-lg bg-amber-700 hover:bg-amber-600 text-white text-sm font-medium transition-colors"
-          >
-            {t('sheet.confiscation.confirmAction')}
-          </button>
-        </div>
-      </div>
     </div>
   )
 }
