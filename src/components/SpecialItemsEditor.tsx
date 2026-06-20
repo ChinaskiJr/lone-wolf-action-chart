@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Plus, X, Pencil, Check, Wallet } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import type { BackpackItem, SpecialItem } from '@/types/game'
+import { BonusBadge } from '@/components/ui/BonusBadge'
 
 interface Props {
   items: SpecialItem[]
@@ -184,15 +185,11 @@ export function SpecialItemsEditor({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className={`text-sm text-amber-100 font-medium transition-opacity ${isEquipped ? '' : 'opacity-50'}`}>{item.name}</span>
-                  {item.hcBonus != null && item.hcBonus !== 0 && (
-                    <span className={`text-xs font-semibold rounded px-1 transition-opacity ${isEquipped || item.hcBonusPermanent ? (item.hcBonus > 0 ? 'text-amber-400 bg-amber-900/40' : 'text-red-400 bg-red-900/40') : 'text-slate-500 bg-slate-700/40 opacity-50'}`}>
-                      {item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC{item.hcBonusPermanent ? ' ∞' : ''}
-                    </span>
+                  {item.hcBonus != null && (
+                    <BonusBadge value={item.hcBonus} kind="hc" active={isEquipped || !!item.hcBonusPermanent} permanent={!!item.hcBonusPermanent} />
                   )}
-                  {item.peBonus != null && item.peBonus !== 0 && (
-                    <span className={`text-xs font-semibold rounded px-1 transition-opacity ${isEquipped || item.peBonusPermanent ? (item.peBonus > 0 ? 'text-green-400 bg-green-900/40' : 'text-red-400 bg-red-900/40') : 'text-slate-500 bg-slate-700/40 opacity-50'}`}>
-                      {item.peBonus > 0 ? '+' : ''}{item.peBonus} PE{item.peBonusPermanent ? ' ∞' : ''}
-                    </span>
+                  {item.peBonus != null && (
+                    <BonusBadge value={item.peBonus} kind="pe" active={isEquipped || !!item.peBonusPermanent} permanent={!!item.peBonusPermanent} />
                   )}
                 </div>
                 {item.effect && <div className={`text-xs text-slate-400 mt-0.5 transition-opacity ${isEquipped ? '' : 'opacity-50'}`}>{item.effect}</div>}

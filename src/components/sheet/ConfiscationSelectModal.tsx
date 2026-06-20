@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Lock, Sword, Coins, Sparkles, Utensils, Plus, Minus } from 'lucide-react'
+import { NumberStepper } from '@/components/ui/NumberStepper'
 import type { Character } from '@/types/character'
 import type { BackpackItem, ConfiscatedEquipment, SpecialItem, Weapon } from '@/types/game'
 
@@ -152,26 +153,11 @@ export function ConfiscationSelectModal({ character, onConfirm, onCancel }: Prop
                   <div className="flex items-center gap-2 rounded-lg px-3 py-2 border border-slate-700 bg-slate-800/40">
                     <Utensils size={13} className="text-amber-400 shrink-0" />
                     <span className="flex-1 text-sm text-amber-200/90">{t('sheet.meals')}</span>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => setMeals(m => Math.max(0, m - 1))}
-                        disabled={meals <= 0}
-                        aria-label="-"
-                        className="p-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                      >
-                        <Minus size={13} />
-                      </button>
-                      <span className="text-sm text-amber-100 font-semibold tabular-nums w-6 text-center">{meals}</span>
-                      <button
-                        onClick={() => setMeals(m => Math.min(character.meals, m + 1))}
-                        disabled={meals >= character.meals}
-                        aria-label="+"
-                        className="p-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                      >
-                        <Plus size={13} />
-                      </button>
-                      <span className="text-xs text-slate-500 tabular-nums">/ {character.meals}</span>
-                    </div>
+                    <NumberStepper
+                      value={meals}
+                      max={character.meals}
+                      onChange={setMeals}
+                    />
                   </div>
                 )}
                 {character.backpack.map(item => {

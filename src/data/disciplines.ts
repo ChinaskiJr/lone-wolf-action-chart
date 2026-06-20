@@ -1,4 +1,5 @@
 import type {
+  Cycle,
   DisciplineData,
   GrandMasterDiscipline,
   KaiDiscipline,
@@ -291,3 +292,11 @@ export const MAGNAKAI_WEAPONS = [
   ...KAI_WEAPONS,
   { key: 'bow', fr: 'Arc', en: 'Bow' },
 ]
+
+/** Returns the discipline definitions for a given cycle. */
+export function getDisciplineMap(cycle: Cycle): Record<string, DisciplineData> {
+  return cycle === 'kai' ? KAI_DISCIPLINES :
+    cycle === 'magnakai' ? MAGNAKAI_DISCIPLINES :
+    cycle === 'grandmaster' ? GRAND_MASTER_DISCIPLINES :
+    NEW_ORDER_DISCIPLINES
+}

@@ -1,14 +1,12 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, Plus, BookOpen } from 'lucide-react'
+import { Check, BookOpen } from 'lucide-react'
+import { DisciplineGrid } from '@/components/disciplines/DisciplineGrid'
 import { useCharacterStore } from '@/store/characterStore'
 import {
-  KAI_DISCIPLINES,
-  MAGNAKAI_DISCIPLINES,
-  GRAND_MASTER_DISCIPLINES,
-  NEW_ORDER_DISCIPLINES,
   KAI_WEAPONS,
   MAGNAKAI_WEAPONS,
+  getDisciplineMap,
 } from '@/data/disciplines'
 import { LoreCirclesWidget } from '@/components/LoreCirclesWidget'
 
@@ -28,13 +26,7 @@ export function BookChangeDisciplineModal({ onConfirm }: Props) {
 
   if (!character) return null
 
-  const disciplineMap =
-    character.cycle === 'kai' ? KAI_DISCIPLINES :
-    character.cycle === 'magnakai' ? MAGNAKAI_DISCIPLINES :
-    character.cycle === 'grandmaster' ? GRAND_MASTER_DISCIPLINES :
-    NEW_ORDER_DISCIPLINES
-
-  const disciplines = Object.values(disciplineMap)
+  const disciplines = Object.values(getDisciplineMap(character.cycle))
   const owned = character.disciplines as string[]
   const ownedWeapons: string[] = (character as any).weaponmasteryWeapons ?? []
 
@@ -156,38 +148,12 @@ export function BookChangeDisciplineModal({ onConfirm }: Props) {
           )}
 
           {/* Discipline list */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {disciplines.map(d => {
-              const isOwned = owned.includes(d.key)
-              const isSelected = selected === d.key
-              return (
-                <div
-                  key={d.key}
-                  onClick={() => !isOwned && handleSelect(d.key)}
-                  className={`flex gap-3 rounded-lg px-3 py-2.5 border transition-colors
-                    ${isOwned
-                      ? 'border-amber-800/60 bg-amber-950/20 opacity-60 cursor-default'
-                      : isSelected
-                      ? 'border-amber-600 bg-amber-950/30 cursor-pointer'
-                      : 'border-slate-700 bg-slate-800/20 opacity-75 hover:opacity-100 hover:border-amber-700/60 hover:bg-amber-950/10 cursor-pointer'}`}
-                >
-                  <div className={`mt-0.5 w-4 h-4 shrink-0 rounded flex items-center justify-center border
-                    ${isOwned ? 'bg-amber-600 border-amber-500' : isSelected ? 'bg-amber-700 border-amber-500' : 'border-slate-600'}`}>
-                    {(isOwned || isSelected) && <Check size={10} />}
-                    {!isOwned && !isSelected && <Plus size={8} className="text-slate-400" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className={`text-sm font-medium ${isOwned ? 'text-amber-100' : isSelected ? 'text-amber-200' : 'text-slate-300'}`}>
-                      {lang === 'fr' ? d.fr : d.en}
-                    </div>
-                    <div className={`text-xs mt-0.5 ${isOwned || isSelected ? 'text-slate-400' : 'text-slate-500'}`}>
-                      {lang === 'fr' ? d.effectFr : d.effectEn}
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+          <DisciplineGrid
+            disciplines={disciplines}
+            lang={lang}
+            getState={key => owned.includes(key) ? 'owned' : selected === key ? 'selected' : 'available'}
+            onPick={handleSelect}
+          />
 
           {/* Multi-weapon selector — newly learning weaponmastery in Magnakai */}
           {needsMultiWeapon && (

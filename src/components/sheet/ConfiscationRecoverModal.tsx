@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PackageOpen, Sword, Coins, Sparkles, Utensils, Plus, Minus } from 'lucide-react'
+import { PackageOpen, Sword, Coins, Sparkles, Utensils } from 'lucide-react'
+import { NumberStepper } from '@/components/ui/NumberStepper'
 import type { Character } from '@/types/character'
 import type { BackpackItem, ConfiscatedEquipment, SpecialItem, Weapon } from '@/types/game'
 import { getBackpackMax, getGoldMax, getSpecialItemsMax } from '@/utils/character'
@@ -200,26 +201,12 @@ export function ConfiscationRecoverModal({ confiscated, current, onConfirm, onCa
                 <div className="flex items-center gap-2 rounded-lg px-3 py-2 border border-amber-900/40 bg-amber-950/20">
                   <Utensils size={13} className="text-amber-400 shrink-0" />
                   <span className="flex-1 text-sm text-amber-200/90">{t('sheet.meals')}</span>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={() => setMeals(m => Math.max(0, m - 1))}
-                      disabled={meals <= 0}
-                      aria-label="-"
-                      className="p-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <Minus size={13} />
-                    </button>
-                    <span className="text-sm text-amber-100 font-semibold tabular-nums w-6 text-center">{meals}</span>
-                    <button
-                      onClick={() => setMeals(m => Math.min(totalMeals, m + 1))}
-                      disabled={meals >= totalMeals || freeSlots <= 0}
-                      aria-label="+"
-                      className="p-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <Plus size={13} />
-                    </button>
-                    <span className="text-xs text-slate-500 tabular-nums">/ {totalMeals}</span>
-                  </div>
+                  <NumberStepper
+                    value={meals}
+                    max={totalMeals}
+                    incrementDisabled={freeSlots <= 0}
+                    onChange={setMeals}
+                  />
                 </div>
               )}
               {bpItems.length === 0 && totalMeals === 0 && <EmptyRow />}

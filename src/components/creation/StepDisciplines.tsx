@@ -3,13 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { Check } from 'lucide-react'
 import type { Character } from '@/types/character'
 import {
-  KAI_DISCIPLINES,
-  MAGNAKAI_DISCIPLINES,
-  GRAND_MASTER_DISCIPLINES,
-  NEW_ORDER_DISCIPLINES,
   KAI_WEAPONS,
-  MAGNAKAI_WEAPONS,
+  getDisciplineMap,
 } from '@/data/disciplines'
+import { WeaponmasterySelector } from '@/components/disciplines/WeaponmasterySelector'
 import type { DisciplineData } from '@/types/game'
 
 const MAX_DISCIPLINES: Record<string, number> = {
@@ -35,13 +32,7 @@ export function StepDisciplines({ character, onNext, onBack }: Props) {
   const [weaponmasteryWeapons, setWeaponmasteryWeapons] = useState<string[]>([])
   const [hoveredDiscipline, setHoveredDiscipline] = useState<DisciplineData | null>(null)
 
-  const disciplineMap: Record<string, DisciplineData> =
-    character.cycle === 'kai' ? KAI_DISCIPLINES :
-    character.cycle === 'magnakai' ? MAGNAKAI_DISCIPLINES :
-    character.cycle === 'grandmaster' ? GRAND_MASTER_DISCIPLINES :
-    NEW_ORDER_DISCIPLINES
-
-  const disciplines = Object.values(disciplineMap)
+  const disciplines = Object.values(getDisciplineMap(character.cycle))
 
   function toggle(key: string) {
     setSelected(prev =>
@@ -137,43 +128,14 @@ export function StepDisciplines({ character, onNext, onBack }: Props) {
       )}
 
       {(needsWeaponmastery || needsGrandWeaponmastery) && (
-        <div className="bg-blue-950/20 border border-blue-900/40 rounded-lg p-3 flex flex-col gap-2">
-          <label className="block text-sm font-medium text-slate-300">
-            {lang === 'fr' ? 'Armes maîtrisées' : 'Mastered weapons'}
-            {needsWeaponmastery && <span className="text-slate-500 ml-1 text-xs">{lang === 'fr' ? '(jusqu\'à 3)' : '(up to 3)'}</span>}
-          </label>
-          <div className="flex flex-wrap gap-1.5 min-h-[24px]">
-            {weaponmasteryWeapons.map(key => {
-              const w = MAGNAKAI_WEAPONS.find(ww => ww.key === key)
-              return (
-                <span key={key} className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-900/40 border border-blue-800/60 text-xs text-blue-300">
-                  {w ? (lang === 'fr' ? w.fr : w.en) : key}
-                  <button type="button" onClick={() => setWeaponmasteryWeapons(prev => prev.filter(k => k !== key))} className="text-blue-500 hover:text-blue-200 ml-0.5">×</button>
-                </span>
-              )
-            })}
-          </div>
-          {(needsWeaponmastery ? weaponmasteryWeapons.length < character.currentBook - 3 : weaponmasteryWeapons.length < 1) && (
-            <div className="flex gap-2 items-center">
-              <select
-                defaultValue=""
-                onChange={e => {
-                  const value = e.target.value
-                  if (value) {
-                    setWeaponmasteryWeapons(prev => prev.includes(value) ? prev : [...prev, value])
-                    e.target.value = ''
-                  }
-                }}
-                className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-slate-200 text-sm focus:outline-none focus:border-amber-600"
-              >
-                <option value="">— {lang === 'fr' ? 'Choisir une arme' : 'Choose a weapon'} —</option>
-                {MAGNAKAI_WEAPONS.filter(w => !weaponmasteryWeapons.includes(w.key)).map(w => (
-                  <option key={w.key} value={w.key}>{lang === 'fr' ? w.fr : w.en}</option>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
+        <WeaponmasterySelector
+          owned={weaponmasteryWeapons}
+          max={needsWeaponmastery ? character.currentBook - 3 : 1}
+          hcBonus={needsWeaponmastery ? 3 : 5}
+          lang={lang}
+          onAdd={key => setWeaponmasteryWeapons(prev => prev.includes(key) ? prev : [...prev, key])}
+          onRemove={key => setWeaponmasteryWeapons(prev => prev.filter(k => k !== key))}
+        />
       )}
 
       <div className="flex gap-3 justify-between">

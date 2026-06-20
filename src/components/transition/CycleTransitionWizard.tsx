@@ -15,14 +15,12 @@ import {
   getTotalEPMax,
 } from '@/utils/character'
 import {
-  MAGNAKAI_DISCIPLINES,
-  GRAND_MASTER_DISCIPLINES,
-  NEW_ORDER_DISCIPLINES,
   MAGNAKAI_WEAPONS,
+  getDisciplineMap,
 } from '@/data/disciplines'
 import { CARRY_OVER_SPECIAL_ITEMS, CARRY_OVER_SPECIAL_ITEMS_KAI_TO_MAGNAKAI } from '@/data/carryOverItems'
 import { LoreCirclesWidget } from '@/components/LoreCirclesWidget'
-import type { DisciplineData } from '@/types/game'
+import { DisciplineGrid } from '@/components/disciplines/DisciplineGrid'
 
 const MAX_DISCIPLINES: Record<string, number> = {
   magnakai: 3,
@@ -69,10 +67,7 @@ export function CycleTransitionWizard() {
     return null
   }
 
-  const disciplineMap: Record<string, DisciplineData> =
-    nextCycle === 'magnakai' ? MAGNAKAI_DISCIPLINES :
-    nextCycle === 'grandmaster' ? GRAND_MASTER_DISCIPLINES :
-    NEW_ORDER_DISCIPLINES
+  const disciplineMap = getDisciplineMap(nextCycle)
 
   const availableDisciplines = Object.values(disciplineMap)
   const maxD = MAX_DISCIPLINES[nextCycle]
@@ -172,30 +167,14 @@ export function CycleTransitionWizard() {
                 {selectedDisciplines.length}/{maxD}
               </span>
             </div>
-            <div className="grid grid-cols-1 gap-2 max-h-80 overflow-y-auto pr-1">
-              {availableDisciplines.map(d => {
-                const isSelected = selectedDisciplines.includes(d.key)
-                const isDisabled = !isSelected && selectedDisciplines.length >= maxD
-                return (
-                  <button
-                    key={d.key}
-                    onClick={() => !isDisabled && toggleDiscipline(d.key)}
-                    disabled={isDisabled}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-all
-                      ${isSelected ? 'border-amber-600 bg-amber-900/30 text-amber-100' :
-                        isDisabled ? 'border-slate-800 text-slate-600 cursor-not-allowed' :
-                        'border-slate-700 bg-slate-800/40 text-slate-300 hover:border-slate-500'}`}
-                  >
-                    <div className={`w-5 h-5 shrink-0 rounded flex items-center justify-center border ${isSelected ? 'bg-amber-600 border-amber-500' : 'border-slate-600'}`}>
-                      {isSelected && <Check size={12} />}
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium">{lang === 'fr' ? d.fr : d.en}</div>
-                      {isSelected && <div className="text-xs text-slate-400 mt-0.5">{lang === 'fr' ? d.effectFr : d.effectEn}</div>}
-                    </div>
-                  </button>
-                )
-              })}
+            <div className="max-h-80 overflow-y-auto pr-1">
+              <DisciplineGrid
+                disciplines={availableDisciplines}
+                lang={lang}
+                columns={1}
+                getState={key => selectedDisciplines.includes(key) ? 'selected' : selectedDisciplines.length >= maxD ? 'disabled' : 'available'}
+                onPick={toggleDiscipline}
+              />
             </div>
             {nextCycle === 'magnakai' && (
               <LoreCirclesWidget selected={selectedDisciplines} lang={lang} />

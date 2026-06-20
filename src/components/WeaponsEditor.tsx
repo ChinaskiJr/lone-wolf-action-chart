@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, X, Pencil, Check, Sword } from 'lucide-react'
 import type { Weapon } from '@/types/game'
+import { BonusBadge } from '@/components/ui/BonusBadge'
 
 interface Props {
   weapons: Weapon[]
@@ -106,11 +107,7 @@ export function WeaponsEditor({
               </label>
               <div className="w-5 h-5 shrink-0 rounded bg-amber-800/40 flex items-center justify-center text-xs text-amber-500">⚔</div>
               <span className="flex-1 text-sm text-slate-200">{w.name}</span>
-              {w.bonus != null && w.bonus !== 0 && (
-                <span className={`text-xs font-semibold rounded px-1 ${isEquipped ? 'text-amber-400 bg-amber-900/40' : 'text-slate-500 bg-slate-700/40'}`}>
-                  {w.bonus > 0 ? '+' : ''}{w.bonus} HC
-                </span>
-              )}
+              {w.bonus != null && <BonusBadge value={w.bonus} kind="hc" active={isEquipped} dimWhenInactive={false} />}
               <button onClick={() => startEdit(i, w)} aria-label={t('sheet.editItem')} className="relative text-slate-600 hover:text-slate-400 transition-colors before:absolute before:inset-[-10px]">
                 <Pencil size={12} />
               </button>

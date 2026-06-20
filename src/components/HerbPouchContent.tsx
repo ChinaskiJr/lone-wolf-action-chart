@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Plus, X, Pencil, Check, FlaskConical } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import type { BackpackItem } from '@/types/game'
+import { PotionAddForm } from '@/components/backpack/PotionAddForm'
 
 interface Props {
   herbPouch: BackpackItem[]
@@ -18,13 +19,7 @@ export function HerbPouchContent({ herbPouch, onAdd, onRemove, onUpdate, onUsePo
   const [input, setInput] = useState('')
   const [inputNotes, setInputNotes] = useState('')
   const [addingPotion, setAddingPotion] = useState(false)
-  const [potionName, setPotionName] = useState('')
-  const [potionNotes, setPotionNotes] = useState('')
-  const [potionEP, setPotionEP] = useState(5)
   const [addingCombatPotion, setAddingCombatPotion] = useState(false)
-  const [combatPotionName, setCombatPotionName] = useState('')
-  const [combatPotionNotes, setCombatPotionNotes] = useState('')
-  const [combatPotionCS, setCombatPotionCS] = useState(2)
   const [combatPotionConfirm, setCombatPotionConfirm] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -62,24 +57,6 @@ export function HerbPouchContent({ herbPouch, onAdd, onRemove, onUpdate, onUsePo
     onAdd({ id: uuidv4(), name: input.trim(), notes: inputNotes.trim() || undefined })
     setInput('')
     setInputNotes('')
-  }
-
-  function confirmAddPotion() {
-    if (isFull) return
-    onAdd({ id: uuidv4(), name: potionName.trim() || t('sheet.potion'), epRestore: potionEP, notes: potionNotes.trim() || undefined })
-    setPotionName('')
-    setPotionNotes('')
-    setPotionEP(5)
-    setAddingPotion(false)
-  }
-
-  function confirmAddCombatPotion() {
-    if (isFull) return
-    onAdd({ id: uuidv4(), name: combatPotionName.trim() || t('sheet.combatPotion'), csBonus: combatPotionCS, notes: combatPotionNotes.trim() || undefined })
-    setCombatPotionName('')
-    setCombatPotionNotes('')
-    setCombatPotionCS(2)
-    setAddingCombatPotion(false)
   }
 
   return (
@@ -190,75 +167,27 @@ export function HerbPouchContent({ herbPouch, onAdd, onRemove, onUpdate, onUsePo
       </div>
 
       {addingPotion && !isFull && (
-        <div className="mb-2 p-2.5 rounded-lg border border-blue-900/40 bg-blue-950/10 space-y-1.5">
-          <div className="flex gap-2">
-            <span className="text-lg shrink-0">🧪</span>
-            <input
-              value={potionName}
-              onChange={e => setPotionName(e.target.value)}
-              placeholder={t('sheet.potion')}
-              className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-blue-600"
-            />
-            <div className="flex items-center gap-1 shrink-0">
-              <span className="text-xs text-green-400">+</span>
-              <input
-                type="number"
-                value={potionEP}
-                onChange={e => setPotionEP(Math.max(1, Number(e.target.value)))}
-                onFocus={e => e.target.select()}
-                min={1}
-                className="w-14 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-green-400 font-bold text-center focus:outline-none focus:border-blue-600"
-              />
-              <span className="text-xs text-slate-500">PE</span>
-            </div>
-            <button onClick={confirmAddPotion} className="px-2 py-1 rounded bg-blue-700 hover:bg-blue-600 text-white text-xs font-medium transition-colors shrink-0">OK</button>
-            <button onClick={() => setAddingPotion(false)} aria-label={t('common.cancel')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
-              <X size={14} />
-            </button>
-          </div>
-          <input
-            value={potionNotes}
-            onChange={e => setPotionNotes(e.target.value)}
-            placeholder={t('sheet.itemNotes')}
-            className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-slate-400 focus:outline-none focus:border-blue-600 placeholder:text-slate-600"
-          />
-        </div>
+        <PotionAddForm
+          variant="potion"
+          withNotes
+          onConfirm={({ name, value, notes }) => {
+            onAdd({ id: uuidv4(), name, epRestore: value, notes })
+            setAddingPotion(false)
+          }}
+          onCancel={() => setAddingPotion(false)}
+        />
       )}
 
       {addingCombatPotion && !isFull && (
-        <div className="mb-2 p-2.5 rounded-lg border border-orange-900/40 bg-orange-950/10 space-y-1.5">
-          <div className="flex gap-2">
-            <span className="text-lg shrink-0">⚗️</span>
-            <input
-              value={combatPotionName}
-              onChange={e => setCombatPotionName(e.target.value)}
-              placeholder={t('sheet.combatPotion')}
-              className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-orange-600"
-            />
-            <div className="flex items-center gap-1 shrink-0">
-              <span className="text-xs text-orange-400">+</span>
-              <input
-                type="number"
-                value={combatPotionCS}
-                onChange={e => setCombatPotionCS(Math.max(1, Number(e.target.value)))}
-                onFocus={e => e.target.select()}
-                min={1}
-                className="w-14 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-orange-400 font-bold text-center focus:outline-none focus:border-orange-600"
-              />
-              <span className="text-xs text-slate-500">HC</span>
-            </div>
-            <button onClick={confirmAddCombatPotion} className="px-2 py-1 rounded bg-orange-700 hover:bg-orange-600 text-white text-xs font-medium transition-colors shrink-0">OK</button>
-            <button onClick={() => setAddingCombatPotion(false)} aria-label={t('common.cancel')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
-              <X size={14} />
-            </button>
-          </div>
-          <input
-            value={combatPotionNotes}
-            onChange={e => setCombatPotionNotes(e.target.value)}
-            placeholder={t('sheet.itemNotes')}
-            className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-slate-400 focus:outline-none focus:border-orange-600 placeholder:text-slate-600"
-          />
-        </div>
+        <PotionAddForm
+          variant="combat"
+          withNotes
+          onConfirm={({ name, value, notes }) => {
+            onAdd({ id: uuidv4(), name, csBonus: value, notes })
+            setAddingCombatPotion(false)
+          }}
+          onCancel={() => setAddingCombatPotion(false)}
+        />
       )}
 
       {!isFull && (

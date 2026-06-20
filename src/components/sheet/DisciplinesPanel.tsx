@@ -1,35 +1,24 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, Plus, Gem } from 'lucide-react'
+import { Plus, Gem } from 'lucide-react'
+import { DisciplineGrid } from '@/components/disciplines/DisciplineGrid'
+import { WeaponmasterySelector } from '@/components/disciplines/WeaponmasterySelector'
 import { useCharacterStore } from '@/store/characterStore'
 import {
-  KAI_DISCIPLINES,
   MAGNAKAI_DISCIPLINES,
-  GRAND_MASTER_DISCIPLINES,
-  NEW_ORDER_DISCIPLINES,
   KAI_WEAPONS,
-  MAGNAKAI_WEAPONS,
+  getDisciplineMap,
 } from '@/data/disciplines'
 import { BOOKS } from '@/data/books'
 import { LORE_CIRCLES, getCompletedCircles } from '@/data/loreCircles'
-import type { DisciplineData } from '@/types/game'
 
 export function DisciplinesPanel() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'fr' | 'en'
   const { character, addDiscipline, setWeaponskillWeapon, addWeaponmasteryWeapon, removeWeaponmasteryWeapon } = useCharacterStore()
-  const [pendingWeaponmastery, setPendingWeaponmastery] = useState(false)
-  const [wmWeaponChoice, setWmWeaponChoice] = useState('')
 
   if (!character) return null
 
-  const disciplineMap: Record<string, DisciplineData> =
-    character.cycle === 'kai' ? KAI_DISCIPLINES :
-    character.cycle === 'magnakai' ? MAGNAKAI_DISCIPLINES :
-    character.cycle === 'grandmaster' ? GRAND_MASTER_DISCIPLINES :
-    NEW_ORDER_DISCIPLINES
-
-  const disciplines = Object.values(disciplineMap)
+  const disciplines = Object.values(getDisciplineMap(character.cycle))
   const selected = character.disciplines as string[]
 
   const currentBook = BOOKS.find(b => b.id === character.currentBook)
@@ -74,40 +63,12 @@ export function DisciplinesPanel() {
             {selected.length} / {maxDisciplines}
           </span>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {disciplines.map(d => {
-            const isOwned = selected.includes(d.key)
-            const isClickable = canAdd && !isOwned
-            return (
-              <div
-                key={d.key}
-                onClick={() => isClickable && handlePickDiscipline(d.key)}
-                className={`flex gap-3 rounded-lg px-3 py-2.5 border transition-colors
-                  ${isOwned
-                    ? 'border-amber-800/60 bg-amber-950/20'
-                    : isClickable
-                    ? 'border-slate-700 bg-slate-800/20 opacity-75 hover:opacity-100 hover:border-amber-700/60 hover:bg-amber-950/10 cursor-pointer'
-                    : 'border-slate-800 bg-slate-800/20 opacity-50'}`}
-              >
-                <div className={`mt-0.5 w-4 h-4 shrink-0 rounded flex items-center justify-center border
-                  ${isOwned ? 'bg-amber-600 border-amber-500' : isClickable ? 'border-slate-600' : 'border-slate-700'}`}>
-                  {isOwned && <Check size={10} />}
-                  {isClickable && <Plus size={8} className="text-slate-400" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className={`text-sm font-medium ${isOwned ? 'text-amber-100' : isClickable ? 'text-slate-300' : 'text-slate-500'}`}>
-                    {lang === 'fr' ? d.fr : d.en}
-                  </div>
-                  {(isOwned || isClickable) && (
-                    <div className={`text-xs mt-0.5 ${isOwned ? 'text-slate-400' : 'text-slate-500'}`}>
-                      {lang === 'fr' ? d.effectFr : d.effectEn}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
+        <DisciplineGrid
+          disciplines={disciplines}
+          lang={lang}
+          getState={key => selected.includes(key) ? 'owned' : canAdd ? 'available' : 'disabled'}
+          onPick={handlePickDiscipline}
+        />
       </div>
 
       {/* Weaponskill weapon (Kai) */}
@@ -130,59 +91,15 @@ export function DisciplinesPanel() {
           const owned: string[] = (character as any).weaponmasteryWeapons ?? []
           const max = character.cycle === 'magnakai' ? character.currentBook - 3 : character.currentBook - 12
           const hcBonus = character.cycle === 'magnakai' ? 3 : 5
-          const canAddWeapon = owned.length < max
-          const available = MAGNAKAI_WEAPONS.filter(w => !owned.includes(w.key))
           return (
-            <div className="bg-blue-950/20 border border-blue-900/40 rounded-lg p-3 flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-400">
-                  {lang === 'fr' ? 'Armes maîtrisées' : 'Mastered weapons'}
-                  <span className="text-slate-600 ml-1">(+{hcBonus} HC {lang === 'fr' ? 'si portée' : 'if carried'})</span>
-                </span>
-                <span className="text-xs text-slate-600">{owned.length}/{max}</span>
-              </div>
-              <div className="flex flex-wrap gap-1.5 min-h-[24px]">
-                {owned.map(key => {
-                  const w = MAGNAKAI_WEAPONS.find(ww => ww.key === key)
-                  return (
-                    <span key={key} className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-900/40 border border-blue-800/60 text-xs text-blue-300">
-                      {w ? (lang === 'fr' ? w.fr : w.en) : key}
-                      <button onClick={() => removeWeaponmasteryWeapon(key)} className="text-blue-500 hover:text-blue-200 ml-0.5">×</button>
-                    </span>
-                  )
-                })}
-                {canAddWeapon && !pendingWeaponmastery && (
-                  <button onClick={() => setPendingWeaponmastery(true)} className="px-2 py-0.5 rounded-full border border-slate-700 text-xs text-slate-500 hover:text-slate-300 hover:border-slate-500 transition-colors">
-                    + {lang === 'fr' ? 'Ajouter' : 'Add'}
-                  </button>
-                )}
-              </div>
-              {pendingWeaponmastery && (
-                <div className="flex gap-2 items-center">
-                  <select
-                    value={wmWeaponChoice}
-                    onChange={e => setWmWeaponChoice(e.target.value)}
-                    className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs focus:outline-none focus:border-amber-600"
-                  >
-                    <option value="">— {lang === 'fr' ? 'Choisir' : 'Choose'} —</option>
-                    {available.map(w => <option key={w.key} value={w.key}>{lang === 'fr' ? w.fr : w.en}</option>)}
-                  </select>
-                  <button
-                    onClick={() => { if (wmWeaponChoice) { addWeaponmasteryWeapon(wmWeaponChoice); setPendingWeaponmastery(false); setWmWeaponChoice('') } }}
-                    disabled={!wmWeaponChoice}
-                    className="px-2 py-1 text-xs bg-amber-600 hover:bg-amber-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded transition-colors"
-                  >
-                    OK
-                  </button>
-                  <button
-                    onClick={() => { setPendingWeaponmastery(false); setWmWeaponChoice('') }}
-                    className="px-2 py-1 text-xs border border-slate-700 text-slate-400 hover:text-slate-200 rounded transition-colors"
-                  >
-                    ×
-                  </button>
-                </div>
-              )}
-            </div>
+            <WeaponmasterySelector
+              owned={owned}
+              max={max}
+              hcBonus={hcBonus}
+              lang={lang}
+              onAdd={addWeaponmasteryWeapon}
+              onRemove={removeWeaponmasteryWeapon}
+            />
           )
         })()
       }
