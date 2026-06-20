@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Archive, ChevronRight, ChevronLeft } from 'lucide-react'
+import { Archive, ChevronRight, ChevronLeft, X } from 'lucide-react'
 import { useCharacterStore } from '@/store/characterStore'
 import type { BackpackItem, MonasteryStorage, SpecialItem, Weapon } from '@/types/game'
 
@@ -72,6 +72,13 @@ export function MonasteryStorageModal({ onDone, onSkip }: Props) {
     setInvSpecialItems(prev => [...prev, item])
   }
 
+  function deleteInvWeapon(idx: number) { setInvWeapons(prev => prev.filter((_, i) => i !== idx)) }
+  function deleteMonWeapon(idx: number) { setMonWeapons(prev => prev.filter((_, i) => i !== idx)) }
+  function deleteInvBackpackItem(id: string) { setInvBackpack(prev => prev.filter(i => i.id !== id)) }
+  function deleteMonBackpackItem(id: string) { setMonBackpack(prev => prev.filter(i => i.id !== id)) }
+  function deleteInvSpecialItem(id: string) { setInvSpecialItems(prev => prev.filter(i => i.id !== id)) }
+  function deleteMonSpecialItem(id: string) { setMonSpecialItems(prev => prev.filter(i => i.id !== id)) }
+
   function handleInvGoldChange(val: number) {
     const clamped = Math.max(0, Math.min(totalGold, val))
     setInvGold(clamped)
@@ -121,6 +128,7 @@ export function MonasteryStorageModal({ onDone, onSkip }: Props) {
                 : invWeapons.map((w, i) => (
                   <ItemRow key={i} name={w.name} sub={w.bonus ? `+${w.bonus} HC` : undefined}>
                     <MoveButton dir="right" onClick={() => depositWeapon(i)} label={t('sheet.monastery.store')} />
+                    <DeleteButton onClick={() => deleteInvWeapon(i)} label={t('sheet.removeItem')} />
                   </ItemRow>
                 ))
               }
@@ -133,6 +141,7 @@ export function MonasteryStorageModal({ onDone, onSkip }: Props) {
                 : invBackpack.map(item => (
                   <ItemRow key={item.id} name={item.name} sub={item.slots === 2 ? t('sheet.twoSlots') : undefined}>
                     <MoveButton dir="right" onClick={() => depositBackpackItem(item.id)} label={t('sheet.monastery.store')} />
+                    <DeleteButton onClick={() => deleteInvBackpackItem(item.id)} label={t('sheet.removeItem')} />
                   </ItemRow>
                 ))
               }
@@ -150,6 +159,7 @@ export function MonasteryStorageModal({ onDone, onSkip }: Props) {
                     </> : undefined
                   }>
                     <MoveButton dir="right" onClick={() => depositSpecialItem(item.id)} label={t('sheet.monastery.store')} />
+                    <DeleteButton onClick={() => deleteInvSpecialItem(item.id)} label={t('sheet.removeItem')} />
                   </ItemRow>
                 ))
               }
@@ -184,6 +194,7 @@ export function MonasteryStorageModal({ onDone, onSkip }: Props) {
                 : monWeapons.map((w, i) => (
                   <ItemRow key={i} name={w.name} sub={w.bonus ? `+${w.bonus} HC` : undefined}>
                     <MoveButton dir="left" onClick={() => retrieveWeapon(i)} label={t('sheet.monastery.retrieve')} />
+                    <DeleteButton onClick={() => deleteMonWeapon(i)} label={t('sheet.removeItem')} />
                   </ItemRow>
                 ))
               }
@@ -204,6 +215,7 @@ export function MonasteryStorageModal({ onDone, onSkip }: Props) {
                         disabled={wouldExceed}
                         disabledLabel={t('sheet.monastery.inventoryFull')}
                       />
+                      <DeleteButton onClick={() => deleteMonBackpackItem(item.id)} label={t('sheet.removeItem')} />
                     </ItemRow>
                   )
                 })
@@ -222,6 +234,7 @@ export function MonasteryStorageModal({ onDone, onSkip }: Props) {
                     </> : undefined
                   }>
                     <MoveButton dir="left" onClick={() => retrieveSpecialItem(item.id)} label={t('sheet.monastery.retrieve')} />
+                    <DeleteButton onClick={() => deleteMonSpecialItem(item.id)} label={t('sheet.removeItem')} />
                   </ItemRow>
                 ))
               }
@@ -302,6 +315,19 @@ interface MoveButtonProps {
   label: string
   disabled?: boolean
   disabledLabel?: string
+}
+
+function DeleteButton({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <button
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      className="relative text-slate-600 hover:text-red-400 transition-colors p-0.5 rounded hover:bg-red-900/20 before:absolute before:inset-[-6px]"
+    >
+      <X size={12} />
+    </button>
+  )
 }
 
 function MoveButton({ dir, onClick, label, disabled, disabledLabel }: MoveButtonProps) {
