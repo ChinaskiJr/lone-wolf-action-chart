@@ -109,6 +109,7 @@
     "total": "Total",
     "hcBonusItem": "+HC",
     "peBonusItem": "+PE",
+    "permanentBonus": "Permanent",
     "itemDescription": "Description (optionnel)",
     "twoSlots": "2 emplacements",
     "quiver": "Carquois",
@@ -241,7 +242,8 @@
     "useNewFormula": "Utiliser la nouvelle formule (R10+{{bonus}})",
     "proceed": "Continuer vers le cycle suivant",
     "masteredWeapons": "Armes maîtrisées",
-    "masteredWeaponsDesc": "Choisissez jusqu'à 3 types d'armes. Vous gagnerez +3 HC quand vous portez une arme maîtrisée."
+    "masteredWeaponsDesc": "Choisissez jusqu'à 3 types d'armes. Vous gagnerez +3 HC quand vous portez une arme maîtrisée.",
+    "equipmentStep": "Équipement de départ"
   },
   "common": {
     "save": "Sauvegarder",

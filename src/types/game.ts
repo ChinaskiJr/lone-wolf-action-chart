@@ -21,7 +21,9 @@ export interface SpecialItem {
   name: string
   effect?: string
   hcBonus?: number
+  hcBonusPermanent?: boolean  // if true, bonus applies even when not equipped
   peBonus?: number
+  peBonusPermanent?: boolean  // if true, bonus applies even when not equipped
   equipped?: boolean   // undefined = équipé (rétrocompat sauvegardes existantes)
 }
 
@@ -42,6 +44,10 @@ export interface MonasteryStorage {
   goldCrowns: number
   backpack: BackpackItem[]
   specialItems: SpecialItem[]
+  hasQuiver?: boolean
+  arrows?: number
+  hasHerbPouch?: boolean
+  herbPouch?: BackpackItem[]
 }
 
 // --- Kai ---

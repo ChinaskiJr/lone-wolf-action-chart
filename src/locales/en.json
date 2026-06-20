@@ -109,6 +109,7 @@
     "total": "Total",
     "hcBonusItem": "+CS",
     "peBonusItem": "+EP",
+    "permanentBonus": "Permanent",
     "itemDescription": "Description (optional)",
     "twoSlots": "2 slots",
     "quiver": "Quiver",
@@ -241,7 +242,8 @@
     "useNewFormula": "Use new formula (R10+{{bonus}})",
     "proceed": "Continue to next cycle",
     "masteredWeapons": "Mastered weapons",
-    "masteredWeaponsDesc": "Choose up to 3 weapon types. You gain +3 CS when carrying a mastered weapon."
+    "masteredWeaponsDesc": "Choose up to 3 weapon types. You gain +3 CS when carrying a mastered weapon.",
+    "equipmentStep": "Starting equipment"
   },
   "common": {
     "save": "Save",

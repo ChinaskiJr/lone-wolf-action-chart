@@ -6,6 +6,7 @@ import { useCharacterStore } from '@/store/characterStore'
 import { useSavesStore } from '@/store/savesStore'
 import type { Character, MagnakaiCharacter } from '@/types/character'
 import type { MonasteryStorage, SpecialItem, Weapon, BackpackItem } from '@/types/game'
+import { BookEquipmentStep, type BookEquipmentSnapshot } from '@/components/BookEquipmentStep'
 import {
   createNewMagnakaiCharacter,
   createNewGrandMasterCharacter,
@@ -38,7 +39,7 @@ export function CycleTransitionWizard() {
   const { getSave, updateSave } = useSavesStore()
 
   const source = character ?? (id ? getSave(id) : null)
-  const [step, setStep] = useState<'intro' | 'disciplines' | 'weapons' | 'items' | 'monastery' | 'done'>('intro')
+  const [step, setStep] = useState<'intro' | 'disciplines' | 'weapons' | 'monastery' | 'equipment' | 'items' | 'done'>('intro')
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([])
   const [selectedWeapons, setSelectedWeapons] = useState<string[]>([])
   const [selectedCarryOverItems, setSelectedCarryOverItems] = useState<string[]>([])
@@ -47,6 +48,11 @@ export function CycleTransitionWizard() {
   const [wizPendingWeapons, setWizPendingWeapons] = useState<Weapon[] | null>(null)
   const [wizPendingBackpack, setWizPendingBackpack] = useState<BackpackItem[] | null>(null)
   const [wizPendingGold, setWizPendingGold] = useState<number | null>(null)
+  const [wizPendingHasQuiver, setWizPendingHasQuiver] = useState<boolean | null>(null)
+  const [wizPendingArrows, setWizPendingArrows] = useState<number | null>(null)
+  const [wizPendingHasHerbPouch, setWizPendingHasHerbPouch] = useState<boolean | null>(null)
+  const [wizPendingHerbPouch, setWizPendingHerbPouch] = useState<BackpackItem[] | null>(null)
+  const [wizPendingMeals, setWizPendingMeals] = useState<number | null>(null)
 
   if (!source) {
     navigate('/')
@@ -95,7 +101,10 @@ export function CycleTransitionWizard() {
       ...(wizPendingWeapons !== null ? { weapons: wizPendingWeapons } : {}),
       ...(wizPendingBackpack !== null ? { backpack: wizPendingBackpack } : {}),
       ...(wizPendingGold !== null ? { goldCrowns: Math.max(0, Math.min(50, wizPendingGold)) } : {}),
-    }
+      ...(wizPendingHasQuiver !== null ? { hasQuiver: wizPendingHasQuiver, arrows: wizPendingArrows ?? 0 } : {}),
+      ...(wizPendingHasHerbPouch !== null ? { hasHerbPouch: wizPendingHasHerbPouch, herbPouch: wizPendingHerbPouch ?? [] } : {}),
+      ...(wizPendingMeals !== null ? { meals: wizPendingMeals } : {}),
+    } as T
   }
 
   function buildTransitionedChar(): Character {
@@ -260,6 +269,40 @@ export function CycleTransitionWizard() {
           </div>
         )}
 
+        {step === 'equipment' && (
+          <div className="flex flex-col gap-5">
+            <h2 className="text-xl font-serif font-semibold text-amber-100">{t('transition.equipmentStep')}</h2>
+            <BookEquipmentStep
+              initial={{
+                weapons: wizPendingWeapons ?? source.weapons,
+                backpack: wizPendingBackpack ?? source.backpack,
+                meals: wizPendingMeals ?? (source as any).meals ?? 0,
+                goldCrowns: wizPendingGold ?? source.goldCrowns,
+                specialItems: wizLeftSpecialItems ?? sourceSpecialItems,
+                hasQuiver: wizPendingHasQuiver ?? (source.hasQuiver ?? false),
+                arrows: wizPendingArrows ?? (source.arrows ?? 0),
+                hasHerbPouch: wizPendingHasHerbPouch ?? (source.hasHerbPouch ?? false),
+                herbPouch: wizPendingHerbPouch ?? (source.herbPouch ?? []),
+              } satisfies BookEquipmentSnapshot}
+              maxBackpackSlots={nextCycle === 'magnakai' ? 8 : 10}
+              cycle={nextCycle}
+              onBack={() => setStep('monastery')}
+              onConfirm={(result) => {
+                setWizPendingWeapons(result.weapons)
+                setWizPendingBackpack(result.backpack)
+                setWizPendingMeals(result.meals)
+                setWizPendingGold(result.goldCrowns)
+                setWizLeftSpecialItems(result.specialItems)
+                setWizPendingHasQuiver(result.hasQuiver)
+                setWizPendingArrows(result.arrows)
+                setWizPendingHasHerbPouch(result.hasHerbPouch)
+                setWizPendingHerbPouch(result.herbPouch)
+                setStep(needsItemsStep && result.specialItems.length > 0 ? 'items' : 'done')
+              }}
+            />
+          </div>
+        )}
+
         {step === 'items' && needsItemsStep && (
           <div className="flex flex-col gap-5">
             <div className="flex items-center justify-between">
@@ -316,7 +359,7 @@ export function CycleTransitionWizard() {
             </div>
 
             <div className="flex gap-3 justify-between">
-              <button onClick={() => setStep('monastery')} className="px-5 py-2 rounded border border-slate-700 text-slate-400 text-sm hover:text-slate-200 transition-colors">
+              <button onClick={() => setStep('equipment')} className="px-5 py-2 rounded border border-slate-700 text-slate-400 text-sm hover:text-slate-200 transition-colors">
                 {t('creation.back')}
               </button>
               <button
@@ -339,8 +382,12 @@ export function CycleTransitionWizard() {
               setWizPendingWeapons(result.pendingWeapons)
               setWizPendingBackpack(result.pendingBackpack)
               setWizPendingGold(result.pendingGold)
+              setWizPendingHasQuiver(result.pendingHasQuiver)
+              setWizPendingArrows(result.pendingArrows)
+              setWizPendingHasHerbPouch(result.pendingHasHerbPouch)
+              setWizPendingHerbPouch(result.pendingHerbPouch)
               setWizMonastery(result.monastery)
-              setStep(needsItemsStep && result.leftSpecialItems.length > 0 ? 'items' : 'done')
+              setStep('equipment')
             }}
             onBack={() => {
               if (needsWeaponsStep) setStep('weapons')
@@ -375,11 +422,24 @@ interface MonasteryStepResult {
   pendingWeapons: Weapon[]
   pendingBackpack: BackpackItem[]
   pendingGold: number
+  pendingHasQuiver: boolean
+  pendingArrows: number
+  pendingHasHerbPouch: boolean
+  pendingHerbPouch: BackpackItem[]
   monastery: MonasteryStorage
 }
 
 interface MonasteryStepProps {
-  source: { weapons: Weapon[]; backpack: BackpackItem[]; goldCrowns: number; monastery?: MonasteryStorage }
+  source: {
+    weapons: Weapon[]
+    backpack: BackpackItem[]
+    goldCrowns: number
+    monastery?: MonasteryStorage
+    hasQuiver?: boolean
+    arrows?: number
+    hasHerbPouch?: boolean
+    herbPouch?: BackpackItem[]
+  }
   sourceSpecialItems: SpecialItem[]
   lang: 'fr' | 'en'
   onConfirm: (result: MonasteryStepResult) => void
@@ -395,11 +455,19 @@ function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t 
   const [leftBackpack, setLeftBackpack] = useState<BackpackItem[]>(source.backpack)
   const [leftSpecialItems, setLeftSpecialItems] = useState<SpecialItem[]>(sourceSpecialItems)
   const [leftGold, setLeftGold] = useState(source.goldCrowns)
+  const [leftHasQuiver, setLeftHasQuiver] = useState(source.hasQuiver ?? false)
+  const [leftArrows, setLeftArrows] = useState(source.arrows ?? 0)
+  const [leftHasHerbPouch, setLeftHasHerbPouch] = useState(source.hasHerbPouch ?? false)
+  const [leftHerbPouch, setLeftHerbPouch] = useState<BackpackItem[]>(source.herbPouch ?? [])
 
   const [rightWeapons, setRightWeapons] = useState<Weapon[]>(existing.weapons)
   const [rightBackpack, setRightBackpack] = useState<BackpackItem[]>(existing.backpack)
   const [rightSpecialItems, setRightSpecialItems] = useState<SpecialItem[]>(existing.specialItems)
   const [rightGold, setRightGold] = useState(existing.goldCrowns)
+  const [rightHasQuiver, setRightHasQuiver] = useState(existing.hasQuiver ?? false)
+  const [rightArrows, setRightArrows] = useState(existing.arrows ?? 0)
+  const [rightHasHerbPouch, setRightHasHerbPouch] = useState(existing.hasHerbPouch ?? false)
+  const [rightHerbPouch, setRightHerbPouch] = useState<BackpackItem[]>(existing.herbPouch ?? [])
 
   // lang is used for item display if needed in future
   void lang
@@ -440,6 +508,26 @@ function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t 
     setLeftSpecialItems(prev => [...prev, item])
   }
 
+  function depositQuiver() {
+    setLeftHasQuiver(false); setLeftArrows(0)
+    setRightHasQuiver(true); setRightArrows(leftArrows)
+  }
+
+  function retrieveQuiver() {
+    setRightHasQuiver(false); setRightArrows(0)
+    setLeftHasQuiver(true); setLeftArrows(rightArrows)
+  }
+
+  function depositHerbPouch() {
+    setLeftHasHerbPouch(false); setLeftHerbPouch([])
+    setRightHasHerbPouch(true); setRightHerbPouch(leftHerbPouch)
+  }
+
+  function retrieveHerbPouch() {
+    setRightHasHerbPouch(false); setRightHerbPouch([])
+    setLeftHasHerbPouch(true); setLeftHerbPouch(rightHerbPouch)
+  }
+
   function handleLeftGold(val: number) {
     const c = Math.max(0, Math.min(totalGold, val))
     setLeftGold(c)
@@ -458,7 +546,20 @@ function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t 
       pendingWeapons: leftWeapons,
       pendingBackpack: leftBackpack,
       pendingGold: leftGold,
-      monastery: { weapons: rightWeapons, goldCrowns: rightGold, backpack: rightBackpack, specialItems: rightSpecialItems },
+      pendingHasQuiver: leftHasQuiver,
+      pendingArrows: leftArrows,
+      pendingHasHerbPouch: leftHasHerbPouch,
+      pendingHerbPouch: leftHerbPouch,
+      monastery: {
+        weapons: rightWeapons,
+        goldCrowns: rightGold,
+        backpack: rightBackpack,
+        specialItems: rightSpecialItems,
+        hasQuiver: rightHasQuiver || undefined,
+        arrows: rightHasQuiver ? rightArrows : undefined,
+        hasHerbPouch: rightHasHerbPouch || undefined,
+        herbPouch: rightHasHerbPouch ? rightHerbPouch : undefined,
+      },
     })
   }
 
@@ -480,14 +581,32 @@ function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t 
           <div className="text-xs font-semibold text-slate-400 uppercase">{t('sheet.monastery.yourEquipment')}</div>
 
           <WizSection label={t('sheet.weapons')}>
-            {leftWeapons.length === 0
-              ? <WizEmpty label={noItems} />
-              : leftWeapons.map((w, i) => (
-                <WizRow key={i} name={w.name} badge={t('sheet.monastery.willCarryOver')} badgeGreen>
-                  <WizBtn dir="right" onClick={() => depositWeapon(i)} />
-                </WizRow>
-              ))
-            }
+            {leftWeapons.length === 0 && <WizEmpty label={noItems} />}
+            {leftWeapons.map((w, i) => (
+              <WizRow key={i} name={w.name} badge={t('sheet.monastery.willCarryOver')} badgeGreen>
+                <WizBtn dir="right" onClick={() => depositWeapon(i)} />
+              </WizRow>
+            ))}
+            <div className="flex items-center gap-1 px-2 py-1 bg-slate-800/30 text-xs">
+              <label className="flex items-center gap-1.5 cursor-pointer select-none flex-1 min-w-0">
+                <input
+                  type="checkbox"
+                  checked={leftHasQuiver}
+                  onChange={e => { setLeftHasQuiver(e.target.checked); if (!e.target.checked) setLeftArrows(0) }}
+                  className="accent-amber-600 w-3 h-3 shrink-0"
+                />
+                <span className="text-slate-200 truncate">{t('sheet.quiver')}</span>
+              </label>
+              {leftHasQuiver && (
+                <>
+                  <button onClick={() => setLeftArrows(Math.max(0, leftArrows - 1))} className="w-4 h-4 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 flex items-center justify-center shrink-0">−</button>
+                  <span className="tabular-nums w-5 text-center text-slate-200 shrink-0">{leftArrows}</span>
+                  <button onClick={() => setLeftArrows(leftArrows + 1)} className="w-4 h-4 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 flex items-center justify-center shrink-0">+</button>
+                  <span className="text-slate-500 shrink-0">{t('sheet.arrows')}</span>
+                  <WizBtn dir="right" onClick={depositQuiver} />
+                </>
+              )}
+            </div>
           </WizSection>
 
           <WizSection label={t('sheet.backpack')}>
@@ -502,19 +621,30 @@ function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t 
           </WizSection>
 
           <WizSection label={t('sheet.specialItems')}>
-            {leftSpecialItems.length === 0
-              ? <WizEmpty label={noItems} />
-              : leftSpecialItems.map(item => (
-                <WizRow key={item.id} name={item.name} sub={
-                  (item.hcBonus != null && item.hcBonus !== 0) || (item.peBonus != null && item.peBonus !== 0) ? <>
-                    {item.hcBonus != null && item.hcBonus !== 0 && <span className="font-semibold rounded px-1 text-amber-400 bg-amber-900/40">{item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC</span>}
-                    {item.peBonus != null && item.peBonus !== 0 && <span className="font-semibold rounded px-1 text-green-400 bg-green-900/40">{item.peBonus > 0 ? '+' : ''}{item.peBonus} PE</span>}
-                  </> : undefined
-                }>
-                  <WizBtn dir="right" onClick={() => depositSpecial(item.id)} />
-                </WizRow>
-              ))
-            }
+            {leftSpecialItems.length === 0 && <WizEmpty label={noItems} />}
+            {leftSpecialItems.map(item => (
+              <WizRow key={item.id} name={item.name} sub={
+                (item.hcBonus != null && item.hcBonus !== 0) || (item.peBonus != null && item.peBonus !== 0) ? <>
+                  {item.hcBonus != null && item.hcBonus !== 0 && <span className="font-semibold rounded px-1 text-amber-400 bg-amber-900/40">{item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC</span>}
+                  {item.peBonus != null && item.peBonus !== 0 && <span className="font-semibold rounded px-1 text-green-400 bg-green-900/40">{item.peBonus > 0 ? '+' : ''}{item.peBonus} PE</span>}
+                </> : undefined
+              }>
+                <WizBtn dir="right" onClick={() => depositSpecial(item.id)} />
+              </WizRow>
+            ))}
+            <div className="flex items-center gap-1 px-2 py-1 bg-slate-800/30 text-xs">
+              <label className="flex items-center gap-1.5 cursor-pointer select-none flex-1 min-w-0">
+                <input
+                  type="checkbox"
+                  checked={leftHasHerbPouch}
+                  onChange={e => { setLeftHasHerbPouch(e.target.checked); if (!e.target.checked) setLeftHerbPouch([]) }}
+                  className="accent-green-600 w-3 h-3 shrink-0"
+                />
+                <span className="text-slate-200 truncate">{t('sheet.herbPouch')}</span>
+                {leftHasHerbPouch && <span className="text-slate-500 ml-1 shrink-0">({leftHerbPouch.length}/6)</span>}
+              </label>
+              {leftHasHerbPouch && <WizBtn dir="right" onClick={depositHerbPouch} />}
+            </div>
           </WizSection>
 
           <WizSection label={t('sheet.goldCrowns')}>
@@ -538,13 +668,20 @@ function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t 
           <div className="text-xs font-semibold text-amber-600/80 uppercase">{t('sheet.monastery.stored')}</div>
 
           <WizSection label={t('sheet.weapons')}>
-            {rightWeapons.length === 0
+            {rightWeapons.length === 0 && !rightHasQuiver
               ? <WizEmpty label={noItems} />
-              : rightWeapons.map((w, i) => (
-                <WizRow key={i} name={w.name}>
-                  <WizBtn dir="left" onClick={() => retrieveWeapon(i)} />
-                </WizRow>
-              ))
+              : <>
+                {rightWeapons.map((w, i) => (
+                  <WizRow key={i} name={w.name}>
+                    <WizBtn dir="left" onClick={() => retrieveWeapon(i)} />
+                  </WizRow>
+                ))}
+                {rightHasQuiver && (
+                  <WizRow name={`${t('sheet.quiver')} (${rightArrows} ${t('sheet.arrows')})`}>
+                    <WizBtn dir="left" onClick={retrieveQuiver} />
+                  </WizRow>
+                )}
+              </>
             }
           </WizSection>
 
@@ -560,18 +697,25 @@ function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t 
           </WizSection>
 
           <WizSection label={t('sheet.specialItems')}>
-            {rightSpecialItems.length === 0
+            {rightSpecialItems.length === 0 && !rightHasHerbPouch
               ? <WizEmpty label={noItems} />
-              : rightSpecialItems.map(item => (
-                <WizRow key={item.id} name={item.name} sub={
-                  (item.hcBonus != null && item.hcBonus !== 0) || (item.peBonus != null && item.peBonus !== 0) ? <>
-                    {item.hcBonus != null && item.hcBonus !== 0 && <span className="font-semibold rounded px-1 text-amber-400 bg-amber-900/40">{item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC</span>}
-                    {item.peBonus != null && item.peBonus !== 0 && <span className="font-semibold rounded px-1 text-green-400 bg-green-900/40">{item.peBonus > 0 ? '+' : ''}{item.peBonus} PE</span>}
-                  </> : undefined
-                }>
-                  <WizBtn dir="left" onClick={() => retrieveSpecial(item.id)} />
-                </WizRow>
-              ))
+              : <>
+                {rightSpecialItems.map(item => (
+                  <WizRow key={item.id} name={item.name} sub={
+                    (item.hcBonus != null && item.hcBonus !== 0) || (item.peBonus != null && item.peBonus !== 0) ? <>
+                      {item.hcBonus != null && item.hcBonus !== 0 && <span className="font-semibold rounded px-1 text-amber-400 bg-amber-900/40">{item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC</span>}
+                      {item.peBonus != null && item.peBonus !== 0 && <span className="font-semibold rounded px-1 text-green-400 bg-green-900/40">{item.peBonus > 0 ? '+' : ''}{item.peBonus} PE</span>}
+                    </> : undefined
+                  }>
+                    <WizBtn dir="left" onClick={() => retrieveSpecial(item.id)} />
+                  </WizRow>
+                ))}
+                {rightHasHerbPouch && (
+                  <WizRow name={`${t('sheet.herbPouch')} (${rightHerbPouch.length}/6)`}>
+                    <WizBtn dir="left" onClick={retrieveHerbPouch} />
+                  </WizRow>
+                )}
+              </>
             }
           </WizSection>
 

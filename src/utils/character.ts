@@ -17,7 +17,11 @@ export function rollEndurance(cycle: Cycle): number {
 
 export function getTotalCS(char: Character): number {
   const base = char.combatSkill.base + char.combatSkill.bonus
-  const itemsHC = char.specialItems.filter(i => i.equipped !== false).reduce((sum, i) => sum + (i.hcBonus ?? 0), 0)
+  const itemsHC = char.specialItems.reduce((sum, i) => {
+    if (i.hcBonus == null || i.hcBonus === 0) return sum
+    if (i.equipped === false && !i.hcBonusPermanent) return sum
+    return sum + i.hcBonus
+  }, 0)
   const weaponsHC = char.weapons.filter(w => w.equipped !== false).reduce((sum, w) => sum + (w.bonus ?? 0), 0)
   if (char.cycle === 'magnakai') {
     const { bonusCS } = computeLoreCircleBonuses(char.disciplines)
@@ -36,7 +40,11 @@ export function getTotalCS(char: Character): number {
 
 export function getTotalEPMax(char: Character): number {
   const base = char.endurance.max
-  const itemsPE = char.specialItems.filter(i => i.equipped !== false).reduce((sum, i) => sum + (i.peBonus ?? 0), 0)
+  const itemsPE = char.specialItems.reduce((sum, i) => {
+    if (i.peBonus == null || i.peBonus === 0) return sum
+    if (i.equipped === false && !i.peBonusPermanent) return sum
+    return sum + i.peBonus
+  }, 0)
   if (char.cycle === 'magnakai') {
     const { bonusEP } = computeLoreCircleBonuses(char.disciplines)
     return base + bonusEP + itemsPE
@@ -164,7 +172,11 @@ export function canIgnite(char: Character): boolean {
 }
 
 export function getItemsCSBonus(char: Character): number {
-  return char.specialItems.filter(i => i.equipped !== false).reduce((sum, i) => sum + (i.hcBonus ?? 0), 0)
+  return char.specialItems.reduce((sum, i) => {
+    if (i.hcBonus == null || i.hcBonus === 0) return sum
+    if (i.equipped === false && !i.hcBonusPermanent) return sum
+    return sum + i.hcBonus
+  }, 0)
 }
 
 export function getWeaponsCSBonus(char: Character): number {
@@ -172,7 +184,11 @@ export function getWeaponsCSBonus(char: Character): number {
 }
 
 export function getItemsEPBonus(char: Character): number {
-  return char.specialItems.filter(i => i.equipped !== false).reduce((sum, i) => sum + (i.peBonus ?? 0), 0)
+  return char.specialItems.reduce((sum, i) => {
+    if (i.peBonus == null || i.peBonus === 0) return sum
+    if (i.equipped === false && !i.peBonusPermanent) return sum
+    return sum + i.peBonus
+  }, 0)
 }
 
 export function computeRank(char: Character): string {
