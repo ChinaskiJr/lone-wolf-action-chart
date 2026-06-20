@@ -11,8 +11,8 @@ interface Props {
   onBackpackChange: (items: BackpackItem[]) => void
   meals: number
   onMealsChange: (count: number) => void
-  specialItems: SpecialItem[]
-  onSpecialItemsChange: (items: SpecialItem[]) => void
+  specialItems?: SpecialItem[]
+  onSpecialItemsChange?: (items: SpecialItem[]) => void
   maxBackpackSlots: number
   gold?: number
   onGoldChange?: (amount: number) => void
@@ -22,7 +22,7 @@ export function EquipmentFields({
   weapons, onWeaponsChange,
   backpack, onBackpackChange,
   meals, onMealsChange,
-  specialItems, onSpecialItemsChange,
+  specialItems = [], onSpecialItemsChange,
   maxBackpackSlots,
   gold, onGoldChange,
 }: Props) {
@@ -47,7 +47,9 @@ export function EquipmentFields({
   const [newSpecialItem, setNewSpecialItem] = useState('')
   const [newSpecialItemEffect, setNewSpecialItemEffect] = useState('')
   const [newSpecialItemHC, setNewSpecialItemHC] = useState('')
+  const [newSpecialItemHCPermanent, setNewSpecialItemHCPermanent] = useState(false)
   const [newSpecialItemPE, setNewSpecialItemPE] = useState('')
+  const [newSpecialItemPEPermanent, setNewSpecialItemPEPermanent] = useState(false)
 
   const usedSlots = backpack.reduce((s, i) => s + (i.slots ?? 1), 0) + meals
   const isFull = usedSlots >= maxBackpackSlots
@@ -102,7 +104,7 @@ export function EquipmentFields({
   }
 
   function addSpecialItem() {
-    if (!newSpecialItem.trim() || specialItems.length >= 12) return
+    if (!newSpecialItem.trim() || specialItems.length >= 12 || !onSpecialItemsChange) return
     const hc = parseInt(newSpecialItemHC) || undefined
     const pe = parseInt(newSpecialItemPE) || undefined
     onSpecialItemsChange([...specialItems, {
@@ -110,15 +112,20 @@ export function EquipmentFields({
       name: newSpecialItem.trim(),
       effect: newSpecialItemEffect.trim() || undefined,
       hcBonus: hc,
+      hcBonusPermanent: hc != null ? newSpecialItemHCPermanent || undefined : undefined,
       peBonus: pe,
+      peBonusPermanent: pe != null ? newSpecialItemPEPermanent || undefined : undefined,
     }])
     setNewSpecialItem('')
     setNewSpecialItemEffect('')
     setNewSpecialItemHC('')
+    setNewSpecialItemHCPermanent(false)
     setNewSpecialItemPE('')
+    setNewSpecialItemPEPermanent(false)
   }
 
   function toggleEquipped(id: string) {
+    if (!onSpecialItemsChange) return
     onSpecialItemsChange(specialItems.map(i =>
       i.id === id ? { ...i, equipped: i.equipped !== false ? false : true } : i
     ))
@@ -438,7 +445,7 @@ export function EquipmentFields({
       )}
 
       {/* Special items */}
-      <div>
+      {onSpecialItemsChange && <div>
         <div className="flex items-center justify-between mb-2.5">
           <span className="text-sm font-semibold text-slate-200">{t('sheet.specialItems')}</span>
           <span className={`text-xs ${specialItems.length >= 12 ? 'text-red-400' : 'text-slate-500'}`}>
@@ -449,8 +456,8 @@ export function EquipmentFields({
           {specialItems.map(item => {
             const isEquipped = item.equipped !== false
             return (
-              <div key={item.id} className={`flex gap-2 bg-amber-950/20 border border-amber-900/30 rounded-lg px-3 py-2 transition-opacity ${isEquipped ? '' : 'opacity-50'}`}>
-                <label className="flex items-center shrink-0 mt-0.5 cursor-pointer" aria-label={isEquipped ? t('sheet.unequipItem') : t('sheet.equipItem')}>
+              <div key={item.id} className="flex gap-2 bg-amber-950/20 border border-amber-900/30 rounded-lg px-3 py-2">
+                <label className={`flex items-center shrink-0 mt-0.5 cursor-pointer transition-opacity ${isEquipped ? '' : 'opacity-50'}`} aria-label={isEquipped ? t('sheet.unequipItem') : t('sheet.equipItem')}>
                   <input
                     type="checkbox"
                     checked={isEquipped}
@@ -460,26 +467,26 @@ export function EquipmentFields({
                 </label>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-sm text-amber-100 font-medium">{item.name}</span>
+                    <span className={`text-sm text-amber-100 font-medium transition-opacity ${isEquipped ? '' : 'opacity-50'}`}>{item.name}</span>
                     {item.hcBonus != null && item.hcBonus !== 0 && (
-                      <span className={`text-xs font-semibold rounded px-1 ${isEquipped ? 'text-amber-400 bg-amber-900/40' : 'text-slate-500 bg-slate-700/40'}`}>
-                        {item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC
+                      <span className={`text-xs font-semibold rounded px-1 transition-opacity ${isEquipped || item.hcBonusPermanent ? 'text-amber-400 bg-amber-900/40' : 'text-slate-500 bg-slate-700/40 opacity-50'}`}>
+                        {item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC{item.hcBonusPermanent ? ' ∞' : ''}
                       </span>
                     )}
                     {item.peBonus != null && item.peBonus !== 0 && (
-                      <span className={`text-xs font-semibold rounded px-1 ${isEquipped ? 'text-green-400 bg-green-900/40' : 'text-slate-500 bg-slate-700/40'}`}>
-                        {item.peBonus > 0 ? '+' : ''}{item.peBonus} PE
+                      <span className={`text-xs font-semibold rounded px-1 transition-opacity ${isEquipped || item.peBonusPermanent ? 'text-green-400 bg-green-900/40' : 'text-slate-500 bg-slate-700/40 opacity-50'}`}>
+                        {item.peBonus > 0 ? '+' : ''}{item.peBonus} PE{item.peBonusPermanent ? ' ∞' : ''}
                       </span>
                     )}
                   </div>
                   {item.effect && (
-                    <div className="text-xs text-slate-400 mt-0.5">{item.effect}</div>
+                    <div className={`text-xs text-slate-400 mt-0.5 transition-opacity ${isEquipped ? '' : 'opacity-50'}`}>{item.effect}</div>
                   )}
                 </div>
                 <button
                   onClick={() => onSpecialItemsChange(specialItems.filter(i => i.id !== item.id))}
                   aria-label={t('sheet.removeItem')}
-                  className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 mt-0.5 before:absolute before:inset-[-10px]"
+                  className={`relative text-slate-600 hover:text-red-400 transition-opacity shrink-0 mt-0.5 before:absolute before:inset-[-10px] ${isEquipped ? '' : 'opacity-50'}`}
                 >
                   <X size={13} />
                 </button>
@@ -518,6 +525,15 @@ export function EquipmentFields({
                   placeholder="0"
                   className="w-full bg-transparent text-sm text-slate-200 focus:outline-none text-center tabular-nums"
                 />
+                <label className="flex items-center gap-1 mt-1 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={newSpecialItemHCPermanent}
+                    onChange={e => setNewSpecialItemHCPermanent(e.target.checked)}
+                    className="accent-amber-600 w-3 h-3"
+                  />
+                  <span className="text-xs text-slate-500">{t('sheet.permanentBonus')}</span>
+                </label>
               </div>
               <div className="flex-1 bg-slate-800/60 border border-green-900/30 rounded-lg px-3 py-2">
                 <div className="text-xs font-semibold text-green-400 mb-1">{t('sheet.peBonusItem')}</div>
@@ -529,6 +545,15 @@ export function EquipmentFields({
                   placeholder="0"
                   className="w-full bg-transparent text-sm text-slate-200 focus:outline-none text-center tabular-nums"
                 />
+                <label className="flex items-center gap-1 mt-1 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={newSpecialItemPEPermanent}
+                    onChange={e => setNewSpecialItemPEPermanent(e.target.checked)}
+                    className="accent-green-600 w-3 h-3"
+                  />
+                  <span className="text-xs text-slate-500">{t('sheet.permanentBonus')}</span>
+                </label>
               </div>
               <button
                 onClick={addSpecialItem}
@@ -540,7 +565,7 @@ export function EquipmentFields({
             </div>
           </div>
         )}
-      </div>
+      </div>}
     </>
   )
 }
