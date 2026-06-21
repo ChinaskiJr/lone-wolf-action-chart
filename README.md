@@ -1,6 +1,8 @@
 # Lone Wolf — Interactive Adventure Sheet
 
-A web-based adventure sheet for **Lone Wolf** gamebooks by Joe Dever, republished by [Holmgaard Press](https://shop-magnamund.com/). Designed to chain all 32 books from a single instance, with persistent saves, assisted cycle transitions, and a built-in combat calculator.
+**Live app**: [lone-wolf-action-chart.robin-colombier.workers.dev](https://lone-wolf-action-chart.robin-colombier.workers.dev/)
+
+A web-based adventure sheet for **Lone Wolf** gamebooks by Joe Dever, republished by [Holmgaard Press](https://shop-magnamund.com/). Designed to chain all 32 books from a single instance, with persistent saves, assisted cycle transitions, and a built-in combat calculator. Installable as a PWA for offline use.
 
 > Unlike existing sheets (one per book), this app manages complete character progression across all 4 cycles and 32 books in the series.
 
@@ -42,6 +44,7 @@ A web-based adventure sheet for **Lone Wolf** gamebooks by Joe Dever, republishe
 - Dark theme, accent color per cycle
 - **Bilingual FR / EN** — toggle on the fly
 - Responsive (desktop and tablet)
+- **Installable PWA** — works offline, add to home screen on mobile
 
 ---
 
@@ -67,6 +70,7 @@ A web-based adventure sheet for **Lone Wolf** gamebooks by Joe Dever, republishe
 | [React Router v7](https://reactrouter.com) | Navigation |
 | [react-i18next](https://react.i18next.com) | FR/EN internationalisation |
 | [Vitest](https://vitest.dev) | Unit tests |
+| [vite-plugin-pwa](https://vite-pwa-org.netlify.app) | PWA / service worker (Workbox) |
 
 ---
 
@@ -164,7 +168,7 @@ Data is sourced from **[Holmgaard Press](https://shop-magnamund.com/)** editions
 - [x] Weapon Mastery: selection at creation + chips display on sheet (Magnakai up to 3, GM/NO grows per book)
 
 ### Upcoming
-- [ ] PWA / offline mode
+- [x] PWA / offline mode — installable, service worker via Workbox
 - [ ] Import from existing Project Aon sheets
 
 ---
