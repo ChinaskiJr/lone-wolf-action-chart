@@ -14,7 +14,8 @@ interface Props {
 const CONTAINER: Record<DisciplineState, string> = {
   owned: 'border-amber-800/60 bg-amber-950/20 cursor-default',
   selected: 'border-amber-600 bg-amber-950/30 cursor-pointer',
-  available: 'border-slate-700 bg-slate-800/20 opacity-75 hover:opacity-100 hover:border-amber-700/60 hover:bg-amber-950/10 cursor-pointer',
+  available:
+    'border-slate-700 bg-slate-800/20 opacity-75 hover:opacity-100 hover:border-amber-700/60 hover:bg-amber-950/10 cursor-pointer',
   disabled: 'border-slate-800 bg-slate-800/20 opacity-50 cursor-not-allowed',
 }
 
@@ -41,7 +42,7 @@ const NAME: Record<DisciplineState, string> = {
 export function DisciplineGrid({ disciplines, lang, getState, onPick, columns = 2 }: Props) {
   return (
     <div className={`grid grid-cols-1 gap-2 ${columns === 2 ? 'sm:grid-cols-2' : ''}`}>
-      {disciplines.map(d => {
+      {disciplines.map((d) => {
         const state = getState(d.key)
         const interactive = state === 'available' || state === 'selected'
         return (
@@ -52,7 +53,9 @@ export function DisciplineGrid({ disciplines, lang, getState, onPick, columns = 
             onClick={() => interactive && onPick(d.key)}
             className={`flex gap-3 rounded-lg px-3 py-2.5 border text-left transition-colors ${CONTAINER[state]}`}
           >
-            <div className={`mt-0.5 w-4 h-4 shrink-0 rounded flex items-center justify-center border ${ICON_BOX[state]}`}>
+            <div
+              className={`mt-0.5 w-4 h-4 shrink-0 rounded flex items-center justify-center border ${ICON_BOX[state]}`}
+            >
               {(state === 'owned' || state === 'selected') && <Check size={10} />}
               {state === 'available' && <Plus size={8} className="text-slate-400" />}
             </div>
@@ -61,7 +64,9 @@ export function DisciplineGrid({ disciplines, lang, getState, onPick, columns = 
                 {lang === 'fr' ? d.fr : d.en}
               </div>
               {state !== 'disabled' && (
-                <div className={`text-xs mt-0.5 ${state === 'available' ? 'text-slate-500' : 'text-slate-400'}`}>
+                <div
+                  className={`text-xs mt-0.5 ${state === 'available' ? 'text-slate-500' : 'text-slate-400'}`}
+                >
                   {lang === 'fr' ? d.effectFr : d.effectEn}
                 </div>
               )}

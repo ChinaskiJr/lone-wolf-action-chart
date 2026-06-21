@@ -39,7 +39,9 @@ describe('updateSave', () => {
     const char = makeKaiChar({ id: 'char-1', updatedAt: '2020-01-01T00:00:00.000Z' })
     useSavesStore.getState().addSave(char)
     useSavesStore.getState().updateSave(char)
-    expect(useSavesStore.getState().getSave('char-1')?.updatedAt).not.toBe('2020-01-01T00:00:00.000Z')
+    expect(useSavesStore.getState().getSave('char-1')?.updatedAt).not.toBe(
+      '2020-01-01T00:00:00.000Z'
+    )
   })
 
   it('does not affect other saves', () => {

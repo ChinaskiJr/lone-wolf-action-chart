@@ -9,9 +9,7 @@ export function AppShell({ children }: Props) {
   return (
     <div className="min-h-screen flex flex-col bg-[#0f0f1a]">
       <Header />
-      <main className="flex-1 flex flex-col">
-        {children}
-      </main>
+      <main className="flex-1 flex flex-col">{children}</main>
     </div>
   )
 }

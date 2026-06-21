@@ -5,7 +5,15 @@ import { ChevronRight, ChevronLeft, Check, Archive } from 'lucide-react'
 import { useCharacterStore } from '@/store/characterStore'
 import { useSavesStore } from '@/store/savesStore'
 import type { Character, MagnakaiCharacter } from '@/types/character'
-import type { MonasteryStorage, SpecialItem, Weapon, BackpackItem } from '@/types/game'
+import type {
+  GrandMasterDiscipline,
+  MagnakaiDiscipline,
+  MonasteryStorage,
+  NewOrderDiscipline,
+  SpecialItem,
+  Weapon,
+  BackpackItem,
+} from '@/types/game'
 import { BookEquipmentStep, type BookEquipmentSnapshot } from '@/components/BookEquipmentStep'
 import {
   createNewMagnakaiCharacter,
@@ -14,11 +22,11 @@ import {
   filterCarryOverItems,
   getTotalEPMax,
 } from '@/utils/character'
+import { MAGNAKAI_WEAPONS, getDisciplineMap } from '@/data/disciplines'
 import {
-  MAGNAKAI_WEAPONS,
-  getDisciplineMap,
-} from '@/data/disciplines'
-import { CARRY_OVER_SPECIAL_ITEMS, CARRY_OVER_SPECIAL_ITEMS_KAI_TO_MAGNAKAI } from '@/data/carryOverItems'
+  CARRY_OVER_SPECIAL_ITEMS,
+  CARRY_OVER_SPECIAL_ITEMS_KAI_TO_MAGNAKAI,
+} from '@/data/carryOverItems'
 import { LoreCirclesWidget } from '@/components/LoreCirclesWidget'
 import { DisciplineGrid } from '@/components/disciplines/DisciplineGrid'
 
@@ -37,7 +45,9 @@ export function CycleTransitionWizard() {
   const { getSave, updateSave } = useSavesStore()
 
   const source = character ?? (id ? getSave(id) : null)
-  const [step, setStep] = useState<'intro' | 'disciplines' | 'weapons' | 'monastery' | 'equipment' | 'items' | 'done'>('intro')
+  const [step, setStep] = useState<
+    'intro' | 'disciplines' | 'weapons' | 'monastery' | 'equipment' | 'items' | 'done'
+  >('intro')
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([])
   const [selectedWeapons, setSelectedWeapons] = useState<string[]>([])
   const [selectedCarryOverItems, setSelectedCarryOverItems] = useState<string[]>([])
@@ -58,9 +68,13 @@ export function CycleTransitionWizard() {
   }
 
   const nextCycle =
-    source.cycle === 'kai' ? 'magnakai' :
-    source.cycle === 'magnakai' ? 'grandmaster' :
-    source.cycle === 'grandmaster' ? 'neworder' : null
+    source.cycle === 'kai'
+      ? 'magnakai'
+      : source.cycle === 'magnakai'
+        ? 'grandmaster'
+        : source.cycle === 'grandmaster'
+          ? 'neworder'
+          : null
 
   if (!nextCycle) {
     navigate(`/sheet/${source.id}`)
@@ -73,7 +87,7 @@ export function CycleTransitionWizard() {
   const maxD = MAX_DISCIPLINES[nextCycle]
 
   const needsWeaponsStep = nextCycle === 'magnakai' && selectedDisciplines.includes('weaponmastery')
-  const sourceSpecialItems = (source as any).specialItems as import('@/types/game').SpecialItem[] ?? []
+  const sourceSpecialItems = source.specialItems ?? []
   const allowedCarryOverItems =
     nextCycle === 'magnakai' ? CARRY_OVER_SPECIAL_ITEMS_KAI_TO_MAGNAKAI : CARRY_OVER_SPECIAL_ITEMS
   const needsItemsStep =
@@ -88,34 +102,71 @@ export function CycleTransitionWizard() {
     return 'monastery' as const
   }
 
-  const emptyMonastery: MonasteryStorage = { weapons: [], goldCrowns: 0, backpack: [], specialItems: [] }
+  const emptyMonastery: MonasteryStorage = {
+    weapons: [],
+    goldCrowns: 0,
+    backpack: [],
+    specialItems: [],
+  }
 
-  function applyWizardInventory<T extends { weapons: Weapon[]; backpack: BackpackItem[]; goldCrowns: number }>(char: T): T {
+  function applyWizardInventory<
+    T extends { weapons: Weapon[]; backpack: BackpackItem[]; goldCrowns: number },
+  >(char: T): T {
     return {
       ...char,
       ...(wizPendingWeapons !== null ? { weapons: wizPendingWeapons } : {}),
       ...(wizPendingBackpack !== null ? { backpack: wizPendingBackpack } : {}),
       ...(wizPendingGold !== null ? { goldCrowns: Math.max(0, Math.min(50, wizPendingGold)) } : {}),
-      ...(wizPendingHasQuiver !== null ? { hasQuiver: wizPendingHasQuiver, arrows: wizPendingArrows ?? 0 } : {}),
-      ...(wizPendingHasHerbPouch !== null ? { hasHerbPouch: wizPendingHasHerbPouch, herbPouch: wizPendingHerbPouch ?? [] } : {}),
+      ...(wizPendingHasQuiver !== null
+        ? { hasQuiver: wizPendingHasQuiver, arrows: wizPendingArrows ?? 0 }
+        : {}),
+      ...(wizPendingHasHerbPouch !== null
+        ? { hasHerbPouch: wizPendingHasHerbPouch, herbPouch: wizPendingHerbPouch ?? [] }
+        : {}),
       ...(wizPendingMeals !== null ? { meals: wizPendingMeals } : {}),
     } as T
   }
 
   function buildTransitionedChar(): Character {
-    const monastery = wizMonastery ?? (source as any).monastery ?? emptyMonastery
+    const monastery = wizMonastery ?? source!.monastery ?? emptyMonastery
     if (nextCycle === 'magnakai') {
-      const char = createNewMagnakaiCharacter(source!.cycle === 'kai' ? source as any : undefined)
-      const kept = filterCarryOverItems(wizLeftSpecialItems ?? sourceSpecialItems, selectedCarryOverItems)
-      const withItems = applyWizardInventory({ ...char, disciplines: selectedDisciplines as any, weaponmasteryWeapons: selectedWeapons, specialItems: kept })
+      const char = createNewMagnakaiCharacter(source!.cycle === 'kai' ? source! : undefined)
+      const kept = filterCarryOverItems(
+        wizLeftSpecialItems ?? sourceSpecialItems,
+        selectedCarryOverItems
+      )
+      const withItems = applyWizardInventory({
+        ...char,
+        disciplines: selectedDisciplines as MagnakaiDiscipline[],
+        weaponmasteryWeapons: selectedWeapons,
+        specialItems: kept,
+      })
       // Restore to full EP including bonuses from carried-over equipped special items.
-      return { ...withItems, endurance: { ...withItems.endurance, current: getTotalEPMax(withItems) }, monastery }
+      return {
+        ...withItems,
+        endurance: { ...withItems.endurance, current: getTotalEPMax(withItems) },
+        monastery,
+      }
     } else if (nextCycle === 'grandmaster') {
-      const char = createNewGrandMasterCharacter(source!.cycle === 'magnakai' ? source as MagnakaiCharacter : undefined)
-      const kept = filterCarryOverItems(wizLeftSpecialItems ?? (source as MagnakaiCharacter).specialItems, selectedCarryOverItems)
-      return applyWizardInventory({ ...char, disciplines: selectedDisciplines as any, specialItems: kept, monastery } as any) as Character
+      const char = createNewGrandMasterCharacter(source!.cycle === 'magnakai' ? source! : undefined)
+      const kept = filterCarryOverItems(
+        wizLeftSpecialItems ?? (source as MagnakaiCharacter).specialItems,
+        selectedCarryOverItems
+      )
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      return applyWizardInventory({
+        ...char,
+        disciplines: selectedDisciplines as GrandMasterDiscipline[],
+        specialItems: kept,
+        monastery,
+      } as any) as Character
+      /* eslint-enable @typescript-eslint/no-explicit-any */
     } else {
-      return { ...createNewOrderCharacter(), disciplines: selectedDisciplines as any, monastery }
+      return {
+        ...createNewOrderCharacter(),
+        disciplines: selectedDisciplines as NewOrderDiscipline[],
+        monastery,
+      }
     }
   }
 
@@ -127,9 +178,12 @@ export function CycleTransitionWizard() {
   }
 
   function toggleDiscipline(key: string) {
-    setSelectedDisciplines(prev =>
-      prev.includes(key) ? prev.filter(k => k !== key) :
-      prev.length < maxD ? [...prev, key] : prev
+    setSelectedDisciplines((prev) =>
+      prev.includes(key)
+        ? prev.filter((k) => k !== key)
+        : prev.length < maxD
+          ? [...prev, key]
+          : prev
     )
   }
 
@@ -140,14 +194,26 @@ export function CycleTransitionWizard() {
       <div className="bg-slate-900 rounded-xl border border-slate-800 p-6">
         {step === 'intro' && (
           <div className="flex flex-col gap-5">
-            <h2 className="text-2xl font-serif font-semibold text-amber-100">{t('transition.title')}</h2>
+            <h2 className="text-2xl font-serif font-semibold text-amber-100">
+              {t('transition.title')}
+            </h2>
             <div className="text-slate-300 leading-relaxed bg-amber-950/20 border border-amber-900/30 rounded-xl p-4">
               {t(introKey)}
             </div>
             <div className="text-sm text-slate-400 space-y-1">
-              <p>• HC actuel : <span className="text-amber-300">{source.combatSkill.base + source.combatSkill.bonus}</span></p>
-              <p>• PE max : <span className="text-red-400">{source.endurance.max}</span></p>
-              <p>• Disciplines actuelles : <span className="text-slate-200">{source.disciplines.length}</span></p>
+              <p>
+                • HC actuel :{' '}
+                <span className="text-amber-300">
+                  {source.combatSkill.base + source.combatSkill.bonus}
+                </span>
+              </p>
+              <p>
+                • PE max : <span className="text-red-400">{source.endurance.max}</span>
+              </p>
+              <p>
+                • Disciplines actuelles :{' '}
+                <span className="text-slate-200">{source.disciplines.length}</span>
+              </p>
             </div>
             <button
               onClick={() => setStep('disciplines')}
@@ -162,8 +228,12 @@ export function CycleTransitionWizard() {
         {step === 'disciplines' && (
           <div className="flex flex-col gap-5">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-serif font-semibold text-amber-100">{t('transition.selectNewDisciplines')}</h2>
-              <span className={`text-sm px-2.5 py-1 rounded-full ${selectedDisciplines.length === maxD ? 'bg-green-800/50 text-green-300' : 'bg-slate-800 text-slate-400'}`}>
+              <h2 className="text-xl font-serif font-semibold text-amber-100">
+                {t('transition.selectNewDisciplines')}
+              </h2>
+              <span
+                className={`text-sm px-2.5 py-1 rounded-full ${selectedDisciplines.length === maxD ? 'bg-green-800/50 text-green-300' : 'bg-slate-800 text-slate-400'}`}
+              >
                 {selectedDisciplines.length}/{maxD}
               </span>
             </div>
@@ -172,7 +242,13 @@ export function CycleTransitionWizard() {
                 disciplines={availableDisciplines}
                 lang={lang}
                 columns={1}
-                getState={key => selectedDisciplines.includes(key) ? 'selected' : selectedDisciplines.length >= maxD ? 'disabled' : 'available'}
+                getState={(key) =>
+                  selectedDisciplines.includes(key)
+                    ? 'selected'
+                    : selectedDisciplines.length >= maxD
+                      ? 'disabled'
+                      : 'available'
+                }
                 onPick={toggleDiscipline}
               />
             </div>
@@ -181,7 +257,10 @@ export function CycleTransitionWizard() {
             )}
 
             <div className="flex gap-3 justify-between">
-              <button onClick={() => setStep('intro')} className="px-5 py-2 rounded border border-slate-700 text-slate-400 text-sm hover:text-slate-200 transition-colors">
+              <button
+                onClick={() => setStep('intro')}
+                className="px-5 py-2 rounded border border-slate-700 text-slate-400 text-sm hover:text-slate-200 transition-colors"
+              >
                 {t('creation.back')}
               </button>
               <button
@@ -201,13 +280,15 @@ export function CycleTransitionWizard() {
               <h2 className="text-xl font-serif font-semibold text-amber-100">
                 {t('transition.masteredWeapons')}
               </h2>
-              <span className={`text-sm px-2.5 py-1 rounded-full ${selectedWeapons.length === 3 ? 'bg-green-800/50 text-green-300' : 'bg-slate-800 text-slate-400'}`}>
+              <span
+                className={`text-sm px-2.5 py-1 rounded-full ${selectedWeapons.length === 3 ? 'bg-green-800/50 text-green-300' : 'bg-slate-800 text-slate-400'}`}
+              >
                 {selectedWeapons.length}/3
               </span>
             </div>
             <p className="text-sm text-slate-400">{t('transition.masteredWeaponsDesc')}</p>
             <div className="grid grid-cols-2 gap-2">
-              {MAGNAKAI_WEAPONS.map(w => {
+              {MAGNAKAI_WEAPONS.map((w) => {
                 const isSelected = selectedWeapons.includes(w.key)
                 const isDisabled = !isSelected && selectedWeapons.length >= 3
                 return (
@@ -215,17 +296,23 @@ export function CycleTransitionWizard() {
                     key={w.key}
                     onClick={() => {
                       if (isDisabled) return
-                      setSelectedWeapons(prev =>
-                        prev.includes(w.key) ? prev.filter(k => k !== w.key) : [...prev, w.key]
+                      setSelectedWeapons((prev) =>
+                        prev.includes(w.key) ? prev.filter((k) => k !== w.key) : [...prev, w.key]
                       )
                     }}
                     disabled={isDisabled}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-all
-                      ${isSelected ? 'border-amber-600 bg-amber-900/30 text-amber-100' :
-                        isDisabled ? 'border-slate-800 text-slate-600 cursor-not-allowed' :
-                        'border-slate-700 bg-slate-800/40 text-slate-300 hover:border-slate-500'}`}
+                      ${
+                        isSelected
+                          ? 'border-amber-600 bg-amber-900/30 text-amber-100'
+                          : isDisabled
+                            ? 'border-slate-800 text-slate-600 cursor-not-allowed'
+                            : 'border-slate-700 bg-slate-800/40 text-slate-300 hover:border-slate-500'
+                      }`}
                   >
-                    <div className={`w-5 h-5 shrink-0 rounded flex items-center justify-center border ${isSelected ? 'bg-amber-600 border-amber-500' : 'border-slate-600'}`}>
+                    <div
+                      className={`w-5 h-5 shrink-0 rounded flex items-center justify-center border ${isSelected ? 'bg-amber-600 border-amber-500' : 'border-slate-600'}`}
+                    >
                       {isSelected && <Check size={12} />}
                     </div>
                     <span className="text-sm font-medium">{lang === 'fr' ? w.fr : w.en}</span>
@@ -234,7 +321,10 @@ export function CycleTransitionWizard() {
               })}
             </div>
             <div className="flex gap-3 justify-between">
-              <button onClick={() => setStep('disciplines')} className="px-5 py-2 rounded border border-slate-700 text-slate-400 text-sm hover:text-slate-200 transition-colors">
+              <button
+                onClick={() => setStep('disciplines')}
+                className="px-5 py-2 rounded border border-slate-700 text-slate-400 text-sm hover:text-slate-200 transition-colors"
+              >
                 {t('creation.back')}
               </button>
               <button
@@ -250,19 +340,23 @@ export function CycleTransitionWizard() {
 
         {step === 'equipment' && (
           <div className="flex flex-col gap-5">
-            <h2 className="text-xl font-serif font-semibold text-amber-100">{t('transition.equipmentStep')}</h2>
+            <h2 className="text-xl font-serif font-semibold text-amber-100">
+              {t('transition.equipmentStep')}
+            </h2>
             <BookEquipmentStep
-              initial={{
-                weapons: wizPendingWeapons ?? source.weapons,
-                backpack: wizPendingBackpack ?? source.backpack,
-                meals: wizPendingMeals ?? (source as any).meals ?? 0,
-                goldCrowns: wizPendingGold ?? source.goldCrowns,
-                specialItems: wizLeftSpecialItems ?? sourceSpecialItems,
-                hasQuiver: wizPendingHasQuiver ?? (source.hasQuiver ?? false),
-                arrows: wizPendingArrows ?? (source.arrows ?? 0),
-                hasHerbPouch: wizPendingHasHerbPouch ?? (source.hasHerbPouch ?? false),
-                herbPouch: wizPendingHerbPouch ?? (source.herbPouch ?? []),
-              } satisfies BookEquipmentSnapshot}
+              initial={
+                {
+                  weapons: wizPendingWeapons ?? source.weapons,
+                  backpack: wizPendingBackpack ?? source.backpack,
+                  meals: wizPendingMeals ?? source.meals ?? 0,
+                  goldCrowns: wizPendingGold ?? source.goldCrowns,
+                  specialItems: wizLeftSpecialItems ?? sourceSpecialItems,
+                  hasQuiver: wizPendingHasQuiver ?? source.hasQuiver ?? false,
+                  arrows: wizPendingArrows ?? source.arrows ?? 0,
+                  hasHerbPouch: wizPendingHasHerbPouch ?? source.hasHerbPouch ?? false,
+                  herbPouch: wizPendingHerbPouch ?? source.herbPouch ?? [],
+                } satisfies BookEquipmentSnapshot
+              }
               maxBackpackSlots={nextCycle === 'magnakai' ? 8 : 10}
               cycle={nextCycle}
               onBack={() => setStep('monastery')}
@@ -285,18 +379,27 @@ export function CycleTransitionWizard() {
         {step === 'items' && needsItemsStep && (
           <div className="flex flex-col gap-5">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-serif font-semibold text-amber-100">{t('transition.carryOverItems')}</h2>
-              <span className={`text-sm px-2.5 py-1 rounded-full ${selectedCarryOverItems.length > 0 ? 'bg-amber-800/50 text-amber-300' : 'bg-slate-800 text-slate-400'}`}>
+              <h2 className="text-xl font-serif font-semibold text-amber-100">
+                {t('transition.carryOverItems')}
+              </h2>
+              <span
+                className={`text-sm px-2.5 py-1 rounded-full ${selectedCarryOverItems.length > 0 ? 'bg-amber-800/50 text-amber-300' : 'bg-slate-800 text-slate-400'}`}
+              >
                 {selectedCarryOverItems.length}/12
               </span>
             </div>
 
             {/* Canonical reference — informational only */}
             <div className="text-xs bg-slate-800/40 border border-slate-700/50 rounded-lg p-3">
-              <div className="font-medium text-slate-400 mb-1.5">{t('transition.allowedItems')}</div>
+              <div className="font-medium text-slate-400 mb-1.5">
+                {t('transition.allowedItems')}
+              </div>
               <div className="flex flex-wrap gap-1.5">
-                {allowedCarryOverItems.map(item => (
-                  <span key={item.key} className="px-2 py-0.5 rounded bg-slate-700/60 text-slate-400">
+                {allowedCarryOverItems.map((item) => (
+                  <span
+                    key={item.key}
+                    className="px-2 py-0.5 rounded bg-slate-700/60 text-slate-400"
+                  >
                     {lang === 'fr' ? item.fr : item.en}
                   </span>
                 ))}
@@ -305,32 +408,47 @@ export function CycleTransitionWizard() {
 
             {/* Player's actual items (only those not deposited in monastery) */}
             <div className="space-y-2 max-h-64 overflow-y-auto">
-              {(wizLeftSpecialItems ?? sourceSpecialItems).map(item => {
+              {(wizLeftSpecialItems ?? sourceSpecialItems).map((item) => {
                 const isSelected = selectedCarryOverItems.includes(item.id)
                 return (
                   <button
                     key={item.id}
-                    onClick={() => setSelectedCarryOverItems(prev =>
-                      prev.includes(item.id) ? prev.filter(id => id !== item.id) :
-                      prev.length < 12 ? [...prev, item.id] : prev
-                    )}
+                    onClick={() =>
+                      setSelectedCarryOverItems((prev) =>
+                        prev.includes(item.id)
+                          ? prev.filter((id) => id !== item.id)
+                          : prev.length < 12
+                            ? [...prev, item.id]
+                            : prev
+                      )
+                    }
                     className={`w-full flex items-start gap-3 px-3 py-2.5 rounded-lg border text-left transition-all
                       ${isSelected ? 'border-amber-600 bg-amber-900/30 text-amber-100' : 'border-slate-700 bg-slate-800/40 text-slate-300 hover:border-slate-500'}`}
                   >
-                    <span className={`mt-0.5 w-5 h-5 shrink-0 rounded border flex items-center justify-center ${isSelected ? 'bg-amber-600 border-amber-500' : 'border-slate-600'}`}>
+                    <span
+                      className={`mt-0.5 w-5 h-5 shrink-0 rounded border flex items-center justify-center ${isSelected ? 'bg-amber-600 border-amber-500' : 'border-slate-600'}`}
+                    >
                       {isSelected && <Check size={11} />}
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="text-sm font-medium">{item.name}</span>
                         {item.hcBonus != null && item.hcBonus !== 0 && (
-                          <span className="text-xs font-semibold text-amber-400 bg-amber-900/40 rounded px-1">{item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC</span>
+                          <span className="text-xs font-semibold text-amber-400 bg-amber-900/40 rounded px-1">
+                            {item.hcBonus > 0 ? '+' : ''}
+                            {item.hcBonus} HC
+                          </span>
                         )}
                         {item.peBonus != null && item.peBonus !== 0 && (
-                          <span className="text-xs font-semibold text-green-400 bg-green-900/40 rounded px-1">{item.peBonus > 0 ? '+' : ''}{item.peBonus} PE</span>
+                          <span className="text-xs font-semibold text-green-400 bg-green-900/40 rounded px-1">
+                            {item.peBonus > 0 ? '+' : ''}
+                            {item.peBonus} PE
+                          </span>
                         )}
                       </div>
-                      {item.effect && <div className="text-xs text-slate-400 mt-0.5">{item.effect}</div>}
+                      {item.effect && (
+                        <div className="text-xs text-slate-400 mt-0.5">{item.effect}</div>
+                      )}
                     </div>
                   </button>
                 )
@@ -338,7 +456,10 @@ export function CycleTransitionWizard() {
             </div>
 
             <div className="flex gap-3 justify-between">
-              <button onClick={() => setStep('equipment')} className="px-5 py-2 rounded border border-slate-700 text-slate-400 text-sm hover:text-slate-200 transition-colors">
+              <button
+                onClick={() => setStep('equipment')}
+                className="px-5 py-2 rounded border border-slate-700 text-slate-400 text-sm hover:text-slate-200 transition-colors"
+              >
                 {t('creation.back')}
               </button>
               <button
@@ -426,8 +547,20 @@ interface MonasteryStepProps {
   t: (key: string) => string
 }
 
-function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t }: MonasteryStepProps) {
-  const existing = source.monastery ?? { weapons: [], goldCrowns: 0, backpack: [], specialItems: [] }
+function MonasteryStep({
+  source,
+  sourceSpecialItems,
+  lang,
+  onConfirm,
+  onBack,
+  t,
+}: MonasteryStepProps) {
+  const existing = source.monastery ?? {
+    weapons: [],
+    goldCrowns: 0,
+    backpack: [],
+    specialItems: [],
+  }
   const totalGold = source.goldCrowns + existing.goldCrowns
 
   const [leftWeapons, setLeftWeapons] = useState<Weapon[]>(source.weapons)
@@ -453,58 +586,66 @@ function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t 
 
   function depositWeapon(idx: number) {
     const item = leftWeapons[idx]
-    setLeftWeapons(prev => prev.filter((_, i) => i !== idx))
-    setRightWeapons(prev => [...prev, item])
+    setLeftWeapons((prev) => prev.filter((_, i) => i !== idx))
+    setRightWeapons((prev) => [...prev, item])
   }
 
   function retrieveWeapon(idx: number) {
     const item = rightWeapons[idx]
-    setRightWeapons(prev => prev.filter((_, i) => i !== idx))
-    setLeftWeapons(prev => [...prev, item])
+    setRightWeapons((prev) => prev.filter((_, i) => i !== idx))
+    setLeftWeapons((prev) => [...prev, item])
   }
 
   function depositBackpack(id: string) {
-    const item = leftBackpack.find(i => i.id === id)!
-    setLeftBackpack(prev => prev.filter(i => i.id !== id))
-    setRightBackpack(prev => [...prev, item])
+    const item = leftBackpack.find((i) => i.id === id)!
+    setLeftBackpack((prev) => prev.filter((i) => i.id !== id))
+    setRightBackpack((prev) => [...prev, item])
   }
 
   function retrieveBackpack(id: string) {
-    const item = rightBackpack.find(i => i.id === id)!
-    setRightBackpack(prev => prev.filter(i => i.id !== id))
-    setLeftBackpack(prev => [...prev, item])
+    const item = rightBackpack.find((i) => i.id === id)!
+    setRightBackpack((prev) => prev.filter((i) => i.id !== id))
+    setLeftBackpack((prev) => [...prev, item])
   }
 
   function depositSpecial(id: string) {
-    const item = leftSpecialItems.find(i => i.id === id)!
-    setLeftSpecialItems(prev => prev.filter(i => i.id !== id))
-    setRightSpecialItems(prev => [...prev, item])
+    const item = leftSpecialItems.find((i) => i.id === id)!
+    setLeftSpecialItems((prev) => prev.filter((i) => i.id !== id))
+    setRightSpecialItems((prev) => [...prev, item])
   }
 
   function retrieveSpecial(id: string) {
-    const item = rightSpecialItems.find(i => i.id === id)!
-    setRightSpecialItems(prev => prev.filter(i => i.id !== id))
-    setLeftSpecialItems(prev => [...prev, item])
+    const item = rightSpecialItems.find((i) => i.id === id)!
+    setRightSpecialItems((prev) => prev.filter((i) => i.id !== id))
+    setLeftSpecialItems((prev) => [...prev, item])
   }
 
   function depositQuiver() {
-    setLeftHasQuiver(false); setLeftArrows(0)
-    setRightHasQuiver(true); setRightArrows(leftArrows)
+    setLeftHasQuiver(false)
+    setLeftArrows(0)
+    setRightHasQuiver(true)
+    setRightArrows(leftArrows)
   }
 
   function retrieveQuiver() {
-    setRightHasQuiver(false); setRightArrows(0)
-    setLeftHasQuiver(true); setLeftArrows(rightArrows)
+    setRightHasQuiver(false)
+    setRightArrows(0)
+    setLeftHasQuiver(true)
+    setLeftArrows(rightArrows)
   }
 
   function depositHerbPouch() {
-    setLeftHasHerbPouch(false); setLeftHerbPouch([])
-    setRightHasHerbPouch(true); setRightHerbPouch(leftHerbPouch)
+    setLeftHasHerbPouch(false)
+    setLeftHerbPouch([])
+    setRightHasHerbPouch(true)
+    setRightHerbPouch(leftHerbPouch)
   }
 
   function retrieveHerbPouch() {
-    setRightHasHerbPouch(false); setRightHerbPouch([])
-    setLeftHasHerbPouch(true); setLeftHerbPouch(rightHerbPouch)
+    setRightHasHerbPouch(false)
+    setRightHerbPouch([])
+    setLeftHasHerbPouch(true)
+    setLeftHerbPouch(rightHerbPouch)
   }
 
   function handleLeftGold(val: number) {
@@ -550,14 +691,18 @@ function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t 
         <div className="w-8 h-8 rounded-lg bg-amber-900/40 border border-amber-800/50 flex items-center justify-center text-amber-400">
           <Archive size={16} />
         </div>
-        <h2 className="text-xl font-serif font-semibold text-amber-100">{t('sheet.monastery.title')}</h2>
+        <h2 className="text-xl font-serif font-semibold text-amber-100">
+          {t('sheet.monastery.title')}
+        </h2>
       </div>
       <p className="text-sm text-slate-400">{t('sheet.monastery.subtitle')}</p>
 
       <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-1">
         {/* Left panel */}
         <div className="flex flex-col gap-2">
-          <div className="text-xs font-semibold text-slate-400 uppercase">{t('sheet.monastery.yourEquipment')}</div>
+          <div className="text-xs font-semibold text-slate-400 uppercase">
+            {t('sheet.monastery.yourEquipment')}
+          </div>
 
           <WizSection label={t('sheet.weapons')}>
             {leftWeapons.length === 0 && <WizEmpty label={noItems} />}
@@ -571,16 +716,31 @@ function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t 
                 <input
                   type="checkbox"
                   checked={leftHasQuiver}
-                  onChange={e => { setLeftHasQuiver(e.target.checked); if (!e.target.checked) setLeftArrows(0) }}
+                  onChange={(e) => {
+                    setLeftHasQuiver(e.target.checked)
+                    if (!e.target.checked) setLeftArrows(0)
+                  }}
                   className="accent-amber-600 w-3 h-3 shrink-0"
                 />
                 <span className="text-slate-200 truncate">{t('sheet.quiver')}</span>
               </label>
               {leftHasQuiver && (
                 <>
-                  <button onClick={() => setLeftArrows(Math.max(0, leftArrows - 1))} className="w-4 h-4 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 flex items-center justify-center shrink-0">−</button>
-                  <span className="tabular-nums w-5 text-center text-slate-200 shrink-0">{leftArrows}</span>
-                  <button onClick={() => setLeftArrows(leftArrows + 1)} className="w-4 h-4 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 flex items-center justify-center shrink-0">+</button>
+                  <button
+                    onClick={() => setLeftArrows(Math.max(0, leftArrows - 1))}
+                    className="w-4 h-4 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 flex items-center justify-center shrink-0"
+                  >
+                    −
+                  </button>
+                  <span className="tabular-nums w-5 text-center text-slate-200 shrink-0">
+                    {leftArrows}
+                  </span>
+                  <button
+                    onClick={() => setLeftArrows(leftArrows + 1)}
+                    className="w-4 h-4 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 flex items-center justify-center shrink-0"
+                  >
+                    +
+                  </button>
                   <span className="text-slate-500 shrink-0">{t('sheet.arrows')}</span>
                   <WizBtn dir="right" onClick={depositQuiver} />
                 </>
@@ -589,25 +749,48 @@ function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t 
           </WizSection>
 
           <WizSection label={t('sheet.backpack')}>
-            {leftBackpack.length === 0
-              ? <WizEmpty label={noItems} />
-              : leftBackpack.map(item => (
-                <WizRow key={item.id} name={item.name} badge={t('sheet.monastery.willCarryOver')} badgeGreen>
+            {leftBackpack.length === 0 ? (
+              <WizEmpty label={noItems} />
+            ) : (
+              leftBackpack.map((item) => (
+                <WizRow
+                  key={item.id}
+                  name={item.name}
+                  badge={t('sheet.monastery.willCarryOver')}
+                  badgeGreen
+                >
                   <WizBtn dir="right" onClick={() => depositBackpack(item.id)} />
                 </WizRow>
               ))
-            }
+            )}
           </WizSection>
 
           <WizSection label={t('sheet.specialItems')}>
             {leftSpecialItems.length === 0 && <WizEmpty label={noItems} />}
-            {leftSpecialItems.map(item => (
-              <WizRow key={item.id} name={item.name} sub={
-                (item.hcBonus != null && item.hcBonus !== 0) || (item.peBonus != null && item.peBonus !== 0) ? <>
-                  {item.hcBonus != null && item.hcBonus !== 0 && <span className="font-semibold rounded px-1 text-amber-400 bg-amber-900/40">{item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC</span>}
-                  {item.peBonus != null && item.peBonus !== 0 && <span className="font-semibold rounded px-1 text-green-400 bg-green-900/40">{item.peBonus > 0 ? '+' : ''}{item.peBonus} PE</span>}
-                </> : undefined
-              }>
+            {leftSpecialItems.map((item) => (
+              <WizRow
+                key={item.id}
+                name={item.name}
+                sub={
+                  (item.hcBonus != null && item.hcBonus !== 0) ||
+                  (item.peBonus != null && item.peBonus !== 0) ? (
+                    <>
+                      {item.hcBonus != null && item.hcBonus !== 0 && (
+                        <span className="font-semibold rounded px-1 text-amber-400 bg-amber-900/40">
+                          {item.hcBonus > 0 ? '+' : ''}
+                          {item.hcBonus} HC
+                        </span>
+                      )}
+                      {item.peBonus != null && item.peBonus !== 0 && (
+                        <span className="font-semibold rounded px-1 text-green-400 bg-green-900/40">
+                          {item.peBonus > 0 ? '+' : ''}
+                          {item.peBonus} PE
+                        </span>
+                      )}
+                    </>
+                  ) : undefined
+                }
+              >
                 <WizBtn dir="right" onClick={() => depositSpecial(item.id)} />
               </WizRow>
             ))}
@@ -616,11 +799,16 @@ function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t 
                 <input
                   type="checkbox"
                   checked={leftHasHerbPouch}
-                  onChange={e => { setLeftHasHerbPouch(e.target.checked); if (!e.target.checked) setLeftHerbPouch([]) }}
+                  onChange={(e) => {
+                    setLeftHasHerbPouch(e.target.checked)
+                    if (!e.target.checked) setLeftHerbPouch([])
+                  }}
                   className="accent-green-600 w-3 h-3 shrink-0"
                 />
                 <span className="text-slate-200 truncate">{t('sheet.herbPouch')}</span>
-                {leftHasHerbPouch && <span className="text-slate-500 ml-1 shrink-0">({leftHerbPouch.length}/6)</span>}
+                {leftHasHerbPouch && (
+                  <span className="text-slate-500 ml-1 shrink-0">({leftHerbPouch.length}/6)</span>
+                )}
               </label>
               {leftHasHerbPouch && <WizBtn dir="right" onClick={depositHerbPouch} />}
             </div>
@@ -633,7 +821,7 @@ function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t 
                 min={0}
                 max={totalGold}
                 value={leftGold}
-                onChange={e => handleLeftGold(Number(e.target.value))}
+                onChange={(e) => handleLeftGold(Number(e.target.value))}
                 className="w-14 text-center text-xs bg-slate-800 border border-slate-600 rounded px-1 py-0.5 text-amber-200 focus:outline-none focus:border-amber-500"
               />
               <span className="text-xs text-slate-500">/ {totalGold}</span>
@@ -644,12 +832,15 @@ function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t 
 
         {/* Right panel */}
         <div className="flex flex-col gap-2">
-          <div className="text-xs font-semibold text-amber-600/80 uppercase">{t('sheet.monastery.stored')}</div>
+          <div className="text-xs font-semibold text-amber-600/80 uppercase">
+            {t('sheet.monastery.stored')}
+          </div>
 
           <WizSection label={t('sheet.weapons')}>
-            {rightWeapons.length === 0 && !rightHasQuiver
-              ? <WizEmpty label={noItems} />
-              : <>
+            {rightWeapons.length === 0 && !rightHasQuiver ? (
+              <WizEmpty label={noItems} />
+            ) : (
+              <>
                 {rightWeapons.map((w, i) => (
                   <WizRow key={i} name={w.name}>
                     <WizBtn dir="left" onClick={() => retrieveWeapon(i)} />
@@ -661,31 +852,50 @@ function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t 
                   </WizRow>
                 )}
               </>
-            }
+            )}
           </WizSection>
 
           <WizSection label={t('sheet.backpack')}>
-            {rightBackpack.length === 0
-              ? <WizEmpty label={noItems} />
-              : rightBackpack.map(item => (
+            {rightBackpack.length === 0 ? (
+              <WizEmpty label={noItems} />
+            ) : (
+              rightBackpack.map((item) => (
                 <WizRow key={item.id} name={item.name}>
                   <WizBtn dir="left" onClick={() => retrieveBackpack(item.id)} />
                 </WizRow>
               ))
-            }
+            )}
           </WizSection>
 
           <WizSection label={t('sheet.specialItems')}>
-            {rightSpecialItems.length === 0 && !rightHasHerbPouch
-              ? <WizEmpty label={noItems} />
-              : <>
-                {rightSpecialItems.map(item => (
-                  <WizRow key={item.id} name={item.name} sub={
-                    (item.hcBonus != null && item.hcBonus !== 0) || (item.peBonus != null && item.peBonus !== 0) ? <>
-                      {item.hcBonus != null && item.hcBonus !== 0 && <span className="font-semibold rounded px-1 text-amber-400 bg-amber-900/40">{item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC</span>}
-                      {item.peBonus != null && item.peBonus !== 0 && <span className="font-semibold rounded px-1 text-green-400 bg-green-900/40">{item.peBonus > 0 ? '+' : ''}{item.peBonus} PE</span>}
-                    </> : undefined
-                  }>
+            {rightSpecialItems.length === 0 && !rightHasHerbPouch ? (
+              <WizEmpty label={noItems} />
+            ) : (
+              <>
+                {rightSpecialItems.map((item) => (
+                  <WizRow
+                    key={item.id}
+                    name={item.name}
+                    sub={
+                      (item.hcBonus != null && item.hcBonus !== 0) ||
+                      (item.peBonus != null && item.peBonus !== 0) ? (
+                        <>
+                          {item.hcBonus != null && item.hcBonus !== 0 && (
+                            <span className="font-semibold rounded px-1 text-amber-400 bg-amber-900/40">
+                              {item.hcBonus > 0 ? '+' : ''}
+                              {item.hcBonus} HC
+                            </span>
+                          )}
+                          {item.peBonus != null && item.peBonus !== 0 && (
+                            <span className="font-semibold rounded px-1 text-green-400 bg-green-900/40">
+                              {item.peBonus > 0 ? '+' : ''}
+                              {item.peBonus} PE
+                            </span>
+                          )}
+                        </>
+                      ) : undefined
+                    }
+                  >
                     <WizBtn dir="left" onClick={() => retrieveSpecial(item.id)} />
                   </WizRow>
                 ))}
@@ -695,7 +905,7 @@ function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t 
                   </WizRow>
                 )}
               </>
-            }
+            )}
           </WizSection>
 
           <WizSection label={t('sheet.goldCrowns')}>
@@ -706,7 +916,7 @@ function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t 
                 min={0}
                 max={totalGold}
                 value={rightGold}
-                onChange={e => handleRightGold(Number(e.target.value))}
+                onChange={(e) => handleRightGold(Number(e.target.value))}
                 className="w-14 text-center text-xs bg-slate-800 border border-slate-600 rounded px-1 py-0.5 text-amber-200 focus:outline-none focus:border-amber-500"
               />
             </div>
@@ -715,7 +925,10 @@ function MonasteryStep({ source, sourceSpecialItems, lang, onConfirm, onBack, t 
       </div>
 
       <div className="flex gap-3 justify-between">
-        <button onClick={onBack} className="px-5 py-2 rounded border border-slate-700 text-slate-400 text-sm hover:text-slate-200 transition-colors">
+        <button
+          onClick={onBack}
+          className="px-5 py-2 rounded border border-slate-700 text-slate-400 text-sm hover:text-slate-200 transition-colors"
+        >
           {t('creation.back')}
         </button>
         <button
@@ -740,7 +953,19 @@ function WizSection({ label, children }: { label: string; children: React.ReactN
   )
 }
 
-function WizRow({ name, badge, badgeGreen, sub, children }: { name: string; badge?: string; badgeGreen?: boolean; sub?: React.ReactNode; children?: React.ReactNode }) {
+function WizRow({
+  name,
+  badge,
+  badgeGreen,
+  sub,
+  children,
+}: {
+  name: string
+  badge?: string
+  badgeGreen?: boolean
+  sub?: React.ReactNode
+  children?: React.ReactNode
+}) {
   return (
     <div className="flex items-center gap-1 px-2 py-1 bg-slate-800/30 text-xs">
       <div className="flex-1 min-w-0">
@@ -748,7 +973,9 @@ function WizRow({ name, badge, badgeGreen, sub, children }: { name: string; badg
         {sub && <div className="flex gap-1 flex-wrap mt-0.5">{sub}</div>}
       </div>
       {badge && (
-        <span className={`text-[10px] px-1 rounded shrink-0 ${badgeGreen ? 'bg-green-900/40 text-green-400' : 'bg-orange-900/40 text-orange-400'}`}>
+        <span
+          className={`text-[10px] px-1 rounded shrink-0 ${badgeGreen ? 'bg-green-900/40 text-green-400' : 'bg-orange-900/40 text-orange-400'}`}
+        >
           {badge}
         </span>
       )}

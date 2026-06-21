@@ -9,75 +9,95 @@ interface Props {
   onSkip: () => void
 }
 
-const EMPTY_MONASTERY: MonasteryStorage = { weapons: [], goldCrowns: 0, backpack: [], specialItems: [] }
+const EMPTY_MONASTERY: MonasteryStorage = {
+  weapons: [],
+  goldCrowns: 0,
+  backpack: [],
+  specialItems: [],
+}
 
 export function MonasteryStorageModal({ onDone, onSkip }: Props) {
   const { t } = useTranslation()
   const { character, syncMonastery } = useCharacterStore()
 
-  if (!character) return null
+  const existing = character?.monastery ?? EMPTY_MONASTERY
 
-  const existing = character.monastery ?? EMPTY_MONASTERY
-  const totalGold = character.goldCrowns + existing.goldCrowns
-
-  const [invWeapons, setInvWeapons] = useState<Weapon[]>(character.weapons)
-  const [invBackpack, setInvBackpack] = useState<BackpackItem[]>(character.backpack)
-  const [invSpecialItems, setInvSpecialItems] = useState<SpecialItem[]>(character.specialItems)
-  const [invGold, setInvGold] = useState(character.goldCrowns)
-  const meals = character.meals
+  const [invWeapons, setInvWeapons] = useState<Weapon[]>(character?.weapons ?? [])
+  const [invBackpack, setInvBackpack] = useState<BackpackItem[]>(character?.backpack ?? [])
+  const [invSpecialItems, setInvSpecialItems] = useState<SpecialItem[]>(
+    character?.specialItems ?? []
+  )
+  const [invGold, setInvGold] = useState(character?.goldCrowns ?? 0)
 
   const [monWeapons, setMonWeapons] = useState<Weapon[]>(existing.weapons)
   const [monBackpack, setMonBackpack] = useState<BackpackItem[]>(existing.backpack)
   const [monSpecialItems, setMonSpecialItems] = useState<SpecialItem[]>(existing.specialItems)
   const [monGold, setMonGold] = useState(existing.goldCrowns)
 
+  if (!character) return null
+
+  const totalGold = character.goldCrowns + existing.goldCrowns
+  const meals = character.meals
+
   const maxBackpackSlots = character.cycle === 'kai' || character.cycle === 'magnakai' ? 8 : 10
   const usedBackpackSlots = invBackpack.reduce((s, i) => s + (i.slots ?? 1), 0) + meals
 
   function depositWeapon(idx: number) {
     const item = invWeapons[idx]
-    setInvWeapons(prev => prev.filter((_, i) => i !== idx))
-    setMonWeapons(prev => [...prev, item])
+    setInvWeapons((prev) => prev.filter((_, i) => i !== idx))
+    setMonWeapons((prev) => [...prev, item])
   }
 
   function retrieveWeapon(idx: number) {
     const item = monWeapons[idx]
-    setMonWeapons(prev => prev.filter((_, i) => i !== idx))
-    setInvWeapons(prev => [...prev, item])
+    setMonWeapons((prev) => prev.filter((_, i) => i !== idx))
+    setInvWeapons((prev) => [...prev, item])
   }
 
   function depositBackpackItem(id: string) {
-    const item = invBackpack.find(i => i.id === id)!
-    setInvBackpack(prev => prev.filter(i => i.id !== id))
-    setMonBackpack(prev => [...prev, item])
+    const item = invBackpack.find((i) => i.id === id)!
+    setInvBackpack((prev) => prev.filter((i) => i.id !== id))
+    setMonBackpack((prev) => [...prev, item])
   }
 
   function retrieveBackpackItem(id: string) {
-    const item = monBackpack.find(i => i.id === id)!
+    const item = monBackpack.find((i) => i.id === id)!
     const itemSlots = item.slots ?? 1
     if (usedBackpackSlots + itemSlots > maxBackpackSlots) return
-    setMonBackpack(prev => prev.filter(i => i.id !== id))
-    setInvBackpack(prev => [...prev, item])
+    setMonBackpack((prev) => prev.filter((i) => i.id !== id))
+    setInvBackpack((prev) => [...prev, item])
   }
 
   function depositSpecialItem(id: string) {
-    const item = invSpecialItems.find(i => i.id === id)!
-    setInvSpecialItems(prev => prev.filter(i => i.id !== id))
-    setMonSpecialItems(prev => [...prev, item])
+    const item = invSpecialItems.find((i) => i.id === id)!
+    setInvSpecialItems((prev) => prev.filter((i) => i.id !== id))
+    setMonSpecialItems((prev) => [...prev, item])
   }
 
   function retrieveSpecialItem(id: string) {
-    const item = monSpecialItems.find(i => i.id === id)!
-    setMonSpecialItems(prev => prev.filter(i => i.id !== id))
-    setInvSpecialItems(prev => [...prev, item])
+    const item = monSpecialItems.find((i) => i.id === id)!
+    setMonSpecialItems((prev) => prev.filter((i) => i.id !== id))
+    setInvSpecialItems((prev) => [...prev, item])
   }
 
-  function deleteInvWeapon(idx: number) { setInvWeapons(prev => prev.filter((_, i) => i !== idx)) }
-  function deleteMonWeapon(idx: number) { setMonWeapons(prev => prev.filter((_, i) => i !== idx)) }
-  function deleteInvBackpackItem(id: string) { setInvBackpack(prev => prev.filter(i => i.id !== id)) }
-  function deleteMonBackpackItem(id: string) { setMonBackpack(prev => prev.filter(i => i.id !== id)) }
-  function deleteInvSpecialItem(id: string) { setInvSpecialItems(prev => prev.filter(i => i.id !== id)) }
-  function deleteMonSpecialItem(id: string) { setMonSpecialItems(prev => prev.filter(i => i.id !== id)) }
+  function deleteInvWeapon(idx: number) {
+    setInvWeapons((prev) => prev.filter((_, i) => i !== idx))
+  }
+  function deleteMonWeapon(idx: number) {
+    setMonWeapons((prev) => prev.filter((_, i) => i !== idx))
+  }
+  function deleteInvBackpackItem(id: string) {
+    setInvBackpack((prev) => prev.filter((i) => i.id !== id))
+  }
+  function deleteMonBackpackItem(id: string) {
+    setMonBackpack((prev) => prev.filter((i) => i.id !== id))
+  }
+  function deleteInvSpecialItem(id: string) {
+    setInvSpecialItems((prev) => prev.filter((i) => i.id !== id))
+  }
+  function deleteMonSpecialItem(id: string) {
+    setMonSpecialItems((prev) => prev.filter((i) => i.id !== id))
+  }
 
   function handleInvGoldChange(val: number) {
     const clamped = Math.max(0, Math.min(totalGold, val))
@@ -93,8 +113,19 @@ export function MonasteryStorageModal({ onDone, onSkip }: Props) {
 
   function handleConfirm() {
     syncMonastery(
-      { weapons: invWeapons, goldCrowns: invGold, backpack: invBackpack, specialItems: invSpecialItems, meals },
-      { weapons: monWeapons, goldCrowns: monGold, backpack: monBackpack, specialItems: monSpecialItems }
+      {
+        weapons: invWeapons,
+        goldCrowns: invGold,
+        backpack: invBackpack,
+        specialItems: invSpecialItems,
+        meals,
+      },
+      {
+        weapons: monWeapons,
+        goldCrowns: monGold,
+        backpack: monBackpack,
+        specialItems: monSpecialItems,
+      }
     )
     onDone()
   }
@@ -102,67 +133,114 @@ export function MonasteryStorageModal({ onDone, onSkip }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
       <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[88vh] overflow-y-auto">
-
         {/* Header */}
         <div className="flex items-center gap-3 p-5 border-b border-slate-800 bg-amber-950/20">
           <div className="w-9 h-9 rounded-lg bg-amber-900/40 border border-amber-800/50 flex items-center justify-center text-amber-400">
             <Archive size={18} />
           </div>
           <div>
-            <h2 className="text-lg font-serif font-semibold text-amber-100">{t('sheet.monastery.title')}</h2>
+            <h2 className="text-lg font-serif font-semibold text-amber-100">
+              {t('sheet.monastery.title')}
+            </h2>
             <p className="text-xs text-slate-400 mt-0.5">{t('sheet.monastery.subtitle')}</p>
           </div>
         </div>
 
         {/* Two-panel content */}
         <div className="p-5 grid grid-cols-2 gap-4">
-
           {/* LEFT — Your equipment */}
           <div className="flex flex-col gap-3">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('sheet.monastery.yourEquipment')}</div>
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              {t('sheet.monastery.yourEquipment')}
+            </div>
 
             {/* Weapons */}
             <Section label={t('sheet.weapons')}>
-              {invWeapons.length === 0
-                ? <EmptyRow label={t('sheet.monastery.noItems')} />
-                : invWeapons.map((w, i) => (
+              {invWeapons.length === 0 ? (
+                <EmptyRow label={t('sheet.monastery.noItems')} />
+              ) : (
+                invWeapons.map((w, i) => (
                   <ItemRow key={i} name={w.name} sub={w.bonus ? `+${w.bonus} HC` : undefined}>
-                    <MoveButton dir="right" onClick={() => depositWeapon(i)} label={t('sheet.monastery.store')} />
-                    <DeleteButton onClick={() => deleteInvWeapon(i)} label={t('sheet.removeItem')} />
+                    <MoveButton
+                      dir="right"
+                      onClick={() => depositWeapon(i)}
+                      label={t('sheet.monastery.store')}
+                    />
+                    <DeleteButton
+                      onClick={() => deleteInvWeapon(i)}
+                      label={t('sheet.removeItem')}
+                    />
                   </ItemRow>
                 ))
-              }
+              )}
             </Section>
 
             {/* Backpack */}
             <Section label={`${t('sheet.backpack')} ${usedBackpackSlots}/${maxBackpackSlots}`}>
-              {invBackpack.length === 0
-                ? <EmptyRow label={t('sheet.monastery.noItems')} />
-                : invBackpack.map(item => (
-                  <ItemRow key={item.id} name={item.name} sub={item.slots === 2 ? t('sheet.twoSlots') : undefined}>
-                    <MoveButton dir="right" onClick={() => depositBackpackItem(item.id)} label={t('sheet.monastery.store')} />
-                    <DeleteButton onClick={() => deleteInvBackpackItem(item.id)} label={t('sheet.removeItem')} />
+              {invBackpack.length === 0 ? (
+                <EmptyRow label={t('sheet.monastery.noItems')} />
+              ) : (
+                invBackpack.map((item) => (
+                  <ItemRow
+                    key={item.id}
+                    name={item.name}
+                    sub={item.slots === 2 ? t('sheet.twoSlots') : undefined}
+                  >
+                    <MoveButton
+                      dir="right"
+                      onClick={() => depositBackpackItem(item.id)}
+                      label={t('sheet.monastery.store')}
+                    />
+                    <DeleteButton
+                      onClick={() => deleteInvBackpackItem(item.id)}
+                      label={t('sheet.removeItem')}
+                    />
                   </ItemRow>
                 ))
-              }
+              )}
             </Section>
 
             {/* Special items */}
             <Section label={t('sheet.specialItems')}>
-              {invSpecialItems.length === 0
-                ? <EmptyRow label={t('sheet.monastery.noItems')} />
-                : invSpecialItems.map(item => (
-                  <ItemRow key={item.id} name={item.name} sub={
-                    (item.hcBonus != null && item.hcBonus !== 0) || (item.peBonus != null && item.peBonus !== 0) ? <>
-                      {item.hcBonus != null && item.hcBonus !== 0 && <span className="font-semibold rounded px-1 text-amber-400 bg-amber-900/40">{item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC</span>}
-                      {item.peBonus != null && item.peBonus !== 0 && <span className="font-semibold rounded px-1 text-green-400 bg-green-900/40">{item.peBonus > 0 ? '+' : ''}{item.peBonus} PE</span>}
-                    </> : undefined
-                  }>
-                    <MoveButton dir="right" onClick={() => depositSpecialItem(item.id)} label={t('sheet.monastery.store')} />
-                    <DeleteButton onClick={() => deleteInvSpecialItem(item.id)} label={t('sheet.removeItem')} />
+              {invSpecialItems.length === 0 ? (
+                <EmptyRow label={t('sheet.monastery.noItems')} />
+              ) : (
+                invSpecialItems.map((item) => (
+                  <ItemRow
+                    key={item.id}
+                    name={item.name}
+                    sub={
+                      (item.hcBonus != null && item.hcBonus !== 0) ||
+                      (item.peBonus != null && item.peBonus !== 0) ? (
+                        <>
+                          {item.hcBonus != null && item.hcBonus !== 0 && (
+                            <span className="font-semibold rounded px-1 text-amber-400 bg-amber-900/40">
+                              {item.hcBonus > 0 ? '+' : ''}
+                              {item.hcBonus} HC
+                            </span>
+                          )}
+                          {item.peBonus != null && item.peBonus !== 0 && (
+                            <span className="font-semibold rounded px-1 text-green-400 bg-green-900/40">
+                              {item.peBonus > 0 ? '+' : ''}
+                              {item.peBonus} PE
+                            </span>
+                          )}
+                        </>
+                      ) : undefined
+                    }
+                  >
+                    <MoveButton
+                      dir="right"
+                      onClick={() => depositSpecialItem(item.id)}
+                      label={t('sheet.monastery.store')}
+                    />
+                    <DeleteButton
+                      onClick={() => deleteInvSpecialItem(item.id)}
+                      label={t('sheet.removeItem')}
+                    />
                   </ItemRow>
                 ))
-              }
+              )}
             </Section>
 
             {/* Gold */}
@@ -174,7 +252,7 @@ export function MonasteryStorageModal({ onDone, onSkip }: Props) {
                   min={0}
                   max={totalGold}
                   value={invGold}
-                  onChange={e => handleInvGoldChange(Number(e.target.value))}
+                  onChange={(e) => handleInvGoldChange(Number(e.target.value))}
                   className="w-16 text-center text-sm bg-slate-800 border border-slate-600 rounded px-1 py-0.5 text-amber-200 focus:outline-none focus:border-amber-500"
                 />
                 <span className="text-xs text-slate-500">/ {totalGold}</span>
@@ -185,29 +263,44 @@ export function MonasteryStorageModal({ onDone, onSkip }: Props) {
 
           {/* RIGHT — Monastery */}
           <div className="flex flex-col gap-3">
-            <div className="text-xs font-semibold text-amber-600/80 uppercase tracking-wider">{t('sheet.monastery.stored')}</div>
+            <div className="text-xs font-semibold text-amber-600/80 uppercase tracking-wider">
+              {t('sheet.monastery.stored')}
+            </div>
 
             {/* Weapons */}
             <Section label={t('sheet.weapons')}>
-              {monWeapons.length === 0
-                ? <EmptyRow label={t('sheet.monastery.noItems')} />
-                : monWeapons.map((w, i) => (
+              {monWeapons.length === 0 ? (
+                <EmptyRow label={t('sheet.monastery.noItems')} />
+              ) : (
+                monWeapons.map((w, i) => (
                   <ItemRow key={i} name={w.name} sub={w.bonus ? `+${w.bonus} HC` : undefined}>
-                    <MoveButton dir="left" onClick={() => retrieveWeapon(i)} label={t('sheet.monastery.retrieve')} />
-                    <DeleteButton onClick={() => deleteMonWeapon(i)} label={t('sheet.removeItem')} />
+                    <MoveButton
+                      dir="left"
+                      onClick={() => retrieveWeapon(i)}
+                      label={t('sheet.monastery.retrieve')}
+                    />
+                    <DeleteButton
+                      onClick={() => deleteMonWeapon(i)}
+                      label={t('sheet.removeItem')}
+                    />
                   </ItemRow>
                 ))
-              }
+              )}
             </Section>
 
             {/* Backpack */}
             <Section label={t('sheet.backpack')}>
-              {monBackpack.length === 0
-                ? <EmptyRow label={t('sheet.monastery.noItems')} />
-                : monBackpack.map(item => {
+              {monBackpack.length === 0 ? (
+                <EmptyRow label={t('sheet.monastery.noItems')} />
+              ) : (
+                monBackpack.map((item) => {
                   const wouldExceed = usedBackpackSlots + (item.slots ?? 1) > maxBackpackSlots
                   return (
-                    <ItemRow key={item.id} name={item.name} sub={item.slots === 2 ? t('sheet.twoSlots') : undefined}>
+                    <ItemRow
+                      key={item.id}
+                      name={item.name}
+                      sub={item.slots === 2 ? t('sheet.twoSlots') : undefined}
+                    >
                       <MoveButton
                         dir="left"
                         onClick={() => retrieveBackpackItem(item.id)}
@@ -215,29 +308,57 @@ export function MonasteryStorageModal({ onDone, onSkip }: Props) {
                         disabled={wouldExceed}
                         disabledLabel={t('sheet.monastery.inventoryFull')}
                       />
-                      <DeleteButton onClick={() => deleteMonBackpackItem(item.id)} label={t('sheet.removeItem')} />
+                      <DeleteButton
+                        onClick={() => deleteMonBackpackItem(item.id)}
+                        label={t('sheet.removeItem')}
+                      />
                     </ItemRow>
                   )
                 })
-              }
+              )}
             </Section>
 
             {/* Special items */}
             <Section label={t('sheet.specialItems')}>
-              {monSpecialItems.length === 0
-                ? <EmptyRow label={t('sheet.monastery.noItems')} />
-                : monSpecialItems.map(item => (
-                  <ItemRow key={item.id} name={item.name} sub={
-                    (item.hcBonus != null && item.hcBonus !== 0) || (item.peBonus != null && item.peBonus !== 0) ? <>
-                      {item.hcBonus != null && item.hcBonus !== 0 && <span className="font-semibold rounded px-1 text-amber-400 bg-amber-900/40">{item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC</span>}
-                      {item.peBonus != null && item.peBonus !== 0 && <span className="font-semibold rounded px-1 text-green-400 bg-green-900/40">{item.peBonus > 0 ? '+' : ''}{item.peBonus} PE</span>}
-                    </> : undefined
-                  }>
-                    <MoveButton dir="left" onClick={() => retrieveSpecialItem(item.id)} label={t('sheet.monastery.retrieve')} />
-                    <DeleteButton onClick={() => deleteMonSpecialItem(item.id)} label={t('sheet.removeItem')} />
+              {monSpecialItems.length === 0 ? (
+                <EmptyRow label={t('sheet.monastery.noItems')} />
+              ) : (
+                monSpecialItems.map((item) => (
+                  <ItemRow
+                    key={item.id}
+                    name={item.name}
+                    sub={
+                      (item.hcBonus != null && item.hcBonus !== 0) ||
+                      (item.peBonus != null && item.peBonus !== 0) ? (
+                        <>
+                          {item.hcBonus != null && item.hcBonus !== 0 && (
+                            <span className="font-semibold rounded px-1 text-amber-400 bg-amber-900/40">
+                              {item.hcBonus > 0 ? '+' : ''}
+                              {item.hcBonus} HC
+                            </span>
+                          )}
+                          {item.peBonus != null && item.peBonus !== 0 && (
+                            <span className="font-semibold rounded px-1 text-green-400 bg-green-900/40">
+                              {item.peBonus > 0 ? '+' : ''}
+                              {item.peBonus} PE
+                            </span>
+                          )}
+                        </>
+                      ) : undefined
+                    }
+                  >
+                    <MoveButton
+                      dir="left"
+                      onClick={() => retrieveSpecialItem(item.id)}
+                      label={t('sheet.monastery.retrieve')}
+                    />
+                    <DeleteButton
+                      onClick={() => deleteMonSpecialItem(item.id)}
+                      label={t('sheet.removeItem')}
+                    />
                   </ItemRow>
                 ))
-              }
+              )}
             </Section>
 
             {/* Gold */}
@@ -250,7 +371,7 @@ export function MonasteryStorageModal({ onDone, onSkip }: Props) {
                   min={0}
                   max={totalGold}
                   value={monGold}
-                  onChange={e => handleMonGoldChange(Number(e.target.value))}
+                  onChange={(e) => handleMonGoldChange(Number(e.target.value))}
                   className="w-16 text-center text-sm bg-slate-800 border border-slate-600 rounded px-1 py-0.5 text-amber-200 focus:outline-none focus:border-amber-500"
                 />
               </div>
@@ -289,7 +410,15 @@ function Section({ label, children }: { label: string; children: React.ReactNode
   )
 }
 
-function ItemRow({ name, sub, children }: { name: string; sub?: React.ReactNode; children: React.ReactNode }) {
+function ItemRow({
+  name,
+  sub,
+  children,
+}: {
+  name: string
+  sub?: React.ReactNode
+  children: React.ReactNode
+}) {
   return (
     <div className="flex items-center gap-1 px-2 py-1.5 bg-slate-800/30 text-sm">
       <div className="flex-1 min-w-0">
@@ -302,11 +431,7 @@ function ItemRow({ name, sub, children }: { name: string; sub?: React.ReactNode;
 }
 
 function EmptyRow({ label }: { label: string }) {
-  return (
-    <div className="px-2 py-1.5 bg-slate-800/20 text-xs text-slate-600 italic">
-      {label}
-    </div>
-  )
+  return <div className="px-2 py-1.5 bg-slate-800/20 text-xs text-slate-600 italic">{label}</div>
 }
 
 interface MoveButtonProps {

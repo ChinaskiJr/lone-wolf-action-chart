@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Minus, Plus, RotateCcw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -38,7 +39,7 @@ export function WorldMapViewer({ src, width, height, alt, className }: Props) {
   const animatedRef = useRef(false)
   const reduceMotion = useRef(false)
   const [, setTick] = useState(0)
-  const render = () => setTick(t => t + 1)
+  const render = () => setTick((t) => t + 1)
 
   // Clamp pan so the map always covers the container — no edge ever shows.
   // (At scale >= cover, scaled width/height are guaranteed >= container.)
@@ -204,7 +205,7 @@ export function WorldMapViewer({ src, width, height, alt, className }: Props) {
       />
 
       <div
-        onPointerDown={e => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
         className="absolute bottom-3 right-3 z-10 flex flex-col rounded-lg overflow-hidden bg-slate-800/80 backdrop-blur-sm border border-slate-700/60"
       >
         <button onClick={() => zoomButton(1)} className={btnClass} title={t('sheet.zoomIn')}>

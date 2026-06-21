@@ -12,9 +12,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'pwa-192.png', 'pwa-512.png'],
       manifest: {
-        name: 'Loup Solitaire — Feuille d\'Aventure',
+        name: "Loup Solitaire — Feuille d'Aventure",
         short_name: 'Loup Solitaire',
-        description: 'Feuille d\'aventure pour les gamebooks Loup Solitaire de Joe Dever',
+        description: "Feuille d'aventure pour les gamebooks Loup Solitaire de Joe Dever",
         theme_color: '#0f0f1a',
         background_color: '#0f0f1a',
         display: 'standalone',

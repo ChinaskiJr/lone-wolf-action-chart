@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Play, Download, Trash2, BookOpen } from 'lucide-react'
-import type { Character } from '@/types/character'
+import type { Character, NewOrderCharacter } from '@/types/character'
 import { BOOKS } from '@/data/books'
 import { KAI_RANKS, MAGNAKAI_RANKS, GRAND_MASTER_RANKS, NEW_ORDER_RANKS } from '@/data/ranks'
 
@@ -21,11 +21,14 @@ const CYCLE_BADGE: Record<string, string> = {
 
 function getRankLabel(char: Character, lang: string): string {
   const ranks =
-    char.cycle === 'kai' ? KAI_RANKS :
-    char.cycle === 'magnakai' ? MAGNAKAI_RANKS :
-    char.cycle === 'grandmaster' ? GRAND_MASTER_RANKS :
-    NEW_ORDER_RANKS
-  const info = ranks.find(r => r.rank === char.rank)
+    char.cycle === 'kai'
+      ? KAI_RANKS
+      : char.cycle === 'magnakai'
+        ? MAGNAKAI_RANKS
+        : char.cycle === 'grandmaster'
+          ? GRAND_MASTER_RANKS
+          : NEW_ORDER_RANKS
+  const info = ranks.find((r) => r.rank === char.rank)
   return info ? (lang === 'fr' ? info.fr : info.en) : char.rank
 }
 
@@ -40,32 +43,41 @@ export function SaveCard({ character, onContinue, onExport, onDelete }: Props) {
   const { t, i18n } = useTranslation()
   const [confirmDelete, setConfirmDelete] = useState(false)
   const lang = i18n.language as 'fr' | 'en'
-  const book = BOOKS.find(b => b.id === character.currentBook)
+  const book = BOOKS.find((b) => b.id === character.currentBook)
   const bookTitle = book ? book.title[lang] : `Livre ${character.currentBook}`
 
-  const updatedDate = new Date(character.updatedAt).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', {
-    day: 'numeric', month: 'short', year: 'numeric'
-  })
+  const updatedDate = new Date(character.updatedAt).toLocaleDateString(
+    lang === 'fr' ? 'fr-FR' : 'en-GB',
+    {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }
+  )
 
   return (
     <div className={`rounded-lg border p-4 flex flex-col gap-3 ${CYCLE_COLORS[character.cycle]}`}>
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="font-serif font-semibold text-amber-100 truncate">
-            {character.cycle === 'neworder' && (character as any).kaiName
-              ? (character as any).kaiName
+            {character.cycle === 'neworder' && (character as NewOrderCharacter).kaiName
+              ? (character as NewOrderCharacter).kaiName
               : character.name}
           </div>
           <div className="text-xs text-slate-400 mt-0.5">{getRankLabel(character, lang)}</div>
         </div>
-        <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full font-medium ${CYCLE_BADGE[character.cycle]}`}>
+        <span
+          className={`shrink-0 text-xs px-2 py-0.5 rounded-full font-medium ${CYCLE_BADGE[character.cycle]}`}
+        >
           {t(`cycles.${character.cycle}`)}
         </span>
       </div>
 
       <div className="flex items-center gap-2 text-xs text-slate-400">
         <BookOpen size={12} />
-        <span className="truncate">{t('home.book')} {character.currentBook} — {bookTitle}</span>
+        <span className="truncate">
+          {t('home.book')} {character.currentBook} — {bookTitle}
+        </span>
       </div>
 
       <div className="grid grid-cols-2 gap-2 text-xs bg-amber-950/20 rounded p-2">
@@ -77,21 +89,31 @@ export function SaveCard({ character, onContinue, onExport, onDelete }: Props) {
         </div>
         <div>
           <span className="text-slate-500">PE</span>{' '}
-          <span className={`font-medium tabular-nums ${
-            character.endurance.current / character.endurance.max > 0.5 ? 'text-green-400' :
-            character.endurance.current / character.endurance.max > 0.25 ? 'text-yellow-400' : 'text-red-400'
-          }`}>
+          <span
+            className={`font-medium tabular-nums ${
+              character.endurance.current / character.endurance.max > 0.5
+                ? 'text-green-400'
+                : character.endurance.current / character.endurance.max > 0.25
+                  ? 'text-yellow-400'
+                  : 'text-red-400'
+            }`}
+          >
             {character.endurance.current}/{character.endurance.max}
           </span>
         </div>
       </div>
 
-      <div className="text-xs text-slate-500">{t('home.lastPlayed')} : {updatedDate}</div>
+      <div className="text-xs text-slate-500">
+        {t('home.lastPlayed')} : {updatedDate}
+      </div>
 
       {confirmDelete ? (
         <div className="flex gap-2">
           <button
-            onClick={() => { onDelete(); setConfirmDelete(false) }}
+            onClick={() => {
+              onDelete()
+              setConfirmDelete(false)
+            }}
             className="flex-1 py-1.5 text-xs rounded bg-red-700 hover:bg-red-600 text-white transition-colors"
           >
             {t('common.confirm')}

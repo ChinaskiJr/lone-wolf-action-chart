@@ -28,15 +28,19 @@ export function ConfiscationRecoverModal({ confiscated, current, onConfirm, onCa
   // Combined sources: newly-acquired items first, then the confiscated stash.
   const weapons: Tagged<Weapon>[] = [
     ...current.weapons.map((item, i) => ({ source: 'current' as Source, item, key: `cur-w-${i}` })),
-    ...confiscated.weapons.map((item, i) => ({ source: 'stash' as Source, item, key: `stash-w-${i}` })),
+    ...confiscated.weapons.map((item, i) => ({
+      source: 'stash' as Source,
+      item,
+      key: `stash-w-${i}`,
+    })),
   ]
   const specials: Tagged<SpecialItem>[] = [
-    ...current.specialItems.map(item => ({ source: 'current' as Source, item, key: item.id })),
-    ...confiscated.specialItems.map(item => ({ source: 'stash' as Source, item, key: item.id })),
+    ...current.specialItems.map((item) => ({ source: 'current' as Source, item, key: item.id })),
+    ...confiscated.specialItems.map((item) => ({ source: 'stash' as Source, item, key: item.id })),
   ]
   const bpItems: Tagged<BackpackItem>[] = [
-    ...current.backpack.map(item => ({ source: 'current' as Source, item, key: item.id })),
-    ...confiscated.backpack.map(item => ({ source: 'stash' as Source, item, key: item.id })),
+    ...current.backpack.map((item) => ({ source: 'current' as Source, item, key: item.id })),
+    ...confiscated.backpack.map((item) => ({ source: 'stash' as Source, item, key: item.id })),
   ]
 
   const totalGold = current.goldCrowns + confiscated.goldCrowns
@@ -64,28 +68,28 @@ export function ConfiscationRecoverModal({ confiscated, current, onConfirm, onCa
       }
     }
     addMeals(current.meals)
-    addItems(bpItems.filter(e => e.source === 'current'))
+    addItems(bpItems.filter((e) => e.source === 'current'))
     addMeals(confiscated.meals)
-    addItems(bpItems.filter(e => e.source === 'stash'))
+    addItems(bpItems.filter((e) => e.source === 'stash'))
     return { keys, meals }
   }
 
   const [selWeapons, setSelWeapons] = useState<Set<string>>(
-    () => new Set(weapons.slice(0, MAX_WEAPONS).map(e => e.key))
+    () => new Set(weapons.slice(0, MAX_WEAPONS).map((e) => e.key))
   )
   const [selSpecials, setSelSpecials] = useState<Set<string>>(
-    () => new Set(specials.slice(0, maxSpecial).map(e => e.key))
+    () => new Set(specials.slice(0, maxSpecial).map((e) => e.key))
   )
   const [selBp, setSelBp] = useState<Set<string>>(() => defaultBackpack().keys)
   const [meals, setMeals] = useState<number>(() => defaultBackpack().meals)
 
   const usedSlots =
-    bpItems.filter(e => selBp.has(e.key)).reduce((s, e) => s + (e.item.slots ?? 1), 0) + meals
+    bpItems.filter((e) => selBp.has(e.key)).reduce((s, e) => s + (e.item.slots ?? 1), 0) + meals
   const slotsFull = usedSlots >= maxSlots
   const freeSlots = maxSlots - usedSlots
 
   function toggleWeapon(key: string) {
-    setSelWeapons(prev => {
+    setSelWeapons((prev) => {
       const next = new Set(prev)
       if (next.has(key)) next.delete(key)
       else if (next.size < MAX_WEAPONS) next.add(key)
@@ -94,7 +98,7 @@ export function ConfiscationRecoverModal({ confiscated, current, onConfirm, onCa
   }
 
   function toggleSpecial(key: string) {
-    setSelSpecials(prev => {
+    setSelSpecials((prev) => {
       const next = new Set(prev)
       if (next.has(key)) next.delete(key)
       else if (next.size < maxSpecial) next.add(key)
@@ -103,7 +107,7 @@ export function ConfiscationRecoverModal({ confiscated, current, onConfirm, onCa
   }
 
   function toggleBp(e: Tagged<BackpackItem>) {
-    setSelBp(prev => {
+    setSelBp((prev) => {
       const next = new Set(prev)
       if (next.has(e.key)) next.delete(e.key)
       else if (usedSlots + (e.item.slots ?? 1) <= maxSlots) next.add(e.key)
@@ -113,11 +117,11 @@ export function ConfiscationRecoverModal({ confiscated, current, onConfirm, onCa
 
   function handleConfirm() {
     onConfirm({
-      weapons: weapons.filter(e => selWeapons.has(e.key)).map(e => e.item),
+      weapons: weapons.filter((e) => selWeapons.has(e.key)).map((e) => e.item),
       goldCrowns: finalGold,
       meals,
-      backpack: bpItems.filter(e => selBp.has(e.key)).map(e => e.item),
-      specialItems: specials.filter(e => selSpecials.has(e.key)).map(e => e.item),
+      backpack: bpItems.filter((e) => selBp.has(e.key)).map((e) => e.item),
+      specialItems: specials.filter((e) => selSpecials.has(e.key)).map((e) => e.item),
     })
   }
 
@@ -133,7 +137,9 @@ export function ConfiscationRecoverModal({ confiscated, current, onConfirm, onCa
             <div className="text-lg font-serif font-semibold text-amber-100">
               {t('sheet.confiscation.recoverTitle')}
             </div>
-            <div className="text-sm text-slate-400 mt-0.5">{t('sheet.confiscation.recoverDesc')}</div>
+            <div className="text-sm text-slate-400 mt-0.5">
+              {t('sheet.confiscation.recoverDesc')}
+            </div>
           </div>
         </div>
 
@@ -149,7 +155,7 @@ export function ConfiscationRecoverModal({ confiscated, current, onConfirm, onCa
             />
             <div className="space-y-1.5">
               {weapons.length === 0 && <EmptyRow />}
-              {weapons.map(e => (
+              {weapons.map((e) => (
                 <ToggleRow
                   key={e.key}
                   source={e.source}
@@ -160,7 +166,8 @@ export function ConfiscationRecoverModal({ confiscated, current, onConfirm, onCa
                   <span className="flex-1 text-sm text-slate-200 truncate">{e.item.name}</span>
                   {e.item.bonus != null && e.item.bonus !== 0 && (
                     <span className="text-xs font-semibold rounded px-1 text-amber-400 bg-amber-900/40 shrink-0">
-                      {e.item.bonus > 0 ? '+' : ''}{e.item.bonus} HC
+                      {e.item.bonus > 0 ? '+' : ''}
+                      {e.item.bonus} HC
                     </span>
                   )}
                 </ToggleRow>
@@ -178,7 +185,9 @@ export function ConfiscationRecoverModal({ confiscated, current, onConfirm, onCa
             />
             <div className="flex items-center gap-2 rounded-lg px-3 py-2.5 border border-amber-900/40 bg-amber-950/20">
               <span className="text-xl shrink-0">🪙</span>
-              <span className="flex-1 text-sm text-amber-100 font-semibold tabular-nums">{finalGold}</span>
+              <span className="flex-1 text-sm text-amber-100 font-semibold tabular-nums">
+                {finalGold}
+              </span>
               {goldLost > 0 && (
                 <span className="text-xs text-red-400">
                   {t('sheet.confiscation.goldCappedNote', { max: goldMax, lost: goldLost })}
@@ -210,7 +219,7 @@ export function ConfiscationRecoverModal({ confiscated, current, onConfirm, onCa
                 </div>
               )}
               {bpItems.length === 0 && totalMeals === 0 && <EmptyRow />}
-              {bpItems.map(e => {
+              {bpItems.map((e) => {
                 const s = e.item.slots ?? 1
                 return (
                   <ToggleRow
@@ -224,22 +233,34 @@ export function ConfiscationRecoverModal({ confiscated, current, onConfirm, onCa
                       <div className="flex items-center gap-1.5">
                         <span className="text-sm text-slate-200 truncate">{e.item.name}</span>
                         {s > 1 && (
-                          <span className="text-xs text-slate-500 bg-slate-700 rounded px-1 shrink-0">×{s}</span>
+                          <span className="text-xs text-slate-500 bg-slate-700 rounded px-1 shrink-0">
+                            ×{s}
+                          </span>
                         )}
                         {e.item.epRestore != null && (
-                          <span className="text-xs text-green-400 shrink-0">+{e.item.epRestore} PE</span>
+                          <span className="text-xs text-green-400 shrink-0">
+                            +{e.item.epRestore} PE
+                          </span>
                         )}
                         {e.item.csBonus != null && (
-                          <span className="text-xs text-violet-400 shrink-0">+{e.item.csBonus} HC</span>
+                          <span className="text-xs text-violet-400 shrink-0">
+                            +{e.item.csBonus} HC
+                          </span>
                         )}
                       </div>
-                      {e.item.notes && <div className="text-xs text-slate-500 truncate">{e.item.notes}</div>}
+                      {e.item.notes && (
+                        <div className="text-xs text-slate-500 truncate">{e.item.notes}</div>
+                      )}
                     </div>
                   </ToggleRow>
                 )
               })}
             </div>
-            {slotsFull && <div className="text-xs text-red-400 mt-1.5">{t('sheet.slotsUsed', { used: usedSlots, max: maxSlots })}</div>}
+            {slotsFull && (
+              <div className="text-xs text-red-400 mt-1.5">
+                {t('sheet.slotsUsed', { used: usedSlots, max: maxSlots })}
+              </div>
+            )}
           </section>
 
           {/* Special items */}
@@ -252,7 +273,7 @@ export function ConfiscationRecoverModal({ confiscated, current, onConfirm, onCa
             />
             <div className="space-y-1.5">
               {specials.length === 0 && <EmptyRow />}
-              {specials.map(e => {
+              {specials.map((e) => {
                 const isEquipped = e.item.equipped !== false
                 return (
                   <ToggleRow
@@ -266,20 +287,28 @@ export function ConfiscationRecoverModal({ confiscated, current, onConfirm, onCa
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="text-sm text-amber-100 font-medium">{e.item.name}</span>
                         {e.item.hcBonus != null && e.item.hcBonus !== 0 && (
-                          <span className={`text-xs font-semibold rounded px-1 ${e.item.hcBonus > 0 ? 'text-amber-400 bg-amber-900/40' : 'text-red-400 bg-red-900/40'}`}>
-                            {e.item.hcBonus > 0 ? '+' : ''}{e.item.hcBonus} HC
+                          <span
+                            className={`text-xs font-semibold rounded px-1 ${e.item.hcBonus > 0 ? 'text-amber-400 bg-amber-900/40' : 'text-red-400 bg-red-900/40'}`}
+                          >
+                            {e.item.hcBonus > 0 ? '+' : ''}
+                            {e.item.hcBonus} HC
                           </span>
                         )}
                         {e.item.peBonus != null && e.item.peBonus !== 0 && (
-                          <span className={`text-xs font-semibold rounded px-1 ${e.item.peBonus > 0 ? 'text-green-400 bg-green-900/40' : 'text-red-400 bg-red-900/40'}`}>
-                            {e.item.peBonus > 0 ? '+' : ''}{e.item.peBonus} PE
+                          <span
+                            className={`text-xs font-semibold rounded px-1 ${e.item.peBonus > 0 ? 'text-green-400 bg-green-900/40' : 'text-red-400 bg-red-900/40'}`}
+                          >
+                            {e.item.peBonus > 0 ? '+' : ''}
+                            {e.item.peBonus} PE
                           </span>
                         )}
                         {!isEquipped && (
                           <span className="text-xs text-slate-500">({t('sheet.unequipItem')})</span>
                         )}
                       </div>
-                      {e.item.effect && <div className="text-xs text-slate-400 truncate">{e.item.effect}</div>}
+                      {e.item.effect && (
+                        <div className="text-xs text-slate-400 truncate">{e.item.effect}</div>
+                      )}
                     </div>
                   </ToggleRow>
                 )
@@ -309,7 +338,11 @@ export function ConfiscationRecoverModal({ confiscated, current, onConfirm, onCa
 }
 
 function SectionHeader({
-  icon, label, count, max, countLabel,
+  icon,
+  label,
+  count,
+  max,
+  countLabel,
 }: {
   icon?: React.ReactNode
   label: string
@@ -332,7 +365,11 @@ function SectionHeader({
 }
 
 function ToggleRow({
-  source, checked, cannotAdd, onToggle, children,
+  source,
+  checked,
+  cannotAdd,
+  onToggle,
+  children,
 }: {
   source: Source
   checked: boolean
@@ -360,7 +397,9 @@ function ToggleRow({
           source === 'stash' ? 'bg-slate-700 text-slate-300' : 'bg-blue-900/40 text-blue-300'
         }`}
       >
-        {source === 'stash' ? t('sheet.confiscation.stashedItems') : t('sheet.confiscation.newItems')}
+        {source === 'stash'
+          ? t('sheet.confiscation.stashedItems')
+          : t('sheet.confiscation.newItems')}
       </span>
       {children}
     </label>
@@ -369,5 +408,7 @@ function ToggleRow({
 
 function EmptyRow() {
   const { t } = useTranslation()
-  return <div className="text-sm text-slate-600 italic px-3 py-2">{t('sheet.confiscation.empty')}</div>
+  return (
+    <div className="text-sm text-slate-600 italic px-3 py-2">{t('sheet.confiscation.empty')}</div>
+  )
 }

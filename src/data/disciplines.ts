@@ -11,14 +11,15 @@ export const KAI_DISCIPLINES: Record<KaiDiscipline, DisciplineData> = {
     key: 'camouflage',
     fr: 'Camouflage',
     en: 'Camouflage',
-    effectFr: 'Se fondre dans l\'environnement ; passer pour un local en ville.',
+    effectFr: "Se fondre dans l'environnement ; passer pour un local en ville.",
     effectEn: 'Blend into surroundings; pass as a local in towns.',
   },
   hunting: {
     key: 'hunting',
     fr: 'Chasse',
     en: 'Hunting',
-    effectFr: 'Trouver de la nourriture en milieu sauvage ; aucune Ration consommée hors des cités.',
+    effectFr:
+      'Trouver de la nourriture en milieu sauvage ; aucune Ration consommée hors des cités.',
     effectEn: 'Find food in wilderness; no Meal consumption needed outside cities.',
   },
   sixthSense: {
@@ -46,7 +47,7 @@ export const KAI_DISCIPLINES: Record<KaiDiscipline, DisciplineData> = {
     key: 'weaponskill',
     fr: 'Maîtrise des Armes',
     en: 'Weaponskill',
-    effectFr: '+2 HC si l\'arme maîtrisée est portée (1 type d\'arme, tiré au hasard).',
+    effectFr: "+2 HC si l'arme maîtrisée est portée (1 type d'arme, tiré au hasard).",
     effectEn: '+2 CS when carrying mastered weapon type (1 type, random).',
   },
   mindshield: {
@@ -84,7 +85,8 @@ export const MAGNAKAI_DISCIPLINES: Record<MagnakaiDiscipline, DisciplineData> = 
     key: 'weaponmastery',
     fr: 'Science des Armes',
     en: 'Weaponmastery',
-    effectFr: '+3 HC avec les armes maîtrisées (jusqu\'à 3 types). Si l\'arc est choisi : +3 aux jets d\'arc.',
+    effectFr:
+      "+3 HC avec les armes maîtrisées (jusqu'à 3 types). Si l'arc est choisi : +3 aux jets d'arc.",
     effectEn: '+3 CS with mastered weapons (up to 3 types). If bow is chosen: +3 to bow rolls.',
   },
   animalControl: {
@@ -112,7 +114,8 @@ export const MAGNAKAI_DISCIPLINES: Record<MagnakaiDiscipline, DisciplineData> = 
     key: 'huntmastery',
     fr: 'Art de la Chasse',
     en: 'Huntmastery',
-    effectFr: 'Chasser partout (désert inclus) ; agilité accrue ; éviter le malus de surprise au HC.',
+    effectFr:
+      'Chasser partout (désert inclus) ; agilité accrue ; éviter le malus de surprise au HC.',
     effectEn: 'Hunt anywhere; enhanced agility; avoid surprise CS penalty.',
   },
   pathsmanship: {
@@ -133,7 +136,7 @@ export const MAGNAKAI_DISCIPLINES: Record<MagnakaiDiscipline, DisciplineData> = 
     key: 'psiScreen',
     fr: 'Écran Psychique',
     en: 'Psi-screen',
-    effectFr: 'Immunité totale aux forces mentales ; résistance aux illusions et à l\'hypnose.',
+    effectFr: "Immunité totale aux forces mentales ; résistance aux illusions et à l'hypnose.",
     effectEn: 'Full immunity to Mindforce; resist illusions and hypnosis.',
   },
   nexus: {
@@ -147,7 +150,8 @@ export const MAGNAKAI_DISCIPLINES: Record<MagnakaiDiscipline, DisciplineData> = 
     key: 'divination',
     fr: 'Intuition',
     en: 'Divination',
-    effectFr: 'Détecter les ennemis invisibles ; communication télépathique ; voyage astral limité.',
+    effectFr:
+      'Détecter les ennemis invisibles ; communication télépathique ; voyage astral limité.',
     effectEn: 'Detect invisible enemies; telepathic communication; limited spirit-walk.',
   },
 }
@@ -157,14 +161,15 @@ export const GRAND_MASTER_DISCIPLINES: Record<GrandMasterDiscipline, DisciplineD
     key: 'grandWeaponmastery',
     fr: 'G.D. de la Science des Armes',
     en: 'Grand Weaponmastery',
-    effectFr: '+5 HC avec les armes maîtrisées ; gagne 1 type d\'arme supplémentaire par livre.',
+    effectFr: "+5 HC avec les armes maîtrisées ; gagne 1 type d'arme supplémentaire par livre.",
     effectEn: '+5 CS with mastered weapons; gain 1 additional weapon type per book.',
   },
   animalMastery: {
     key: 'animalMastery',
     fr: 'G.D. du Contrôle Animal',
     en: 'Animal Mastery',
-    effectFr: 'Contrôler les créatures non-sentientes hostiles ; converser avec oiseaux et poissons.',
+    effectFr:
+      'Contrôler les créatures non-sentientes hostiles ; converser avec oiseaux et poissons.',
     effectEn: 'Control hostile non-sentient creatures; converse with birds and fish.',
   },
   deliverance: {
@@ -176,21 +181,21 @@ export const GRAND_MASTER_DISCIPLINES: Record<GrandMasterDiscipline, DisciplineD
   },
   assimilance: {
     key: 'assimilance',
-    fr: 'G.D. de l\'Invisibilité',
+    fr: "G.D. de l'Invisibilité",
     en: 'Assimilance',
-    effectFr: 'Changer d\'apparence physique pour 1–3 jours ; camouflage en terrain découvert.',
+    effectFr: "Changer d'apparence physique pour 1–3 jours ; camouflage en terrain découvert.",
     effectEn: 'Change physical appearance for 1–3 days; advanced open-ground camouflage.',
   },
   grandHuntmastery: {
     key: 'grandHuntmastery',
-    fr: 'G.D. de l\'Art de la Chasse',
+    fr: "G.D. de l'Art de la Chasse",
     en: 'Grand Huntmastery',
-    effectFr: 'Voir dans l\'obscurité totale ; toucher et goût aiguisés ; aucune Ration nécessaire.',
+    effectFr: "Voir dans l'obscurité totale ; toucher et goût aiguisés ; aucune Ration nécessaire.",
     effectEn: 'See in total darkness; heightened senses; eliminate Meal requirement.',
   },
   grandPathsmanship: {
     key: 'grandPathsmanship',
-    fr: 'G.D. de l\'Exploration',
+    fr: "G.D. de l'Exploration",
     en: 'Grand Pathsmanship',
     effectFr: 'Résister aux plantes hostiles ; super-conscience des embuscades en forêt.',
     effectEn: 'Resist hostile plant entrapment; super-awareness of woodland ambush.',
@@ -204,7 +209,7 @@ export const GRAND_MASTER_DISCIPLINES: Record<GrandMasterDiscipline, DisciplineD
   },
   kaiScreen: {
     key: 'kaiScreen',
-    fr: 'G.D. de l\'Écran Psychique',
+    fr: "G.D. de l'Écran Psychique",
     en: 'Kai-screen',
     effectFr: 'Fortifications mentales protégeant soi et ses alliés ; masquer les auras.',
     effectEn: 'Mind-fortresses protecting self and allies; mask auras.',
@@ -218,9 +223,9 @@ export const GRAND_MASTER_DISCIPLINES: Record<GrandMasterDiscipline, DisciplineD
   },
   telegnosis: {
     key: 'telegnosis',
-    fr: 'G.D. de l\'Intuition',
+    fr: "G.D. de l'Intuition",
     en: 'Telegnosis',
-    effectFr: 'Voyage astral étendu avec durée accrue et moins d\'effets secondaires.',
+    effectFr: "Voyage astral étendu avec durée accrue et moins d'effets secondaires.",
     effectEn: 'Extended spirit-walk for far greater duration with fewer ill effects.',
   },
   magiMagic: {
@@ -232,9 +237,9 @@ export const GRAND_MASTER_DISCIPLINES: Record<GrandMasterDiscipline, DisciplineD
   },
   kaiAlchemy: {
     key: 'kaiAlchemy',
-    fr: 'G.D. de l\'Alchimie Kaï',
+    fr: "G.D. de l'Alchimie Kaï",
     en: 'Kai-alchemy',
-    effectFr: 'Sorts de la Confrérie : Main d\'Éclair, Lévitation, Charme Mental.',
+    effectFr: "Sorts de la Confrérie : Main d'Éclair, Lévitation, Charme Mental.",
     effectEn: 'Brotherhood spells: Lightning Hand, Levitation, Mind Charm.',
   },
 }
@@ -242,21 +247,23 @@ export const GRAND_MASTER_DISCIPLINES: Record<GrandMasterDiscipline, DisciplineD
 export const NEW_ORDER_EXTRA_DISCIPLINES: Record<string, DisciplineData> = {
   astrology: {
     key: 'astrology',
-    fr: 'G.D. de l\'Astrologie',
+    fr: "G.D. de l'Astrologie",
     en: 'Astrology',
-    effectFr: 'Prédire et influencer l\'avenir par étude céleste ; précision croissante avec le rang.',
+    effectFr:
+      "Prédire et influencer l'avenir par étude céleste ; précision croissante avec le rang.",
     effectEn: 'Predict and shape the future via celestial study; improves with rank.',
   },
   herbmastery: {
     key: 'herbmastery',
-    fr: 'G.D. de l\'Art des Simples',
+    fr: "G.D. de l'Art des Simples",
     en: 'Herbmastery',
-    effectFr: 'Identifier toute substance d\'origine organique ; propriétés médicinales et magiques.',
+    effectFr:
+      "Identifier toute substance d'origine organique ; propriétés médicinales et magiques.",
     effectEn: 'Identify any organic substance; unlock medicinal and magical properties.',
   },
   elementalism: {
     key: 'elementalism',
-    fr: 'G.D. de l\'Élémentalisme',
+    fr: "G.D. de l'Élémentalisme",
     en: 'Elementalism',
     effectFr: 'Manipuler Terre, Air, Feu et Eau (murs, projections de roches, sable, etc.).',
     effectEn: 'Manipulate Earth, Air, Fire, and Water (walls, hurling rocks, spraying sand, etc.).',
@@ -265,7 +272,8 @@ export const NEW_ORDER_EXTRA_DISCIPLINES: Record<string, DisciplineData> = {
     key: 'bardsmanship',
     fr: 'G.D. du Don des Bardes',
     en: 'Bardsmanship',
-    effectFr: 'Maîtriser n\'importe quel instrument ; influencer les émotions des créatures sentientes.',
+    effectFr:
+      "Maîtriser n'importe quel instrument ; influencer les émotions des créatures sentientes.",
     effectEn: 'Master any instrument; affect emotions of sentient creatures.',
   },
 }
@@ -288,15 +296,15 @@ export const KAI_WEAPONS = [
 ]
 
 // Magnakai/Grand Master weaponmastery includes all Kai weapons plus the bow.
-export const MAGNAKAI_WEAPONS = [
-  ...KAI_WEAPONS,
-  { key: 'bow', fr: 'Arc', en: 'Bow' },
-]
+export const MAGNAKAI_WEAPONS = [...KAI_WEAPONS, { key: 'bow', fr: 'Arc', en: 'Bow' }]
 
 /** Returns the discipline definitions for a given cycle. */
 export function getDisciplineMap(cycle: Cycle): Record<string, DisciplineData> {
-  return cycle === 'kai' ? KAI_DISCIPLINES :
-    cycle === 'magnakai' ? MAGNAKAI_DISCIPLINES :
-    cycle === 'grandmaster' ? GRAND_MASTER_DISCIPLINES :
-    NEW_ORDER_DISCIPLINES
+  return cycle === 'kai'
+    ? KAI_DISCIPLINES
+    : cycle === 'magnakai'
+      ? MAGNAKAI_DISCIPLINES
+      : cycle === 'grandmaster'
+        ? GRAND_MASTER_DISCIPLINES
+        : NEW_ORDER_DISCIPLINES
 }

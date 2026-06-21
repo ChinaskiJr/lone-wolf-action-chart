@@ -87,8 +87,4 @@ export interface NewOrderCharacter extends BaseCharacter {
   specialItems: SpecialItem[]
 }
 
-export type Character =
-  | KaiCharacter
-  | MagnakaiCharacter
-  | GrandMasterCharacter
-  | NewOrderCharacter
+export type Character = KaiCharacter | MagnakaiCharacter | GrandMasterCharacter | NewOrderCharacter

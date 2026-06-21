@@ -55,12 +55,7 @@ export function CharacterWizard() {
     navigate(`/sheet/${updated.id}`)
   }
 
-  const steps = [
-    t('creation.step1'),
-    t('creation.step2'),
-    t('creation.step3'),
-    t('creation.step4'),
-  ]
+  const steps = [t('creation.step1'), t('creation.step2'), t('creation.step3'), t('creation.step4')]
 
   return (
     <div className="flex-1 max-w-2xl mx-auto w-full px-4 py-8">
@@ -69,19 +64,28 @@ export function CharacterWizard() {
         {steps.map((label, i) => (
           <div key={i} className="flex items-center flex-1">
             <div className="flex flex-col items-center gap-1">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors
-                ${i + 1 === step ? 'border-amber-500 bg-amber-600 text-white' :
-                  i + 1 < step ? 'border-green-600 bg-green-700 text-white' :
-                  'border-slate-700 bg-slate-800 text-slate-500'}`}
+              <div
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors
+                ${
+                  i + 1 === step
+                    ? 'border-amber-500 bg-amber-600 text-white'
+                    : i + 1 < step
+                      ? 'border-green-600 bg-green-700 text-white'
+                      : 'border-slate-700 bg-slate-800 text-slate-500'
+                }`}
               >
                 {i + 1 < step ? '✓' : i + 1}
               </div>
-              <span className={`text-xs hidden sm:block ${i + 1 === step ? 'text-amber-300' : 'text-slate-500'}`}>
+              <span
+                className={`text-xs hidden sm:block ${i + 1 === step ? 'text-amber-300' : 'text-slate-500'}`}
+              >
                 {label}
               </span>
             </div>
             {i < steps.length - 1 && (
-              <div className={`flex-1 h-0.5 mx-1 ${i + 1 < step ? 'bg-green-700' : 'bg-slate-700'}`} />
+              <div
+                className={`flex-1 h-0.5 mx-1 ${i + 1 < step ? 'bg-green-700' : 'bg-slate-700'}`}
+              />
             )}
           </div>
         ))}
@@ -96,11 +100,7 @@ export function CharacterWizard() {
           />
         )}
         {step === 2 && (
-          <StepStats
-            character={character}
-            onNext={handleStatsNext}
-            onBack={() => setStep(1)}
-          />
+          <StepStats character={character} onNext={handleStatsNext} onBack={() => setStep(1)} />
         )}
         {step === 3 && (
           <StepDisciplines

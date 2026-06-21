@@ -18,16 +18,16 @@ export function ConfiscationSelectModal({ character, onConfirm, onCancel }: Prop
     () => new Set(character.weapons.map((_, i) => i))
   )
   const [selSpecials, setSelSpecials] = useState<Set<string>>(
-    () => new Set(character.specialItems.map(i => i.id))
+    () => new Set(character.specialItems.map((i) => i.id))
   )
   const [selBp, setSelBp] = useState<Set<string>>(
-    () => new Set(character.backpack.map(i => i.id))
+    () => new Set(character.backpack.map((i) => i.id))
   )
   const [gold, setGold] = useState<number>(character.goldCrowns)
   const [meals, setMeals] = useState<number>(character.meals)
 
   function toggleWeapon(idx: number) {
-    setSelWeapons(prev => {
+    setSelWeapons((prev) => {
       const next = new Set(prev)
       if (next.has(idx)) next.delete(idx)
       else next.add(idx)
@@ -36,7 +36,7 @@ export function ConfiscationSelectModal({ character, onConfirm, onCancel }: Prop
   }
 
   function toggleSpecial(id: string) {
-    setSelSpecials(prev => {
+    setSelSpecials((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
@@ -45,7 +45,7 @@ export function ConfiscationSelectModal({ character, onConfirm, onCancel }: Prop
   }
 
   function toggleBp(id: string) {
-    setSelBp(prev => {
+    setSelBp((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
@@ -55,8 +55,10 @@ export function ConfiscationSelectModal({ character, onConfirm, onCancel }: Prop
 
   function handleConfirm() {
     const selectedWeapons: Weapon[] = character.weapons.filter((_, i) => selWeapons.has(i))
-    const selectedBp: BackpackItem[] = character.backpack.filter(i => selBp.has(i.id))
-    const selectedSpecials: SpecialItem[] = character.specialItems.filter(i => selSpecials.has(i.id))
+    const selectedBp: BackpackItem[] = character.backpack.filter((i) => selBp.has(i.id))
+    const selectedSpecials: SpecialItem[] = character.specialItems.filter((i) =>
+      selSpecials.has(i.id)
+    )
     onConfirm({
       weapons: selectedWeapons,
       goldCrowns: gold,
@@ -67,11 +69,7 @@ export function ConfiscationSelectModal({ character, onConfirm, onCancel }: Prop
   }
 
   const nothingSelected =
-    selWeapons.size === 0 &&
-    selSpecials.size === 0 &&
-    selBp.size === 0 &&
-    gold === 0 &&
-    meals === 0
+    selWeapons.size === 0 && selSpecials.size === 0 && selBp.size === 0 && gold === 0 && meals === 0
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
@@ -85,7 +83,9 @@ export function ConfiscationSelectModal({ character, onConfirm, onCancel }: Prop
             <div className="text-lg font-serif font-semibold text-red-100">
               {t('sheet.confiscation.selectTitle')}
             </div>
-            <div className="text-sm text-slate-400 mt-0.5">{t('sheet.confiscation.selectDesc')}</div>
+            <div className="text-sm text-slate-400 mt-0.5">
+              {t('sheet.confiscation.selectDesc')}
+            </div>
           </div>
         </div>
 
@@ -97,15 +97,12 @@ export function ConfiscationSelectModal({ character, onConfirm, onCancel }: Prop
               <SectionHeader icon={<Sword size={14} />} label={t('sheet.weapons')} />
               <div className="space-y-1.5">
                 {character.weapons.map((w, i) => (
-                  <ToggleRow
-                    key={i}
-                    checked={selWeapons.has(i)}
-                    onToggle={() => toggleWeapon(i)}
-                  >
+                  <ToggleRow key={i} checked={selWeapons.has(i)} onToggle={() => toggleWeapon(i)}>
                     <span className="flex-1 text-sm text-slate-200 truncate">{w.name}</span>
                     {w.bonus != null && w.bonus !== 0 && (
                       <span className="text-xs font-semibold rounded px-1 text-amber-400 bg-amber-900/40 shrink-0">
-                        {w.bonus > 0 ? '+' : ''}{w.bonus} HC
+                        {w.bonus > 0 ? '+' : ''}
+                        {w.bonus} HC
                       </span>
                     )}
                   </ToggleRow>
@@ -117,22 +114,29 @@ export function ConfiscationSelectModal({ character, onConfirm, onCancel }: Prop
           {/* Gold */}
           {character.goldCrowns > 0 && (
             <section>
-              <SectionHeader icon={<Coins size={14} />} label={t('sheet.confiscation.goldAmount')} />
+              <SectionHeader
+                icon={<Coins size={14} />}
+                label={t('sheet.confiscation.goldAmount')}
+              />
               <div className="flex items-center gap-2 rounded-lg px-3 py-2.5 border border-slate-700 bg-slate-800/40">
                 <span className="text-xl shrink-0">🪙</span>
-                <span className="flex-1 text-sm text-amber-100 font-semibold tabular-nums">{gold}</span>
+                <span className="flex-1 text-sm text-amber-100 font-semibold tabular-nums">
+                  {gold}
+                </span>
                 <div className="flex items-center gap-2 shrink-0">
                   <button
-                    onClick={() => setGold(g => Math.max(0, g - 1))}
+                    onClick={() => setGold((g) => Math.max(0, g - 1))}
                     disabled={gold <= 0}
                     aria-label="-"
                     className="p-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                   >
                     <Minus size={13} />
                   </button>
-                  <span className="text-xs text-slate-500 tabular-nums">/ {character.goldCrowns}</span>
+                  <span className="text-xs text-slate-500 tabular-nums">
+                    / {character.goldCrowns}
+                  </span>
                   <button
-                    onClick={() => setGold(g => Math.min(character.goldCrowns, g + 1))}
+                    onClick={() => setGold((g) => Math.min(character.goldCrowns, g + 1))}
                     disabled={gold >= character.goldCrowns}
                     aria-label="+"
                     className="p-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
@@ -153,14 +157,10 @@ export function ConfiscationSelectModal({ character, onConfirm, onCancel }: Prop
                   <div className="flex items-center gap-2 rounded-lg px-3 py-2 border border-slate-700 bg-slate-800/40">
                     <Utensils size={13} className="text-amber-400 shrink-0" />
                     <span className="flex-1 text-sm text-amber-200/90">{t('sheet.meals')}</span>
-                    <NumberStepper
-                      value={meals}
-                      max={character.meals}
-                      onChange={setMeals}
-                    />
+                    <NumberStepper value={meals} max={character.meals} onChange={setMeals} />
                   </div>
                 )}
-                {character.backpack.map(item => {
+                {character.backpack.map((item) => {
                   const s = item.slots ?? 1
                   return (
                     <ToggleRow
@@ -172,16 +172,24 @@ export function ConfiscationSelectModal({ character, onConfirm, onCancel }: Prop
                         <div className="flex items-center gap-1.5">
                           <span className="text-sm text-slate-200 truncate">{item.name}</span>
                           {s > 1 && (
-                            <span className="text-xs text-slate-500 bg-slate-700 rounded px-1 shrink-0">×{s}</span>
+                            <span className="text-xs text-slate-500 bg-slate-700 rounded px-1 shrink-0">
+                              ×{s}
+                            </span>
                           )}
                           {item.epRestore != null && (
-                            <span className="text-xs text-green-400 shrink-0">+{item.epRestore} PE</span>
+                            <span className="text-xs text-green-400 shrink-0">
+                              +{item.epRestore} PE
+                            </span>
                           )}
                           {item.csBonus != null && (
-                            <span className="text-xs text-violet-400 shrink-0">+{item.csBonus} HC</span>
+                            <span className="text-xs text-violet-400 shrink-0">
+                              +{item.csBonus} HC
+                            </span>
                           )}
                         </div>
-                        {item.notes && <div className="text-xs text-slate-500 truncate">{item.notes}</div>}
+                        {item.notes && (
+                          <div className="text-xs text-slate-500 truncate">{item.notes}</div>
+                        )}
                       </div>
                     </ToggleRow>
                   )
@@ -195,7 +203,7 @@ export function ConfiscationSelectModal({ character, onConfirm, onCancel }: Prop
             <section>
               <SectionHeader icon={<Sparkles size={14} />} label={t('sheet.specialItems')} />
               <div className="space-y-1.5">
-                {character.specialItems.map(item => (
+                {character.specialItems.map((item) => (
                   <ToggleRow
                     key={item.id}
                     checked={selSpecials.has(item.id)}
@@ -205,17 +213,25 @@ export function ConfiscationSelectModal({ character, onConfirm, onCancel }: Prop
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="text-sm text-amber-100 font-medium">{item.name}</span>
                         {item.hcBonus != null && item.hcBonus !== 0 && (
-                          <span className={`text-xs font-semibold rounded px-1 ${item.hcBonus > 0 ? 'text-amber-400 bg-amber-900/40' : 'text-red-400 bg-red-900/40'}`}>
-                            {item.hcBonus > 0 ? '+' : ''}{item.hcBonus} HC
+                          <span
+                            className={`text-xs font-semibold rounded px-1 ${item.hcBonus > 0 ? 'text-amber-400 bg-amber-900/40' : 'text-red-400 bg-red-900/40'}`}
+                          >
+                            {item.hcBonus > 0 ? '+' : ''}
+                            {item.hcBonus} HC
                           </span>
                         )}
                         {item.peBonus != null && item.peBonus !== 0 && (
-                          <span className={`text-xs font-semibold rounded px-1 ${item.peBonus > 0 ? 'text-green-400 bg-green-900/40' : 'text-red-400 bg-red-900/40'}`}>
-                            {item.peBonus > 0 ? '+' : ''}{item.peBonus} PE
+                          <span
+                            className={`text-xs font-semibold rounded px-1 ${item.peBonus > 0 ? 'text-green-400 bg-green-900/40' : 'text-red-400 bg-red-900/40'}`}
+                          >
+                            {item.peBonus > 0 ? '+' : ''}
+                            {item.peBonus} PE
                           </span>
                         )}
                       </div>
-                      {item.effect && <div className="text-xs text-slate-400 truncate">{item.effect}</div>}
+                      {item.effect && (
+                        <div className="text-xs text-slate-400 truncate">{item.effect}</div>
+                      )}
                     </div>
                   </ToggleRow>
                 ))}
@@ -255,7 +271,9 @@ function SectionHeader({ icon, label }: { icon?: React.ReactNode; label: string 
 }
 
 function ToggleRow({
-  checked, onToggle, children,
+  checked,
+  onToggle,
+  children,
 }: {
   checked: boolean
   onToggle: () => void

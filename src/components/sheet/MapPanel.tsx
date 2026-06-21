@@ -36,14 +36,22 @@ const ZOOM_MIN = 0.5
 const ZOOM_MAX = 4
 const ZOOM_STEP = 0.25
 
-function BookMapModal({ mapUrl, bookNumber, onClose }: { mapUrl: string; bookNumber: number; onClose: () => void }) {
+function BookMapModal({
+  mapUrl,
+  bookNumber,
+  onClose,
+}: {
+  mapUrl: string
+  bookNumber: number
+  onClose: () => void
+}) {
   const { t } = useTranslation()
   const [scale, setScale] = useState(1)
   const [fitSize, setFitSize] = useState<{ w: number; h: number } | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const zoom = (delta: number) =>
-    setScale(s => Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, Math.round((s + delta) * 100) / 100)))
+    setScale((s) => Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, Math.round((s + delta) * 100) / 100)))
 
   function handleImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
     const img = e.currentTarget
@@ -51,7 +59,10 @@ function BookMapModal({ mapUrl, bookNumber, onClose }: { mapUrl: string; bookNum
     const cw = window.innerWidth - pad
     const ch = window.innerHeight - 48 - pad // 48px header
     const ratio = Math.min(cw / img.naturalWidth, ch / img.naturalHeight)
-    setFitSize({ w: Math.round(img.naturalWidth * ratio), h: Math.round(img.naturalHeight * ratio) })
+    setFitSize({
+      w: Math.round(img.naturalWidth * ratio),
+      h: Math.round(img.naturalHeight * ratio),
+    })
   }
 
   useEffect(() => {

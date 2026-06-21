@@ -22,7 +22,9 @@ export function CompleteBookModal({ isLastBook, onConfirm, onCancel }: Props) {
               {t('sheet.completeBookConfirmTitle')}
             </div>
             <div className="text-sm text-slate-400 leading-relaxed">
-              {isLastBook ? t('sheet.completeBookConfirmBodyLast') : t('sheet.completeBookConfirmBody')}
+              {isLastBook
+                ? t('sheet.completeBookConfirmBodyLast')
+                : t('sheet.completeBookConfirmBody')}
             </div>
           </div>
           <div className="flex gap-3 w-full">

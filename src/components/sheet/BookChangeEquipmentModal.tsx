@@ -13,15 +13,19 @@ export function BookChangeEquipmentModal({ onDone, onSkip }: Props) {
   const lang = i18n.language as 'fr' | 'en'
   const {
     character,
-    addWeapon, removeWeapon,
-    addBackpackItem, removeBackpackItem,
-    addSpecialItem, removeSpecialItem,
+    addWeapon,
+    removeWeapon,
+    addBackpackItem,
+    removeBackpackItem,
+    addSpecialItem,
+    removeSpecialItem,
     setMeals,
     setGold,
     toggleQuiver,
     setArrows,
     toggleHerbPouch,
-    addHerbItem, removeHerbItem,
+    addHerbItem,
+    removeHerbItem,
   } = useCharacterStore()
 
   if (!character) return null
@@ -47,12 +51,12 @@ export function BookChangeEquipmentModal({ onDone, onSkip }: Props) {
     setMeals(result.meals)
     setGold(result.goldCrowns)
 
-    const originalIds = new Set((character!.backpack ?? []).map(i => i.id))
-    const resultIds = new Set(result.backpack.map(i => i.id))
+    const originalIds = new Set((character!.backpack ?? []).map((i) => i.id))
+    const resultIds = new Set(result.backpack.map((i) => i.id))
     for (const id of originalIds) if (!resultIds.has(id)) removeBackpackItem(id)
     for (const item of result.backpack) if (!originalIds.has(item.id)) addBackpackItem(item)
 
-    for (const item of (character!.specialItems ?? [])) removeSpecialItem(item.id)
+    for (const item of character!.specialItems ?? []) removeSpecialItem(item.id)
     for (const item of result.specialItems) addSpecialItem(item)
 
     if (result.hasQuiver !== (character!.hasQuiver ?? false)) toggleQuiver()
@@ -60,7 +64,7 @@ export function BookChangeEquipmentModal({ onDone, onSkip }: Props) {
 
     if (result.hasHerbPouch !== (character!.hasHerbPouch ?? false)) toggleHerbPouch()
     if (result.hasHerbPouch) {
-      for (const item of (character!.herbPouch ?? [])) removeHerbItem(item.id)
+      for (const item of character!.herbPouch ?? []) removeHerbItem(item.id)
       for (const item of result.herbPouch) addHerbItem(item)
     }
 
@@ -79,9 +83,7 @@ export function BookChangeEquipmentModal({ onDone, onSkip }: Props) {
               {t('sheet.bookWizard.equipmentTitle')}
             </div>
             <div className="text-sm text-slate-400 mt-0.5">
-              {lang === 'fr'
-                ? `Livre ${character.currentBook}`
-                : `Book ${character.currentBook}`}
+              {lang === 'fr' ? `Livre ${character.currentBook}` : `Book ${character.currentBook}`}
             </div>
           </div>
         </div>

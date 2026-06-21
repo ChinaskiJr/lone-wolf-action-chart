@@ -3,11 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { Check, BookOpen } from 'lucide-react'
 import { DisciplineGrid } from '@/components/disciplines/DisciplineGrid'
 import { useCharacterStore } from '@/store/characterStore'
-import {
-  KAI_WEAPONS,
-  MAGNAKAI_WEAPONS,
-  getDisciplineMap,
-} from '@/data/disciplines'
+import type { GrandMasterCharacter, MagnakaiCharacter, NewOrderCharacter } from '@/types/character'
+import { KAI_WEAPONS, MAGNAKAI_WEAPONS, getDisciplineMap } from '@/data/disciplines'
 import { LoreCirclesWidget } from '@/components/LoreCirclesWidget'
 
 interface Props {
@@ -17,7 +14,8 @@ interface Props {
 export function BookChangeDisciplineModal({ onConfirm }: Props) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'fr' | 'en'
-  const { character, addDiscipline, setWeaponskillWeapon, addWeaponmasteryWeapon } = useCharacterStore()
+  const { character, addDiscipline, setWeaponskillWeapon, addWeaponmasteryWeapon } =
+    useCharacterStore()
   const [selected, setSelected] = useState<string | null>(null)
   // Single weapon choice (grandWeaponmastery, or bonus slot for existing Magnakai WM)
   const [wmWeaponChoice, setWmWeaponChoice] = useState('')
@@ -28,7 +26,9 @@ export function BookChangeDisciplineModal({ onConfirm }: Props) {
 
   const disciplines = Object.values(getDisciplineMap(character.cycle))
   const owned = character.disciplines as string[]
-  const ownedWeapons: string[] = (character as any).weaponmasteryWeapons ?? []
+  const ownedWeapons: string[] =
+    (character as MagnakaiCharacter | GrandMasterCharacter | NewOrderCharacter)
+      .weaponmasteryWeapons ?? []
 
   // Newly selecting weaponmastery in Magnakai → multi-weapon selection
   const needsMultiWeapon = selected === 'weaponmastery' && character.cycle === 'magnakai'
@@ -43,10 +43,15 @@ export function BookChangeDisciplineModal({ onConfirm }: Props) {
   // How many weapons to choose when newly learning weaponmastery in Magnakai
   const maxWmToChoose = character.cycle === 'magnakai' ? character.currentBook - 3 : 1
 
-  const availableWmWeapons = MAGNAKAI_WEAPONS.filter(w => !ownedWeapons.includes(w.key))
-  const cycleLabel = lang === 'fr'
-    ? ({ kai: 'Kaï', magnakai: 'Magnakaï', grandmaster: 'Grand Maître', neworder: 'Nouvel Ordre' })[character.cycle]
-    : ({ kai: 'Kai', magnakai: 'Magnakai', grandmaster: 'Grand Master', neworder: 'New Order' })[character.cycle]
+  const availableWmWeapons = MAGNAKAI_WEAPONS.filter((w) => !ownedWeapons.includes(w.key))
+  const cycleLabel =
+    lang === 'fr'
+      ? { kai: 'Kaï', magnakai: 'Magnakaï', grandmaster: 'Grand Maître', neworder: 'Nouvel Ordre' }[
+          character.cycle
+        ]
+      : { kai: 'Kai', magnakai: 'Magnakai', grandmaster: 'Grand Master', neworder: 'New Order' }[
+          character.cycle
+        ]
 
   function handleSelect(key: string) {
     if (owned.includes(key)) return
@@ -62,9 +67,12 @@ export function BookChangeDisciplineModal({ onConfirm }: Props) {
   }
 
   function toggleMultiWeapon(key: string) {
-    setWmWeaponsChoice(prev =>
-      prev.includes(key) ? prev.filter(k => k !== key) :
-      prev.length < maxWmToChoose ? [...prev, key] : prev
+    setWmWeaponsChoice((prev) =>
+      prev.includes(key)
+        ? prev.filter((k) => k !== key)
+        : prev.length < maxWmToChoose
+          ? [...prev, key]
+          : prev
     )
   }
 
@@ -120,7 +128,6 @@ export function BookChangeDisciplineModal({ onConfirm }: Props) {
 
         {/* Content */}
         <div className="overflow-y-auto flex-1 p-6 pt-4 flex flex-col gap-4">
-
           {/* Bonus weapon slot for existing Magnakai weaponmastery holders */}
           {canAddBonusWeapon && (
             <div className="bg-blue-950/20 border border-blue-900/40 rounded-lg p-3 flex flex-col gap-2">
@@ -136,12 +143,14 @@ export function BookChangeDisciplineModal({ onConfirm }: Props) {
               </div>
               <select
                 value={wmWeaponChoice}
-                onChange={e => setWmWeaponChoice(e.target.value)}
+                onChange={(e) => setWmWeaponChoice(e.target.value)}
                 className="bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-slate-200 text-sm focus:outline-none focus:border-blue-600"
               >
                 <option value="">— {lang === 'fr' ? 'Choisir' : 'Choose'} —</option>
-                {availableWmWeapons.map(w => (
-                  <option key={w.key} value={w.key}>{lang === 'fr' ? w.fr : w.en}</option>
+                {availableWmWeapons.map((w) => (
+                  <option key={w.key} value={w.key}>
+                    {lang === 'fr' ? w.fr : w.en}
+                  </option>
                 ))}
               </select>
             </div>
@@ -151,7 +160,9 @@ export function BookChangeDisciplineModal({ onConfirm }: Props) {
           <DisciplineGrid
             disciplines={disciplines}
             lang={lang}
-            getState={key => owned.includes(key) ? 'owned' : selected === key ? 'selected' : 'available'}
+            getState={(key) =>
+              owned.includes(key) ? 'owned' : selected === key ? 'selected' : 'available'
+            }
             onPick={handleSelect}
           />
 
@@ -160,9 +171,13 @@ export function BookChangeDisciplineModal({ onConfirm }: Props) {
             <div className="bg-blue-950/20 border border-blue-900/40 rounded-lg p-3 flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <div className="text-xs text-slate-300 font-medium">
-                  {lang === 'fr' ? 'Choisissez vos armes maîtrisées' : 'Choose your mastered weapons'}
+                  {lang === 'fr'
+                    ? 'Choisissez vos armes maîtrisées'
+                    : 'Choose your mastered weapons'}
                 </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${wmWeaponsChoice.length >= maxWmToChoose ? 'bg-green-900/50 text-green-300' : 'bg-slate-700 text-slate-400'}`}>
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full ${wmWeaponsChoice.length >= maxWmToChoose ? 'bg-green-900/50 text-green-300' : 'bg-slate-700 text-slate-400'}`}
+                >
                   {wmWeaponsChoice.length}/{maxWmToChoose}
                 </span>
               </div>
@@ -172,7 +187,7 @@ export function BookChangeDisciplineModal({ onConfirm }: Props) {
                   : `Retroactive for books ${6}–${character.currentBook - 1}: ${maxWmToChoose} type${maxWmToChoose > 1 ? 's' : ''} total.`}
               </p>
               <div className="grid grid-cols-2 gap-1.5">
-                {MAGNAKAI_WEAPONS.map(w => {
+                {MAGNAKAI_WEAPONS.map((w) => {
                   const isChosen = wmWeaponsChoice.includes(w.key)
                   const isDisabled = !isChosen && wmWeaponsChoice.length >= maxWmToChoose
                   return (
@@ -182,11 +197,17 @@ export function BookChangeDisciplineModal({ onConfirm }: Props) {
                       disabled={isDisabled}
                       onClick={() => toggleMultiWeapon(w.key)}
                       className={`flex items-center gap-2 px-2.5 py-1.5 rounded border text-xs text-left transition-colors
-                        ${isChosen ? 'border-blue-600 bg-blue-900/30 text-blue-100' :
-                          isDisabled ? 'border-slate-800 text-slate-600 cursor-not-allowed' :
-                          'border-slate-700 bg-slate-800/40 text-slate-300 hover:border-blue-700/60'}`}
+                        ${
+                          isChosen
+                            ? 'border-blue-600 bg-blue-900/30 text-blue-100'
+                            : isDisabled
+                              ? 'border-slate-800 text-slate-600 cursor-not-allowed'
+                              : 'border-slate-700 bg-slate-800/40 text-slate-300 hover:border-blue-700/60'
+                        }`}
                     >
-                      <span className={`w-3.5 h-3.5 shrink-0 rounded border flex items-center justify-center ${isChosen ? 'bg-blue-600 border-blue-500' : 'border-slate-600'}`}>
+                      <span
+                        className={`w-3.5 h-3.5 shrink-0 rounded border flex items-center justify-center ${isChosen ? 'bg-blue-600 border-blue-500' : 'border-slate-600'}`}
+                      >
                         {isChosen && <Check size={9} />}
                       </span>
                       {lang === 'fr' ? w.fr : w.en}
@@ -205,12 +226,14 @@ export function BookChangeDisciplineModal({ onConfirm }: Props) {
               </div>
               <select
                 value={wmWeaponChoice}
-                onChange={e => setWmWeaponChoice(e.target.value)}
+                onChange={(e) => setWmWeaponChoice(e.target.value)}
                 className="bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-slate-200 text-sm focus:outline-none focus:border-amber-600"
               >
                 <option value="">— {lang === 'fr' ? 'Choisir' : 'Choose'} —</option>
-                {availableWmWeapons.map(w => (
-                  <option key={w.key} value={w.key}>{lang === 'fr' ? w.fr : w.en}</option>
+                {availableWmWeapons.map((w) => (
+                  <option key={w.key} value={w.key}>
+                    {lang === 'fr' ? w.fr : w.en}
+                  </option>
                 ))}
               </select>
             </div>
@@ -218,10 +241,7 @@ export function BookChangeDisciplineModal({ onConfirm }: Props) {
 
           {/* Lore circles — Magnakai only */}
           {character.cycle === 'magnakai' && (
-            <LoreCirclesWidget
-              selected={selected ? [...owned, selected] : owned}
-              lang={lang}
-            />
+            <LoreCirclesWidget selected={selected ? [...owned, selected] : owned} lang={lang} />
           )}
         </div>
 

@@ -17,14 +17,16 @@ export function WorldMapTabs({ areaClassName, action }: Props) {
   return (
     <div className="flex flex-col min-h-0 flex-1">
       <div className="flex items-center gap-1 overflow-x-auto pb-1 border-b border-slate-800">
-        {worldMaps.map(m => (
+        {worldMaps.map((m) => (
           <button
             key={m.id}
             onClick={() => setActive(m.id)}
             className={`shrink-0 px-4 py-2 text-sm rounded-t-lg transition-colors whitespace-nowrap
-              ${active === m.id
-                ? 'bg-amber-950/40 text-amber-300 border border-b-0 border-amber-800/50'
-                : 'text-slate-400 hover:text-amber-200/70 hover:bg-amber-950/10'}`}
+              ${
+                active === m.id
+                  ? 'bg-amber-950/40 text-amber-300 border border-b-0 border-amber-800/50'
+                  : 'text-slate-400 hover:text-amber-200/70 hover:bg-amber-950/10'
+              }`}
           >
             {t(m.labelKey)}
           </button>
@@ -36,7 +38,7 @@ export function WorldMapTabs({ areaClassName, action }: Props) {
           inactive one is hidden but retains its size (no display:none, which
           would zero the container and break reflow). */}
       <div className={`relative mt-3 ${areaClassName ?? ''}`}>
-        {worldMaps.map(m => (
+        {worldMaps.map((m) => (
           <div
             key={m.id}
             className={`absolute inset-0 ${active === m.id ? '' : 'opacity-0 pointer-events-none'}`}

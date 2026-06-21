@@ -14,7 +14,14 @@ interface Props {
   onUseCombatPotion?: (id: string) => void
 }
 
-export function HerbPouchContent({ herbPouch, onAdd, onRemove, onUpdate, onUsePotion, onUseCombatPotion }: Props) {
+export function HerbPouchContent({
+  herbPouch,
+  onAdd,
+  onRemove,
+  onUpdate,
+  onUsePotion,
+  onUseCombatPotion,
+}: Props) {
   const { t } = useTranslation()
   const [input, setInput] = useState('')
   const [inputNotes, setInputNotes] = useState('')
@@ -39,9 +46,19 @@ export function HerbPouchContent({ herbPouch, onAdd, onRemove, onUpdate, onUsePo
   function confirmEdit(item: BackpackItem) {
     const name = editName.trim() || item.name
     if (item.epRestore != null) {
-      onUpdate(item.id, { ...item, name, epRestore: Math.max(1, editValue), notes: editNotes.trim() || undefined })
+      onUpdate(item.id, {
+        ...item,
+        name,
+        epRestore: Math.max(1, editValue),
+        notes: editNotes.trim() || undefined,
+      })
     } else if (item.csBonus != null) {
-      onUpdate(item.id, { ...item, name, csBonus: Math.max(1, editValue), notes: editNotes.trim() || undefined })
+      onUpdate(item.id, {
+        ...item,
+        name,
+        csBonus: Math.max(1, editValue),
+        notes: editNotes.trim() || undefined,
+      })
     } else {
       onUpdate(item.id, { ...item, name, notes: editNotes.trim() || undefined })
     }
@@ -62,102 +79,180 @@ export function HerbPouchContent({ herbPouch, onAdd, onRemove, onUpdate, onUsePo
   return (
     <div>
       <div className="space-y-1.5 mb-3">
-        {herbPouch.map(item => {
-          if (editingId === item.id) return (
-            <div key={item.id} className="rounded-lg border border-amber-700/50 bg-slate-800/60 px-3 py-2 space-y-1.5">
-              <div className="flex items-center gap-1.5">
-                <span className="shrink-0">{item.epRestore ? '🧪' : item.csBonus ? '⚗️' : '🌿'}</span>
+        {herbPouch.map((item) => {
+          if (editingId === item.id)
+            return (
+              <div
+                key={item.id}
+                className="rounded-lg border border-amber-700/50 bg-slate-800/60 px-3 py-2 space-y-1.5"
+              >
+                <div className="flex items-center gap-1.5">
+                  <span className="shrink-0">
+                    {item.epRestore ? '🧪' : item.csBonus ? '⚗️' : '🌿'}
+                  </span>
+                  <input
+                    autoFocus
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') confirmEdit(item)
+                      if (e.key === 'Escape') cancelEdit()
+                    }}
+                    className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-amber-600"
+                  />
+                  {(item.epRestore != null || item.csBonus != null) && (
+                    <div className="flex items-center gap-1 shrink-0">
+                      <input
+                        type="number"
+                        value={editValue}
+                        onChange={(e) => setEditValue(Number(e.target.value))}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') confirmEdit(item)
+                          if (e.key === 'Escape') cancelEdit()
+                        }}
+                        min={1}
+                        className={`w-12 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-center focus:outline-none ${item.epRestore ? 'text-green-400 focus:border-blue-600' : 'text-violet-400 focus:border-violet-600'}`}
+                      />
+                      <span className="text-xs text-slate-500">{item.epRestore ? 'PE' : 'HC'}</span>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => confirmEdit(item)}
+                    aria-label={t('common.confirm')}
+                    className="relative text-green-500 hover:text-green-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
+                  >
+                    <Check size={13} />
+                  </button>
+                  <button
+                    onClick={cancelEdit}
+                    aria-label={t('common.cancel')}
+                    className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
                 <input
-                  autoFocus
-                  value={editName}
-                  onChange={e => setEditName(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') confirmEdit(item); if (e.key === 'Escape') cancelEdit() }}
-                  className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-amber-600"
+                  value={editNotes}
+                  onChange={(e) => setEditNotes(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') confirmEdit(item)
+                    if (e.key === 'Escape') cancelEdit()
+                  }}
+                  placeholder={t('sheet.itemDescription')}
+                  className="w-full bg-slate-900/60 border border-slate-700 rounded px-2 py-1 text-xs text-slate-400 focus:outline-none focus:border-amber-600/60"
                 />
-                {(item.epRestore != null || item.csBonus != null) && (
-                  <div className="flex items-center gap-1 shrink-0">
-                    <input
-                      type="number"
-                      value={editValue}
-                      onChange={e => setEditValue(Number(e.target.value))}
-                      onKeyDown={e => { if (e.key === 'Enter') confirmEdit(item); if (e.key === 'Escape') cancelEdit() }}
-                      min={1}
-                      className={`w-12 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-center focus:outline-none ${item.epRestore ? 'text-green-400 focus:border-blue-600' : 'text-violet-400 focus:border-violet-600'}`}
-                    />
-                    <span className="text-xs text-slate-500">{item.epRestore ? 'PE' : 'HC'}</span>
-                  </div>
-                )}
-                <button onClick={() => confirmEdit(item)} aria-label={t('common.confirm')} className="relative text-green-500 hover:text-green-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
-                  <Check size={13} />
-                </button>
-                <button onClick={cancelEdit} aria-label={t('common.cancel')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
-                  <X size={12} />
-                </button>
               </div>
-              <input
-                value={editNotes}
-                onChange={e => setEditNotes(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') confirmEdit(item); if (e.key === 'Escape') cancelEdit() }}
-                placeholder={t('sheet.itemDescription')}
-                className="w-full bg-slate-900/60 border border-slate-700 rounded px-2 py-1 text-xs text-slate-400 focus:outline-none focus:border-amber-600/60"
-              />
-            </div>
-          )
-          if (item.epRestore) return (
-            <div key={item.id} className="rounded-lg border border-blue-900/50 bg-blue-950/20 px-3 py-2">
-              <div className="flex items-center gap-2">
-                <span className="shrink-0">🧪</span>
-                <span className="flex-1 text-sm text-blue-200 truncate">{item.name}</span>
-                <span className="text-xs text-green-400 font-medium shrink-0">+{item.epRestore} PE</span>
-                {onUsePotion && (
-                  <button onClick={() => onUsePotion(item.id)} aria-label={t('sheet.usePotion')} title={t('sheet.usePotion')} className="relative text-blue-400 hover:text-green-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
-                    <FlaskConical size={13} />
+            )
+          if (item.epRestore)
+            return (
+              <div
+                key={item.id}
+                className="rounded-lg border border-blue-900/50 bg-blue-950/20 px-3 py-2"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="shrink-0">🧪</span>
+                  <span className="flex-1 text-sm text-blue-200 truncate">{item.name}</span>
+                  <span className="text-xs text-green-400 font-medium shrink-0">
+                    +{item.epRestore} PE
+                  </span>
+                  {onUsePotion && (
+                    <button
+                      onClick={() => onUsePotion(item.id)}
+                      aria-label={t('sheet.usePotion')}
+                      title={t('sheet.usePotion')}
+                      className="relative text-blue-400 hover:text-green-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
+                    >
+                      <FlaskConical size={13} />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => startEdit(item)}
+                    aria-label={t('sheet.editItem')}
+                    className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
+                  >
+                    <Pencil size={12} />
                   </button>
-                )}
-                <button onClick={() => startEdit(item)} aria-label={t('sheet.editItem')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
-                  <Pencil size={12} />
-                </button>
-                <button onClick={() => setConfirmDeleteId(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
-                  <X size={12} />
-                </button>
-              </div>
-              {item.notes && <p className="mt-1 text-xs text-slate-500 leading-snug">{item.notes}</p>}
-            </div>
-          )
-          if (item.csBonus) return (
-            <div key={item.id} className="rounded-lg border border-violet-900/50 bg-violet-950/20 px-3 py-2">
-              <div className="flex items-center gap-2">
-                <span className="shrink-0">⚗️</span>
-                <span className="flex-1 text-sm text-violet-200 truncate">{item.name}</span>
-                <span className="text-xs text-violet-400 font-medium shrink-0">+{item.csBonus} HC</span>
-                {onUseCombatPotion && (
-                  <button onClick={() => setCombatPotionConfirm(item.id)} aria-label={t('sheet.useCombatPotion')} title={t('sheet.useCombatPotion')} className="relative text-violet-400 hover:text-violet-300 transition-colors shrink-0 before:absolute before:inset-[-10px]">
-                    <FlaskConical size={13} />
+                  <button
+                    onClick={() => setConfirmDeleteId(item.id)}
+                    aria-label={t('sheet.removeItem')}
+                    className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
+                  >
+                    <X size={12} />
                   </button>
+                </div>
+                {item.notes && (
+                  <p className="mt-1 text-xs text-slate-500 leading-snug">{item.notes}</p>
                 )}
-                <button onClick={() => startEdit(item)} aria-label={t('sheet.editItem')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
-                  <Pencil size={12} />
-                </button>
-                <button onClick={() => setConfirmDeleteId(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
-                  <X size={12} />
-                </button>
               </div>
-              {item.notes && <p className="mt-1 text-xs text-slate-500 leading-snug">{item.notes}</p>}
-            </div>
-          )
+            )
+          if (item.csBonus)
+            return (
+              <div
+                key={item.id}
+                className="rounded-lg border border-violet-900/50 bg-violet-950/20 px-3 py-2"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="shrink-0">⚗️</span>
+                  <span className="flex-1 text-sm text-violet-200 truncate">{item.name}</span>
+                  <span className="text-xs text-violet-400 font-medium shrink-0">
+                    +{item.csBonus} HC
+                  </span>
+                  {onUseCombatPotion && (
+                    <button
+                      onClick={() => setCombatPotionConfirm(item.id)}
+                      aria-label={t('sheet.useCombatPotion')}
+                      title={t('sheet.useCombatPotion')}
+                      className="relative text-violet-400 hover:text-violet-300 transition-colors shrink-0 before:absolute before:inset-[-10px]"
+                    >
+                      <FlaskConical size={13} />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => startEdit(item)}
+                    aria-label={t('sheet.editItem')}
+                    className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
+                  >
+                    <Pencil size={12} />
+                  </button>
+                  <button
+                    onClick={() => setConfirmDeleteId(item.id)}
+                    aria-label={t('sheet.removeItem')}
+                    className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+                {item.notes && (
+                  <p className="mt-1 text-xs text-slate-500 leading-snug">{item.notes}</p>
+                )}
+              </div>
+            )
           return (
-            <div key={item.id} className="rounded-lg border border-green-900/30 bg-green-950/10 px-3 py-2">
+            <div
+              key={item.id}
+              className="rounded-lg border border-green-900/30 bg-green-950/10 px-3 py-2"
+            >
               <div className="flex items-center gap-2">
                 <span className="shrink-0">🌿</span>
                 <span className="flex-1 text-sm text-green-100 truncate">{item.name}</span>
-                <button onClick={() => startEdit(item)} aria-label={t('sheet.editItem')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                <button
+                  onClick={() => startEdit(item)}
+                  aria-label={t('sheet.editItem')}
+                  className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
+                >
                   <Pencil size={12} />
                 </button>
-                <button onClick={() => setConfirmDeleteId(item.id)} aria-label={t('sheet.removeItem')} className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+                <button
+                  onClick={() => setConfirmDeleteId(item.id)}
+                  aria-label={t('sheet.removeItem')}
+                  className="relative text-slate-600 hover:text-red-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
+                >
                   <X size={12} />
                 </button>
               </div>
-              {item.notes && <p className="mt-1 text-xs text-slate-500 leading-snug">{item.notes}</p>}
+              {item.notes && (
+                <p className="mt-1 text-xs text-slate-500 leading-snug">{item.notes}</p>
+              )}
             </div>
           )
         })}
@@ -194,34 +289,40 @@ export function HerbPouchContent({ herbPouch, onAdd, onRemove, onUpdate, onUsePo
         <div className="space-y-1.5">
           <div className="flex gap-2">
             <button
-              onClick={() => setAddingPotion(v => !v)}
+              onClick={() => setAddingPotion((v) => !v)}
               aria-pressed={addingPotion}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium transition-colors shrink-0 ${addingPotion ? 'border-blue-700 bg-blue-900/30 text-blue-300' : 'border-blue-900/50 text-blue-500 hover:bg-blue-950/30 hover:text-blue-400'}`}
             >
-              <Plus size={12} />🧪
+              <Plus size={12} />
+              🧪
             </button>
             <button
-              onClick={() => setAddingCombatPotion(v => !v)}
+              onClick={() => setAddingCombatPotion((v) => !v)}
               aria-pressed={addingCombatPotion}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium transition-colors shrink-0 ${addingCombatPotion ? 'border-orange-700 bg-orange-900/30 text-orange-300' : 'border-orange-900/50 text-orange-500 hover:bg-orange-950/30 hover:text-orange-400'}`}
             >
-              <Plus size={12} />⚗️
+              <Plus size={12} />
+              ⚗️
             </button>
             <input
               value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && addItem()}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addItem()}
               placeholder={t('sheet.addHerb')}
               className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-green-700"
             />
-            <button onClick={addItem} aria-label={t('sheet.addHerb')} className="relative p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors before:absolute before:inset-[-6px]">
+            <button
+              onClick={addItem}
+              aria-label={t('sheet.addHerb')}
+              className="relative p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors before:absolute before:inset-[-6px]"
+            >
               <Plus size={16} />
             </button>
           </div>
           <input
             value={inputNotes}
-            onChange={e => setInputNotes(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && addItem()}
+            onChange={(e) => setInputNotes(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && addItem()}
             placeholder={t('sheet.itemNotes')}
             className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-400 focus:outline-none focus:border-green-700 placeholder:text-slate-600"
           />
@@ -233,14 +334,23 @@ export function HerbPouchContent({ herbPouch, onAdd, onRemove, onUpdate, onUsePo
           <div className="bg-slate-900 border border-red-900/60 rounded-xl p-6 max-w-sm w-full shadow-xl">
             <p className="text-sm text-slate-300 mb-5">
               {t('sheet.confirmRemove')}
-              <span className="font-semibold text-slate-100"> {herbPouch.find(i => i.id === confirmDeleteId)?.name}</span>
+              <span className="font-semibold text-slate-100">
+                {' '}
+                {herbPouch.find((i) => i.id === confirmDeleteId)?.name}
+              </span>
             </p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setConfirmDeleteId(null)} className="px-4 py-2 rounded-lg border border-slate-600 text-slate-300 hover:border-slate-500 text-sm transition-colors">
+              <button
+                onClick={() => setConfirmDeleteId(null)}
+                className="px-4 py-2 rounded-lg border border-slate-600 text-slate-300 hover:border-slate-500 text-sm transition-colors"
+              >
                 {t('common.cancel')}
               </button>
               <button
-                onClick={() => { onRemove(confirmDeleteId); setConfirmDeleteId(null) }}
+                onClick={() => {
+                  onRemove(confirmDeleteId)
+                  setConfirmDeleteId(null)
+                }}
                 className="px-4 py-2 rounded-lg bg-red-800 hover:bg-red-700 text-white text-sm font-medium transition-colors"
               >
                 {t('common.confirm')}
@@ -258,7 +368,10 @@ export function HerbPouchContent({ herbPouch, onAdd, onRemove, onUpdate, onUsePo
             </div>
             <p className="text-sm text-slate-300 mb-5">{t('sheet.combatPotionConfirm')}</p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setCombatPotionConfirm(null)} className="px-4 py-2 rounded-lg border border-slate-600 text-slate-300 hover:border-slate-500 text-sm transition-colors">
+              <button
+                onClick={() => setCombatPotionConfirm(null)}
+                className="px-4 py-2 rounded-lg border border-slate-600 text-slate-300 hover:border-slate-500 text-sm transition-colors"
+              >
                 {t('common.cancel')}
               </button>
               <button
