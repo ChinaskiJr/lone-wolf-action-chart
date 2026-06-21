@@ -168,7 +168,7 @@ export function WeaponsEditor({
         )}
       </div>
       {showQuiver && (
-        <div className="flex items-center gap-3 px-3 py-2 mt-1">
+        <div className="flex items-center gap-3 px-3 py-2 mt-1 mb-2">
           <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300">
             <input
               type="checkbox"
