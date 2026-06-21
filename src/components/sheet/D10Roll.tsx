@@ -13,7 +13,7 @@ export function D10Roll() {
     setPrevResult(result)
     setResult(n)
     setRolling(true)
-    setRollKey(k => k + 1)
+    setRollKey((k) => k + 1)
     setTimeout(() => setRolling(false), 220)
   }
 

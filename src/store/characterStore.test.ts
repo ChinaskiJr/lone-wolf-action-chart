@@ -89,7 +89,9 @@ describe('usePotion', () => {
 
 describe('eatMeal', () => {
   it('consumes one meal when food is available', () => {
-    useCharacterStore.setState({ character: makeKaiChar({ meals: 3, endurance: { current: 20, max: 25 } }) })
+    useCharacterStore.setState({
+      character: makeKaiChar({ meals: 3, endurance: { current: 20, max: 25 } }),
+    })
     useCharacterStore.getState().eatMeal()
     const state = useCharacterStore.getState().character!
     expect(state.meals).toBe(2)
@@ -97,7 +99,9 @@ describe('eatMeal', () => {
   })
 
   it('loses 3 EP when no meal is available', () => {
-    useCharacterStore.setState({ character: makeKaiChar({ meals: 0, endurance: { current: 20, max: 25 } }) })
+    useCharacterStore.setState({
+      character: makeKaiChar({ meals: 0, endurance: { current: 20, max: 25 } }),
+    })
     useCharacterStore.getState().eatMeal()
     const state = useCharacterStore.getState().character!
     expect(state.meals).toBe(0)
@@ -105,7 +109,9 @@ describe('eatMeal', () => {
   })
 
   it('clamps EP loss at 0 when no meal and low EP', () => {
-    useCharacterStore.setState({ character: makeKaiChar({ meals: 0, endurance: { current: 2, max: 25 } }) })
+    useCharacterStore.setState({
+      character: makeKaiChar({ meals: 0, endurance: { current: 2, max: 25 } }),
+    })
     useCharacterStore.getState().eatMeal()
     expect(useCharacterStore.getState().character!.endurance.current).toBe(0)
   })
@@ -113,10 +119,12 @@ describe('eatMeal', () => {
 
 describe('useDeliverance', () => {
   it('restores 20 EP when EP <= 8 and discipline owned', () => {
-    useCharacterStore.setState({ character: makeGrandMasterChar({
-      disciplines: ['deliverance'] as any,
-      endurance: { current: 6, max: 35 },
-    }) })
+    useCharacterStore.setState({
+      character: makeGrandMasterChar({
+        disciplines: ['deliverance'] as any,
+        endurance: { current: 6, max: 35 },
+      }),
+    })
     useCharacterStore.getState().useDeliverance()
     const state = useCharacterStore.getState().character!
     expect(state.endurance.current).toBe(26)
@@ -124,47 +132,57 @@ describe('useDeliverance', () => {
   })
 
   it('clamps restored EP to max', () => {
-    useCharacterStore.setState({ character: makeGrandMasterChar({
-      disciplines: ['deliverance'] as any,
-      endurance: { current: 8, max: 20 },
-    }) })
+    useCharacterStore.setState({
+      character: makeGrandMasterChar({
+        disciplines: ['deliverance'] as any,
+        endurance: { current: 8, max: 20 },
+      }),
+    })
     useCharacterStore.getState().useDeliverance()
     expect(useCharacterStore.getState().character!.endurance.current).toBe(20)
   })
 
   it('does nothing when EP > 8', () => {
-    useCharacterStore.setState({ character: makeGrandMasterChar({
-      disciplines: ['deliverance'] as any,
-      endurance: { current: 9, max: 35 },
-    }) })
+    useCharacterStore.setState({
+      character: makeGrandMasterChar({
+        disciplines: ['deliverance'] as any,
+        endurance: { current: 9, max: 35 },
+      }),
+    })
     useCharacterStore.getState().useDeliverance()
     expect(useCharacterStore.getState().character!.endurance.current).toBe(9)
   })
 
   it('does nothing when already used (deliveranceAvailable false)', () => {
-    useCharacterStore.setState({ character: makeGrandMasterChar({
-      disciplines: ['deliverance'] as any,
-      endurance: { current: 5, max: 35 },
-      deliveranceAvailable: false,
-    }) })
+    useCharacterStore.setState({
+      character: makeGrandMasterChar({
+        disciplines: ['deliverance'] as any,
+        endurance: { current: 5, max: 35 },
+        deliveranceAvailable: false,
+      }),
+    })
     useCharacterStore.getState().useDeliverance()
     expect(useCharacterStore.getState().character!.endurance.current).toBe(5)
   })
 
   it('does nothing without the deliverance discipline', () => {
-    useCharacterStore.setState({ character: makeGrandMasterChar({
-      disciplines: [] as any,
-      endurance: { current: 5, max: 35 },
-    }) })
+    useCharacterStore.setState({
+      character: makeGrandMasterChar({
+        disciplines: [] as any,
+        endurance: { current: 5, max: 35 },
+      }),
+    })
     useCharacterStore.getState().useDeliverance()
     expect(useCharacterStore.getState().character!.endurance.current).toBe(5)
   })
 
   it('recharges on completeBook (grandmaster)', () => {
-    useCharacterStore.setState({ character: makeGrandMasterChar({
-      disciplines: ['deliverance'] as any,
-      deliveranceAvailable: false,
-    }) })
+    useCharacterStore.setState({
+      character: makeGrandMasterChar({
+        disciplines: ['deliverance'] as any,
+        deliveranceAvailable: false,
+      }),
+    })
     useCharacterStore.getState().completeBook(13)
     expect((useCharacterStore.getState().character as any).deliveranceAvailable).toBe(true)
   })
@@ -218,13 +236,15 @@ describe('confiscateEquipment', () => {
   }
 
   it('moves the whole inventory into the confiscated stash and empties it', () => {
-    useCharacterStore.setState({ character: makeKaiChar({
-      weapons: [{ name: 'Sword' }],
-      goldCrowns: 20,
-      meals: 2,
-      backpack: [makeItem({ id: 'a' })],
-      specialItems: [special({ id: 's1' })],
-    }) })
+    useCharacterStore.setState({
+      character: makeKaiChar({
+        weapons: [{ name: 'Sword' }],
+        goldCrowns: 20,
+        meals: 2,
+        backpack: [makeItem({ id: 'a' })],
+        specialItems: [special({ id: 's1' })],
+      }),
+    })
     useCharacterStore.getState().confiscateEquipment()
     const c = useCharacterStore.getState().character!
     expect(c.weapons).toHaveLength(0)
@@ -244,22 +264,26 @@ describe('confiscateEquipment', () => {
   })
 
   it('deducts EP bonus of equipped special items from current endurance', () => {
-    useCharacterStore.setState({ character: makeKaiChar({
-      endurance: { current: 25, max: 25 },
-      specialItems: [
-        special({ id: 'equipped', peBonus: 4 }),
-        special({ id: 'unequipped', peBonus: 3, equipped: false }),
-      ],
-    }) })
+    useCharacterStore.setState({
+      character: makeKaiChar({
+        endurance: { current: 25, max: 25 },
+        specialItems: [
+          special({ id: 'equipped', peBonus: 4 }),
+          special({ id: 'unequipped', peBonus: 3, equipped: false }),
+        ],
+      }),
+    })
     useCharacterStore.getState().confiscateEquipment()
     expect(useCharacterStore.getState().character!.endurance.current).toBe(21)
   })
 
   it('is a no-op when already confiscated', () => {
-    useCharacterStore.setState({ character: makeKaiChar({
-      goldCrowns: 5,
-      confiscated: { weapons: [], goldCrowns: 99, meals: 0, backpack: [], specialItems: [] },
-    }) })
+    useCharacterStore.setState({
+      character: makeKaiChar({
+        goldCrowns: 5,
+        confiscated: { weapons: [], goldCrowns: 99, meals: 0, backpack: [], specialItems: [] },
+      }),
+    })
     useCharacterStore.getState().confiscateEquipment()
     const c = useCharacterStore.getState().character!
     expect(c.goldCrowns).toBe(5)
@@ -273,10 +297,12 @@ describe('recoverEquipment', () => {
   }
 
   it('applies the selection, caps gold at 50 and clears the stash', () => {
-    useCharacterStore.setState({ character: makeKaiChar({
-      goldCrowns: 0,
-      confiscated: { weapons: [], goldCrowns: 0, meals: 0, backpack: [], specialItems: [] },
-    }) })
+    useCharacterStore.setState({
+      character: makeKaiChar({
+        goldCrowns: 0,
+        confiscated: { weapons: [], goldCrowns: 0, meals: 0, backpack: [], specialItems: [] },
+      }),
+    })
     useCharacterStore.getState().recoverEquipment({
       weapons: [{ name: 'Axe' }],
       goldCrowns: 80,
@@ -294,12 +320,19 @@ describe('recoverEquipment', () => {
 
   it('re-applies EP for a recovered equipped special item not currently counted', () => {
     // During confiscation the stash item EP was already removed; current EP is 21.
-    useCharacterStore.setState({ character: makeKaiChar({
-      endurance: { current: 21, max: 25 },
-      specialItems: [],
-      confiscated: { weapons: [], goldCrowns: 0, meals: 0, backpack: [],
-        specialItems: [special({ id: 'equipped', peBonus: 4 })] },
-    }) })
+    useCharacterStore.setState({
+      character: makeKaiChar({
+        endurance: { current: 21, max: 25 },
+        specialItems: [],
+        confiscated: {
+          weapons: [],
+          goldCrowns: 0,
+          meals: 0,
+          backpack: [],
+          specialItems: [special({ id: 'equipped', peBonus: 4 })],
+        },
+      }),
+    })
     useCharacterStore.getState().recoverEquipment({
       weapons: [],
       goldCrowns: 0,
@@ -312,11 +345,13 @@ describe('recoverEquipment', () => {
 
   it('removes EP for a new equipped special item dropped during recovery', () => {
     // A +5 PE item acquired during confiscation already counts in current EP (30).
-    useCharacterStore.setState({ character: makeKaiChar({
-      endurance: { current: 30, max: 40 },
-      specialItems: [special({ id: 'new', peBonus: 5 })],
-      confiscated: { weapons: [], goldCrowns: 0, meals: 0, backpack: [], specialItems: [] },
-    }) })
+    useCharacterStore.setState({
+      character: makeKaiChar({
+        endurance: { current: 30, max: 40 },
+        specialItems: [special({ id: 'new', peBonus: 5 })],
+        confiscated: { weapons: [], goldCrowns: 0, meals: 0, backpack: [], specialItems: [] },
+      }),
+    })
     useCharacterStore.getState().recoverEquipment({
       weapons: [],
       goldCrowns: 0,

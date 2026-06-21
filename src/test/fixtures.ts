@@ -1,4 +1,9 @@
-import type { GrandMasterCharacter, KaiCharacter, MagnakaiCharacter, NewOrderCharacter } from '@/types/character'
+import type {
+  GrandMasterCharacter,
+  KaiCharacter,
+  MagnakaiCharacter,
+  NewOrderCharacter,
+} from '@/types/character'
 
 const BASE = {
   id: 'test-id',
@@ -44,7 +49,9 @@ export function makeMagnakaiChar(overrides: Partial<MagnakaiCharacter> = {}): Ma
   }
 }
 
-export function makeGrandMasterChar(overrides: Partial<GrandMasterCharacter> = {}): GrandMasterCharacter {
+export function makeGrandMasterChar(
+  overrides: Partial<GrandMasterCharacter> = {}
+): GrandMasterCharacter {
   return {
     ...BASE,
     currentBook: 13,

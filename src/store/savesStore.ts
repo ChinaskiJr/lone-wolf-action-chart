@@ -17,18 +17,18 @@ export const useSavesStore = create<SavesState>()(
     (set, get) => ({
       saves: [],
 
-      addSave: (char) => set(state => ({ saves: [...state.saves, char] })),
+      addSave: (char) => set((state) => ({ saves: [...state.saves, char] })),
 
       updateSave: (char) =>
-        set(state => ({
-          saves: state.saves.map(s =>
+        set((state) => ({
+          saves: state.saves.map((s) =>
             s.id === char.id ? { ...char, updatedAt: new Date().toISOString() } : s
           ),
         })),
 
-      deleteSave: (id) => set(state => ({ saves: state.saves.filter(s => s.id !== id) })),
+      deleteSave: (id) => set((state) => ({ saves: state.saves.filter((s) => s.id !== id) })),
 
-      getSave: (id) => get().saves.find(s => s.id === id),
+      getSave: (id) => get().saves.find((s) => s.id === id),
     }),
     { name: STORAGE_KEY }
   )

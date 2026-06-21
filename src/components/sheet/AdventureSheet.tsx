@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Swords, ChevronLeft, Save, BookCheck } from 'lucide-react'
 import { useCharacterStore } from '@/store/characterStore'
+import type { NewOrderCharacter } from '@/types/character'
 import { useSavesStore } from '@/store/savesStore'
 import { useUIStore } from '@/store/uiStore'
 import { useAutoSave } from '@/hooks/useAutoSave'
@@ -35,7 +36,8 @@ export function AdventureSheet() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
-  const { character, setCharacter, save, setCurrentBook, completeBook, setEnduranceCurrent } = useCharacterStore()
+  const { character, setCharacter, save, setCurrentBook, completeBook, setEnduranceCurrent } =
+    useCharacterStore()
   const { getSave } = useSavesStore()
   const { activeSection, setActiveSection, combatModalOpen, setCombatModalOpen } = useUIStore()
   const [showDeathModal, setShowDeathModal] = useState(false)
@@ -56,11 +58,15 @@ export function AdventureSheet() {
   }, [id, character, getSave, setCharacter, navigate])
 
   if (!character) {
-    return <div className="flex-1 flex items-center justify-center text-slate-500">{t('common.loading')}</div>
+    return (
+      <div className="flex-1 flex items-center justify-center text-slate-500">
+        {t('common.loading')}
+      </div>
+    )
   }
 
   const lang = i18n.language as 'fr' | 'en'
-  const currentBook = BOOKS.find(b => b.id === character.currentBook)
+  const currentBook = BOOKS.find((b) => b.id === character.currentBook)
   const isLastBookOfCycle = character.currentBook === CYCLE_LAST_BOOK[character.cycle]
 
   const sections: { id: SectionId; label: string }[] = [
@@ -75,12 +81,15 @@ export function AdventureSheet() {
     completeBook(character!.currentBook)
     if (isLastBookOfCycle) {
       const cycleDisciplineMap =
-        character!.cycle === 'kai' ? KAI_DISCIPLINES :
-        character!.cycle === 'magnakai' ? MAGNAKAI_DISCIPLINES :
-        character!.cycle === 'grandmaster' ? GRAND_MASTER_DISCIPLINES :
-        NEW_ORDER_DISCIPLINES
+        character!.cycle === 'kai'
+          ? KAI_DISCIPLINES
+          : character!.cycle === 'magnakai'
+            ? MAGNAKAI_DISCIPLINES
+            : character!.cycle === 'grandmaster'
+              ? GRAND_MASTER_DISCIPLINES
+              : NEW_ORDER_DISCIPLINES
       const ownedDiscs = character!.disciplines as string[]
-      const hasMissingDisc = Object.keys(cycleDisciplineMap).some(d => !ownedDiscs.includes(d))
+      const hasMissingDisc = Object.keys(cycleDisciplineMap).some((d) => !ownedDiscs.includes(d))
       if (hasMissingDisc) {
         setCurrentBook(character!.currentBook + 1)
         setPendingCycleTransition(true)
@@ -125,23 +134,28 @@ export function AdventureSheet() {
     setShowBookChangeEquipment(true)
   }
 
-  const characterName = character.cycle === 'neworder' && (character as any).kaiName
-    ? (character as any).kaiName
-    : character.name
+  const characterName =
+    character.cycle === 'neworder' && (character as NewOrderCharacter).kaiName
+      ? (character as NewOrderCharacter).kaiName
+      : character.name
 
   const bookSubtitle = [
     t(`cycles.${character.cycle}`),
     t('sheet.currentBook') + ' ' + character.currentBook,
     currentBook?.title[lang],
-  ].filter(Boolean).join(' · ')
+  ]
+    .filter(Boolean)
+    .join(' · ')
 
   return (
     <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full px-4 py-4 gap-3 overflow-y-auto">
-
       {/* Top bar — left: back + identity / right: actions */}
       <div className="flex items-center gap-3">
         <button
-          onClick={() => { save(); navigate('/') }}
+          onClick={() => {
+            save()
+            navigate('/')
+          }}
           aria-label={t('nav.home')}
           className="shrink-0 p-1.5 -ml-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors"
         >
@@ -203,21 +217,23 @@ export function AdventureSheet() {
           setEnduranceCurrent(next)
           if (next <= 0) setTimeout(() => setShowDeathModal(true), 150)
         }}
-        onIncrement={() => setEnduranceCurrent(
-          Math.min(getTotalEPMax(character), character.endurance.current + 1)
-        )}
+        onIncrement={() =>
+          setEnduranceCurrent(Math.min(getTotalEPMax(character), character.endurance.current + 1))
+        }
       />
 
       {/* Section nav */}
       <div className="flex gap-1 overflow-x-auto pb-1 border-b border-slate-800">
-        {sections.map(s => (
+        {sections.map((s) => (
           <button
             key={s.id}
             onClick={() => setActiveSection(s.id)}
             className={`shrink-0 px-4 py-2 text-sm rounded-t-lg transition-colors whitespace-nowrap
-              ${activeSection === s.id
-                ? 'bg-amber-950/40 text-amber-300 border border-b-0 border-amber-800/50'
-                : 'text-slate-400 hover:text-amber-200/70 hover:bg-amber-950/10'}`}
+              ${
+                activeSection === s.id
+                  ? 'bg-amber-950/40 text-amber-300 border border-b-0 border-amber-800/50'
+                  : 'text-slate-400 hover:text-amber-200/70 hover:bg-amber-950/10'
+              }`}
           >
             {s.label}
           </button>
@@ -245,7 +261,10 @@ export function AdventureSheet() {
       {showCompleteModal && (
         <CompleteBookModal
           isLastBook={isLastBookOfCycle}
-          onConfirm={() => { setShowCompleteModal(false); handleCompleteBook() }}
+          onConfirm={() => {
+            setShowCompleteModal(false)
+            handleCompleteBook()
+          }}
           onCancel={() => setShowCompleteModal(false)}
         />
       )}
@@ -257,7 +276,10 @@ export function AdventureSheet() {
 
       {/* Book change wizard — equipment step */}
       {showBookChangeEquipment && (
-        <BookChangeEquipmentModal onDone={handleEquipmentFinished} onSkip={handleEquipmentFinished} />
+        <BookChangeEquipmentModal
+          onDone={handleEquipmentFinished}
+          onSkip={handleEquipmentFinished}
+        />
       )}
 
       {/* Book change wizard — monastery step (book 6+) */}

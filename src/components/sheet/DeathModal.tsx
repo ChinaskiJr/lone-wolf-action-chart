@@ -20,10 +20,14 @@ export function DeathModal({ onClose, onReplay, roundCount }: Props) {
             </div>
           </div>
           <div className="text-center">
-            <div className="text-xl font-serif font-semibold text-red-300 mb-1">{t('combat.defeat')}</div>
+            <div className="text-xl font-serif font-semibold text-red-300 mb-1">
+              {t('combat.defeat')}
+            </div>
             <div className="text-sm text-slate-400">{t('combat.defeatSub')}</div>
             {roundCount != null && roundCount > 0 && (
-              <div className="text-sm text-slate-500 mt-1">{t('combat.roundCount', { count: roundCount })}</div>
+              <div className="text-sm text-slate-500 mt-1">
+                {t('combat.roundCount', { count: roundCount })}
+              </div>
             )}
           </div>
           <div className="flex gap-3 w-full">

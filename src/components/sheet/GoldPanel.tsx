@@ -29,7 +29,7 @@ export function GoldPanel() {
         </div>
         <div className="flex items-center justify-center gap-4">
           <div className="flex items-center gap-1">
-            {[1, 5, 10].map(n => (
+            {[1, 5, 10].map((n) => (
               <button
                 key={n}
                 onClick={() => setGold(gold - n)}
@@ -45,7 +45,7 @@ export function GoldPanel() {
             <span className="text-3xl font-bold text-amber-400 w-12 text-center">{gold}</span>
           </div>
           <div className="flex items-center gap-1">
-            {[1, 5, 10].map(n => (
+            {[1, 5, 10].map((n) => (
               <button
                 key={n}
                 onClick={() => setGold(gold + n)}

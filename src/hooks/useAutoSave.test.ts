@@ -21,7 +21,9 @@ describe('useAutoSave', () => {
 
     renderHook(() => useAutoSave())
 
-    act(() => { vi.advanceTimersByTime(1000) })
+    act(() => {
+      vi.advanceTimersByTime(1000)
+    })
     expect(mockSave).not.toHaveBeenCalled()
   })
 
@@ -31,7 +33,9 @@ describe('useAutoSave', () => {
 
     renderHook(() => useAutoSave())
 
-    act(() => { vi.advanceTimersByTime(1500) })
+    act(() => {
+      vi.advanceTimersByTime(1500)
+    })
     expect(mockSave).toHaveBeenCalledTimes(1)
   })
 
@@ -43,7 +47,9 @@ describe('useAutoSave', () => {
     renderHook(() => useAutoSave())
 
     // Advance 1000ms — timer running but not fired
-    act(() => { vi.advanceTimersByTime(1000) })
+    act(() => {
+      vi.advanceTimersByTime(1000)
+    })
     expect(mockSave).not.toHaveBeenCalled()
 
     // Character changes → timer resets
@@ -55,11 +61,15 @@ describe('useAutoSave', () => {
     })
 
     // 1000ms more — still within new 1500ms window
-    act(() => { vi.advanceTimersByTime(1000) })
+    act(() => {
+      vi.advanceTimersByTime(1000)
+    })
     expect(mockSave).not.toHaveBeenCalled()
 
     // Final 500ms — timer fires
-    act(() => { vi.advanceTimersByTime(500) })
+    act(() => {
+      vi.advanceTimersByTime(500)
+    })
     expect(mockSave).toHaveBeenCalledTimes(1)
   })
 
@@ -69,7 +79,9 @@ describe('useAutoSave', () => {
 
     renderHook(() => useAutoSave())
 
-    act(() => { vi.advanceTimersByTime(3000) })
+    act(() => {
+      vi.advanceTimersByTime(3000)
+    })
     expect(mockSave).not.toHaveBeenCalled()
   })
 })

@@ -9,11 +9,7 @@ export interface CombatRound {
   playerKilled: boolean
 }
 
-export function resolveCombatRound(
-  playerCS: number,
-  enemyCS: number,
-  rn?: number
-): CombatRound {
+export function resolveCombatRound(playerCS: number, enemyCS: number, rn?: number): CombatRound {
   const randomNumber = rn ?? rollD10()
   const [rawEnemyLoss, rawPlayerLoss] = lookupCombatResult(playerCS, enemyCS, randomNumber)
   const playerKilled = rawPlayerLoss === K
@@ -52,8 +48,16 @@ export function simulateCombat(
     const psychicHero = psychicTarget === 'hero' && i < psychicRounds ? psychicDmgPerRound : 0
     const psychicEnemy = psychicTarget === 'enemy' && i < psychicRounds ? psychicDmgPerRound : 0
 
-    if (round.playerKilled) { pEP = 0 } else { pEP -= (heroImmune ? 0 : round.playerLoss) + psychicHero }
-    if (round.enemyKilled)  { eEP = 0 } else { eEP -= (enemyImmune ? 0 : round.enemyLoss) + psychicEnemy }
+    if (round.playerKilled) {
+      pEP = 0
+    } else {
+      pEP -= (heroImmune ? 0 : round.playerLoss) + psychicHero
+    }
+    if (round.enemyKilled) {
+      eEP = 0
+    } else {
+      eEP -= (enemyImmune ? 0 : round.enemyLoss) + psychicEnemy
+    }
 
     if (eEP <= 0 || pEP <= 0) break
   }

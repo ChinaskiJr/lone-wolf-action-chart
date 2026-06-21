@@ -62,8 +62,8 @@ export function PotionAddForm({ variant, withNotes = false, onConfirm, onCancel 
         <span className="text-lg shrink-0">{cfg.emoji}</span>
         <input
           value={name}
-          onChange={e => setName(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && confirm()}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && confirm()}
           placeholder={t(cfg.nameKey)}
           className={`flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none ${cfg.focus}`}
         />
@@ -72,23 +72,32 @@ export function PotionAddForm({ variant, withNotes = false, onConfirm, onCancel 
           <input
             type="number"
             value={value}
-            onChange={e => setValue(Math.max(1, Number(e.target.value)))}
-            onFocus={e => e.target.select()}
-            onKeyDown={e => e.key === 'Enter' && confirm()}
+            onChange={(e) => setValue(Math.max(1, Number(e.target.value)))}
+            onFocus={(e) => e.target.select()}
+            onKeyDown={(e) => e.key === 'Enter' && confirm()}
             min={1}
             className={`w-14 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm font-bold text-center focus:outline-none ${cfg.valueColor} ${cfg.focus}`}
           />
           <span className="text-xs text-slate-500">{cfg.unit}</span>
         </div>
-        <button onClick={confirm} className={`px-2 py-1 rounded text-white text-xs font-medium transition-colors shrink-0 ${cfg.okBtn}`}>OK</button>
-        <button onClick={onCancel} aria-label={t('common.cancel')} className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]">
+        <button
+          onClick={confirm}
+          className={`px-2 py-1 rounded text-white text-xs font-medium transition-colors shrink-0 ${cfg.okBtn}`}
+        >
+          OK
+        </button>
+        <button
+          onClick={onCancel}
+          aria-label={t('common.cancel')}
+          className="relative text-slate-600 hover:text-slate-400 transition-colors shrink-0 before:absolute before:inset-[-10px]"
+        >
           <X size={14} />
         </button>
       </div>
       {withNotes && (
         <input
           value={notes}
-          onChange={e => setNotes(e.target.value)}
+          onChange={(e) => setNotes(e.target.value)}
           placeholder={t('sheet.itemNotes')}
           className={`w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-slate-400 focus:outline-none ${cfg.focus} placeholder:text-slate-600`}
         />

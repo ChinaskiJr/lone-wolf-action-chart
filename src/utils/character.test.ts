@@ -1,13 +1,27 @@
 import { describe, it, expect } from 'vitest'
-import { getTotalCS, getTotalEPMax, computeRank, filterCarryOverItems, getEffectiveModifier, hasDisciplineForModifier, getBowBonus, canIgnite } from './character'
-import { makeKaiChar, makeMagnakaiChar, makeGrandMasterChar, makeNewOrderChar } from '@/test/fixtures'
+import {
+  getTotalCS,
+  getTotalEPMax,
+  computeRank,
+  filterCarryOverItems,
+  getEffectiveModifier,
+  hasDisciplineForModifier,
+  getBowBonus,
+  canIgnite,
+} from './character'
+import {
+  makeKaiChar,
+  makeMagnakaiChar,
+  makeGrandMasterChar,
+  makeNewOrderChar,
+} from '@/test/fixtures'
 import { COMBAT_MODIFIERS } from '@/data/combatModifiers'
 import type { SpecialItem } from '@/types/game'
 
-const WEAPONMASTERY = COMBAT_MODIFIERS.find(m => m.id === 'weaponmastery_3')!
-const PSI_SURGE_STRONG = COMBAT_MODIFIERS.find(m => m.id === 'psiSurge_4')!
-const KAI_SURGE_STRONG = COMBAT_MODIFIERS.find(m => m.id === 'kaiSurge_8')!
-const UNARMED = COMBAT_MODIFIERS.find(m => m.id === 'unarmed_4')!
+const WEAPONMASTERY = COMBAT_MODIFIERS.find((m) => m.id === 'weaponmastery_3')!
+const PSI_SURGE_STRONG = COMBAT_MODIFIERS.find((m) => m.id === 'psiSurge_4')!
+const KAI_SURGE_STRONG = COMBAT_MODIFIERS.find((m) => m.id === 'kaiSurge_8')!
+const UNARMED = COMBAT_MODIFIERS.find((m) => m.id === 'unarmed_4')!
 
 function makeItem(overrides: Partial<SpecialItem> = {}): SpecialItem {
   return { id: 'item-1', name: 'Test Item', ...overrides }
@@ -54,7 +68,10 @@ describe('getTotalCS', () => {
   it('counts hcBonus from items with equipped: true', () => {
     const char = makeKaiChar({
       combatSkill: { base: 15, bonus: 0 },
-      specialItems: [makeItem({ hcBonus: 4, equipped: true }), makeItem({ id: 'item-2', hcBonus: 6, equipped: false })],
+      specialItems: [
+        makeItem({ hcBonus: 4, equipped: true }),
+        makeItem({ id: 'item-2', hcBonus: 6, equipped: false }),
+      ],
     })
     expect(getTotalCS(char)).toBe(19)
   })
@@ -94,7 +111,10 @@ describe('getTotalCS', () => {
   it('adds bonus from weapons', () => {
     const char = makeKaiChar({
       combatSkill: { base: 15, bonus: 0 },
-      weapons: [{ name: 'Épée', bonus: 3 }, { name: 'Dague', bonus: 1 }],
+      weapons: [
+        { name: 'Épée', bonus: 3 },
+        { name: 'Dague', bonus: 1 },
+      ],
     })
     expect(getTotalCS(char)).toBe(19)
   })
@@ -312,12 +332,16 @@ describe('getBowBonus', () => {
 
 describe('canIgnite', () => {
   it('grandmaster Sun Lord (7 disc) with Grand Weaponmastery can ignite', () => {
-    const char = makeGrandMasterChar({ disciplines: ['grandWeaponmastery', ...Array(6).fill('x')] as any })
+    const char = makeGrandMasterChar({
+      disciplines: ['grandWeaponmastery', ...Array(6).fill('x')] as any,
+    })
     expect(canIgnite(char)).toBe(true)
   })
 
   it('cannot ignite below Sun Lord (6 disc)', () => {
-    const char = makeGrandMasterChar({ disciplines: ['grandWeaponmastery', ...Array(5).fill('x')] as any })
+    const char = makeGrandMasterChar({
+      disciplines: ['grandWeaponmastery', ...Array(5).fill('x')] as any,
+    })
     expect(canIgnite(char)).toBe(false)
   })
 
@@ -334,7 +358,10 @@ describe('hasDisciplineForModifier', () => {
   })
 })
 
-function makeSpecialItem(id: string, overrides: Partial<{ name: string; hcBonus: number; peBonus: number; effect: string }> = {}) {
+function makeSpecialItem(
+  id: string,
+  overrides: Partial<{ name: string; hcBonus: number; peBonus: number; effect: string }> = {}
+) {
   return { id, name: `Item ${id}`, ...overrides }
 }
 
@@ -356,7 +383,7 @@ describe('filterCarryOverItems', () => {
   it('returns only items whose id is in selectedIds', () => {
     const result = filterCarryOverItems(items, ['id-1', 'id-3'])
     expect(result).toHaveLength(2)
-    expect(result.map(i => i.id)).toEqual(['id-1', 'id-3'])
+    expect(result.map((i) => i.id)).toEqual(['id-1', 'id-3'])
   })
 
   it('preserves all item properties (hcBonus, peBonus, effect)', () => {
@@ -366,12 +393,12 @@ describe('filterCarryOverItems', () => {
 
   it('truncates to 12 items when more than 12 ids are selected', () => {
     const manyItems = Array.from({ length: 15 }, (_, i) => makeSpecialItem(`id-${i}`))
-    const allIds = manyItems.map(i => i.id)
+    const allIds = manyItems.map((i) => i.id)
     expect(filterCarryOverItems(manyItems, allIds)).toHaveLength(12)
   })
 
   it('returns items in their original order', () => {
     const result = filterCarryOverItems(items, ['id-3', 'id-1'])
-    expect(result.map(i => i.id)).toEqual(['id-1', 'id-3'])
+    expect(result.map((i) => i.id)).toEqual(['id-1', 'id-3'])
   })
 })

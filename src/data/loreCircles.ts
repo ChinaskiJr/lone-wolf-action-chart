@@ -27,7 +27,7 @@ export const LORE_CIRCLES: LoreCircleData[] = [
   },
   {
     id: 'spirit',
-    fr: 'Cercle de l\'Esprit',
+    fr: "Cercle de l'Esprit",
     en: 'Circle of the Spirit',
     disciplines: ['psiSurge', 'psiScreen', 'nexus', 'divination'],
     bonusCS: 3,
@@ -36,12 +36,13 @@ export const LORE_CIRCLES: LoreCircleData[] = [
 ]
 
 export function getCompletedCircles(disciplines: string[]): LoreCircleData[] {
-  return LORE_CIRCLES.filter(circle =>
-    circle.disciplines.every(d => disciplines.includes(d))
-  )
+  return LORE_CIRCLES.filter((circle) => circle.disciplines.every((d) => disciplines.includes(d)))
 }
 
-export function computeLoreCircleBonuses(disciplines: string[]): { bonusCS: number; bonusEP: number } {
+export function computeLoreCircleBonuses(disciplines: string[]): {
+  bonusCS: number
+  bonusEP: number
+} {
   const completed = getCompletedCircles(disciplines)
   return completed.reduce(
     (acc, c) => ({ bonusCS: acc.bonusCS + c.bonusCS, bonusEP: acc.bonusEP + c.bonusEP }),

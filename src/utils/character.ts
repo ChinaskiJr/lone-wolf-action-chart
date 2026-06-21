@@ -1,7 +1,25 @@
-import type { Character, GrandMasterCharacter, KaiCharacter, MagnakaiCharacter, NewOrderCharacter } from '@/types/character'
-import type { Cycle, GrandMasterDiscipline, KaiDiscipline, MagnakaiDiscipline, NewOrderDiscipline, SpecialItem } from '@/types/game'
+import type {
+  Character,
+  GrandMasterCharacter,
+  KaiCharacter,
+  MagnakaiCharacter,
+  NewOrderCharacter,
+} from '@/types/character'
+import type {
+  Cycle,
+  GrandMasterDiscipline,
+  KaiDiscipline,
+  MagnakaiDiscipline,
+  NewOrderDiscipline,
+  SpecialItem,
+} from '@/types/game'
 import type { CombatModifier } from '@/data/combatModifiers'
-import { computeGrandMasterRank, computeKaiRank, computeMagnakaiRank, computeNewOrderRank } from '@/data/ranks'
+import {
+  computeGrandMasterRank,
+  computeKaiRank,
+  computeMagnakaiRank,
+  computeNewOrderRank,
+} from '@/data/ranks'
 import { computeLoreCircleBonuses } from '@/data/loreCircles'
 import { rollD10 } from './rng'
 import { v4 as uuidv4 } from 'uuid'
@@ -22,7 +40,9 @@ export function getTotalCS(char: Character): number {
     if (i.equipped === false && !i.hcBonusPermanent) return sum
     return sum + i.hcBonus
   }, 0)
-  const weaponsHC = char.weapons.filter(w => w.equipped !== false).reduce((sum, w) => sum + (w.bonus ?? 0), 0)
+  const weaponsHC = char.weapons
+    .filter((w) => w.equipped !== false)
+    .reduce((sum, w) => sum + (w.bonus ?? 0), 0)
   if (char.cycle === 'magnakai') {
     const { bonusCS } = computeLoreCircleBonuses(char.disciplines)
     return base + bonusCS + itemsHC + weaponsHC
@@ -84,9 +104,13 @@ export function isModifierSuperseded(char: Character, modifier: CombatModifier):
   if (!modifier.supersededBy?.length) return false
   switch (char.cycle) {
     case 'magnakai':
-      return modifier.supersededBy.some(key => char.disciplines.includes(key as MagnakaiDiscipline))
+      return modifier.supersededBy.some((key) =>
+        char.disciplines.includes(key as MagnakaiDiscipline)
+      )
     case 'grandmaster':
-      return modifier.supersededBy.some(key => char.disciplines.includes(key as GrandMasterDiscipline))
+      return modifier.supersededBy.some((key) =>
+        char.disciplines.includes(key as GrandMasterDiscipline)
+      )
     default:
       return false
   }
@@ -152,10 +176,22 @@ export function getEffectiveModifier(
 // Grand Weaponmastery: +3. (The +5 ex-Mentora case is not tracked in-app.)
 export function getBowBonus(char: Character): number {
   if (char.cycle === 'magnakai') {
-    if (char.disciplines.length >= 7 && char.disciplines.includes('weaponmastery' as MagnakaiDiscipline)) return 2
+    if (
+      char.disciplines.length >= 7 &&
+      char.disciplines.includes('weaponmastery' as MagnakaiDiscipline)
+    )
+      return 2
   }
-  if (char.cycle === 'grandmaster' && char.disciplines.includes('grandWeaponmastery' as GrandMasterDiscipline)) return 3
-  if (char.cycle === 'neworder' && char.disciplines.includes('grandWeaponmastery' as NewOrderDiscipline)) return 3
+  if (
+    char.cycle === 'grandmaster' &&
+    char.disciplines.includes('grandWeaponmastery' as GrandMasterDiscipline)
+  )
+    return 3
+  if (
+    char.cycle === 'neworder' &&
+    char.disciplines.includes('grandWeaponmastery' as NewOrderDiscipline)
+  )
+    return 3
   return 0
 }
 
@@ -163,10 +199,16 @@ export function getBowBonus(char: Character): number {
 // ENDURANCE loss on the enemy in every successful round.
 export function canIgnite(char: Character): boolean {
   if (char.cycle === 'grandmaster') {
-    return char.disciplines.length >= 7 && char.disciplines.includes('grandWeaponmastery' as GrandMasterDiscipline)
+    return (
+      char.disciplines.length >= 7 &&
+      char.disciplines.includes('grandWeaponmastery' as GrandMasterDiscipline)
+    )
   }
   if (char.cycle === 'neworder') {
-    return char.disciplines.length >= 7 && char.disciplines.includes('grandWeaponmastery' as NewOrderDiscipline)
+    return (
+      char.disciplines.length >= 7 &&
+      char.disciplines.includes('grandWeaponmastery' as NewOrderDiscipline)
+    )
   }
   return false
 }
@@ -180,7 +222,9 @@ export function getItemsCSBonus(char: Character): number {
 }
 
 export function getWeaponsCSBonus(char: Character): number {
-  return char.weapons.filter(w => w.equipped !== false).reduce((sum, w) => sum + (w.bonus ?? 0), 0)
+  return char.weapons
+    .filter((w) => w.equipped !== false)
+    .reduce((sum, w) => sum + (w.bonus ?? 0), 0)
 }
 
 export function getItemsEPBonus(char: Character): number {
@@ -194,10 +238,14 @@ export function getItemsEPBonus(char: Character): number {
 export function computeRank(char: Character): string {
   const count = char.disciplines.length
   switch (char.cycle) {
-    case 'kai': return computeKaiRank(count)
-    case 'magnakai': return computeMagnakaiRank(count)
-    case 'grandmaster': return computeGrandMasterRank(count)
-    case 'neworder': return computeNewOrderRank(count)
+    case 'kai':
+      return computeKaiRank(count)
+    case 'magnakai':
+      return computeMagnakaiRank(count)
+    case 'grandmaster':
+      return computeGrandMasterRank(count)
+    case 'neworder':
+      return computeNewOrderRank(count)
   }
 }
 
@@ -274,7 +322,9 @@ export function createNewMagnakaiCharacter(fromKai?: KaiCharacter): MagnakaiChar
   }
 }
 
-export function createNewGrandMasterCharacter(fromMagnakai?: MagnakaiCharacter): GrandMasterCharacter {
+export function createNewGrandMasterCharacter(
+  fromMagnakai?: MagnakaiCharacter
+): GrandMasterCharacter {
   const now = new Date().toISOString()
   if (fromMagnakai) {
     const { bonusCS, bonusEP } = computeLoreCircleBonuses(fromMagnakai.disciplines)
@@ -352,11 +402,8 @@ export function createNewOrderCharacter(): NewOrderCharacter {
   }
 }
 
-export function filterCarryOverItems(
-  items: SpecialItem[],
-  selectedIds: string[]
-): SpecialItem[] {
-  return items.filter(i => selectedIds.includes(i.id)).slice(0, 12)
+export function filterCarryOverItems(items: SpecialItem[], selectedIds: string[]): SpecialItem[] {
+  return items.filter((i) => selectedIds.includes(i.id)).slice(0, 12)
 }
 
 export function getBackpackMax(char: Character): number {

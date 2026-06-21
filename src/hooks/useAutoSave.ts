@@ -4,8 +4,8 @@ import { useCharacterStore } from '@/store/characterStore'
 const AUTOSAVE_DELAY_MS = 1500
 
 export function useAutoSave() {
-  const character = useCharacterStore(s => s.character)
-  const save = useCharacterStore(s => s.save)
+  const character = useCharacterStore((s) => s.character)
+  const save = useCharacterStore((s) => s.save)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {

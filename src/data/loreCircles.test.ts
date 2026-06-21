@@ -39,10 +39,16 @@ describe('getCompletedCircles', () => {
 
   it('returns all four circles when all required disciplines are present', () => {
     const all = [
-      'weaponmastery', 'huntmastery',           // Fire
-      'animalControl', 'curing',                // Light
-      'invisibility', 'pathsmanship',           // Solaris (huntmastery already included)
-      'psiSurge', 'psiScreen', 'nexus', 'divination', // Spirit
+      'weaponmastery',
+      'huntmastery', // Fire
+      'animalControl',
+      'curing', // Light
+      'invisibility',
+      'pathsmanship', // Solaris (huntmastery already included)
+      'psiSurge',
+      'psiScreen',
+      'nexus',
+      'divination', // Spirit
     ]
     expect(getCompletedCircles(all)).toHaveLength(4)
   })
@@ -54,19 +60,31 @@ describe('computeLoreCircleBonuses', () => {
   })
 
   it('returns Fire circle bonuses (CS+1, EP+2)', () => {
-    expect(computeLoreCircleBonuses(['weaponmastery', 'huntmastery'])).toEqual({ bonusCS: 1, bonusEP: 2 })
+    expect(computeLoreCircleBonuses(['weaponmastery', 'huntmastery'])).toEqual({
+      bonusCS: 1,
+      bonusEP: 2,
+    })
   })
 
   it('returns Light circle bonuses (CS+0, EP+3)', () => {
-    expect(computeLoreCircleBonuses(['animalControl', 'curing'])).toEqual({ bonusCS: 0, bonusEP: 3 })
+    expect(computeLoreCircleBonuses(['animalControl', 'curing'])).toEqual({
+      bonusCS: 0,
+      bonusEP: 3,
+    })
   })
 
   it('accumulates bonuses from all four circles (CS+5, EP+11)', () => {
     const all = [
-      'weaponmastery', 'huntmastery',
-      'animalControl', 'curing',
-      'invisibility', 'pathsmanship',
-      'psiSurge', 'psiScreen', 'nexus', 'divination',
+      'weaponmastery',
+      'huntmastery',
+      'animalControl',
+      'curing',
+      'invisibility',
+      'pathsmanship',
+      'psiSurge',
+      'psiScreen',
+      'nexus',
+      'divination',
     ]
     expect(computeLoreCircleBonuses(all)).toEqual({ bonusCS: 5, bonusEP: 11 })
   })

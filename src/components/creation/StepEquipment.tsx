@@ -72,12 +72,18 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
         hasQuiver={hasQuiver}
         arrows={arrows}
         showQuiver={showQuiverAndHerbPouch}
-        onAdd={w => setWeapons(prev => [...prev, w])}
-        onRemove={i => setWeapons(prev => prev.filter((_, j) => j !== i))}
-        onEquip={i => setWeapons(prev => prev.map((w, j) => j === i ? { ...w, equipped: w.equipped !== false ? false : undefined } : w))}
-        onUpdate={(i, w) => setWeapons(prev => prev.map((ww, j) => j === i ? w : ww))}
-        onToggleQuiver={() => setHasQuiver(q => !q)}
-        onSetArrows={n => setArrows(Math.max(0, n))}
+        onAdd={(w) => setWeapons((prev) => [...prev, w])}
+        onRemove={(i) => setWeapons((prev) => prev.filter((_, j) => j !== i))}
+        onEquip={(i) =>
+          setWeapons((prev) =>
+            prev.map((w, j) =>
+              j === i ? { ...w, equipped: w.equipped !== false ? false : undefined } : w
+            )
+          )
+        }
+        onUpdate={(i, w) => setWeapons((prev) => prev.map((ww, j) => (j === i ? w : ww)))}
+        onToggleQuiver={() => setHasQuiver((q) => !q)}
+        onSetArrows={(n) => setArrows(Math.max(0, n))}
       />
 
       <EquipmentFields
@@ -92,9 +98,11 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
 
       <SpecialItemsEditor
         items={specialItems}
-        onAdd={item => setSpecialItems(prev => [...prev, item])}
-        onRemove={id => setSpecialItems(prev => prev.filter(i => i.id !== id))}
-        onUpdate={(id, updates) => setSpecialItems(prev => prev.map(i => i.id === id ? { ...i, ...updates } : i))}
+        onAdd={(item) => setSpecialItems((prev) => [...prev, item])}
+        onRemove={(id) => setSpecialItems((prev) => prev.filter((i) => i.id !== id))}
+        onUpdate={(id, updates) =>
+          setSpecialItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...updates } : i)))
+        }
         hasHerbPouch={hasHerbPouch}
         herbPouch={herbPouch}
         showHerbPouch={showQuiverAndHerbPouch}
@@ -106,8 +114,12 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
         <div className="bg-slate-900 border border-green-900/50 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-3">
             <Wallet size={15} className="text-green-400 shrink-0" />
-            <span className="flex-1 font-semibold text-sm text-green-100">{t('sheet.herbPouch')}</span>
-            <span className={`text-xs ${herbPouch.length >= 6 ? 'text-red-400' : 'text-slate-500'}`}>
+            <span className="flex-1 font-semibold text-sm text-green-100">
+              {t('sheet.herbPouch')}
+            </span>
+            <span
+              className={`text-xs ${herbPouch.length >= 6 ? 'text-red-400' : 'text-slate-500'}`}
+            >
               {t('sheet.herbPouchSlots', { used: herbPouch.length })}
             </span>
             <button
@@ -120,15 +132,20 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
           </div>
           <HerbPouchContent
             herbPouch={herbPouch}
-            onAdd={item => setHerbPouch(prev => [...prev, item])}
-            onRemove={id => setHerbPouch(prev => prev.filter(i => i.id !== id))}
-            onUpdate={(id, item) => setHerbPouch(prev => prev.map(i => i.id === id ? item : i))}
+            onAdd={(item) => setHerbPouch((prev) => [...prev, item])}
+            onRemove={(id) => setHerbPouch((prev) => prev.filter((i) => i.id !== id))}
+            onUpdate={(id, item) =>
+              setHerbPouch((prev) => prev.map((i) => (i.id === id ? item : i)))
+            }
           />
         </div>
       )}
 
       <div className="flex gap-3 justify-between">
-        <button onClick={onBack} className="px-5 py-2 rounded border border-slate-700 text-slate-400 hover:text-slate-200 transition-colors text-sm">
+        <button
+          onClick={onBack}
+          className="px-5 py-2 rounded border border-slate-700 text-slate-400 hover:text-slate-200 transition-colors text-sm"
+        >
           {t('creation.back')}
         </button>
         <button

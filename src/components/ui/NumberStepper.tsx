@@ -12,7 +12,14 @@ interface Props {
 }
 
 /** Compact bounded [- value + /max] stepper used in the confiscation/recover modals. */
-export function NumberStepper({ value, max, min = 0, onChange, incrementDisabled = false, showMax = true }: Props) {
+export function NumberStepper({
+  value,
+  max,
+  min = 0,
+  onChange,
+  incrementDisabled = false,
+  showMax = true,
+}: Props) {
   return (
     <div className="flex items-center gap-2 shrink-0">
       <button
@@ -23,7 +30,9 @@ export function NumberStepper({ value, max, min = 0, onChange, incrementDisabled
       >
         <Minus size={13} />
       </button>
-      <span className="text-sm text-amber-100 font-semibold tabular-nums w-6 text-center">{value}</span>
+      <span className="text-sm text-amber-100 font-semibold tabular-nums w-6 text-center">
+        {value}
+      </span>
       <button
         onClick={() => onChange(Math.min(max, value + 1))}
         disabled={value >= max || incrementDisabled}

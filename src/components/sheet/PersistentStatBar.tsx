@@ -16,19 +16,24 @@ export function PersistentStatBar({ character, onDecrement, onIncrement }: Props
   const epPct = Math.max(0, Math.min(100, (currentEP / maxEP) * 100))
 
   const barColor = epPct > 50 ? 'bg-green-500' : epPct > 25 ? 'bg-yellow-500' : 'bg-red-500'
-  const epTextColor = epPct > 50 ? 'text-green-400' : epPct > 25 ? 'text-yellow-400' : 'text-red-400'
+  const epTextColor =
+    epPct > 50 ? 'text-green-400' : epPct > 25 ? 'text-yellow-400' : 'text-red-400'
 
   return (
     <div className="flex items-center gap-3 bg-slate-900/60 border border-amber-900/40 rounded-xl px-4 py-2.5">
       {/* HC */}
       <div className="flex items-center gap-1.5 shrink-0">
-        <span className="text-xs text-slate-500 font-medium" title={t('sheet.combatSkill')}>HC</span>
+        <span className="text-xs text-slate-500 font-medium" title={t('sheet.combatSkill')}>
+          HC
+        </span>
         <span className="text-xl font-bold text-amber-400 tabular-nums">{totalCS}</span>
       </div>
 
       <div className="w-px h-5 bg-slate-700 shrink-0" />
 
-      <span className="text-xs text-slate-500 font-medium shrink-0" title={t('sheet.endurance')}>PE</span>
+      <span className="text-xs text-slate-500 font-medium shrink-0" title={t('sheet.endurance')}>
+        PE
+      </span>
 
       {/* Decrement — 24px visual, 44px tap area via relative+pseudo */}
       <button
@@ -42,7 +47,9 @@ export function PersistentStatBar({ character, onDecrement, onIncrement }: Props
       {/* Bar + values */}
       <div className="flex-1 flex flex-col gap-1 min-w-0">
         <div className="flex justify-between items-baseline">
-          <span className={`text-sm font-bold tabular-nums leading-none ${epTextColor}`}>{currentEP}</span>
+          <span className={`text-sm font-bold tabular-nums leading-none ${epTextColor}`}>
+            {currentEP}
+          </span>
           <span className="text-xs text-slate-500 tabular-nums leading-none">{maxEP}</span>
         </div>
         <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">

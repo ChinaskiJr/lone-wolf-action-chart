@@ -4,16 +4,16 @@ export interface Weapon {
   name: string
   bonus?: number
   notes?: string
-  equipped?: boolean   // undefined = équipé (rétrocompat)
+  equipped?: boolean // undefined = équipé (rétrocompat)
 }
 
 export interface BackpackItem {
   id: string
   name: string
   notes?: string
-  slots?: number      // defaults to 1; set to 2 for bulky items (rope, etc.)
-  epRestore?: number  // if set, item is an EP potion
-  csBonus?: number    // if set, item is a combat potion (one-combat HC bonus)
+  slots?: number // defaults to 1; set to 2 for bulky items (rope, etc.)
+  epRestore?: number // if set, item is an EP potion
+  csBonus?: number // if set, item is a combat potion (one-combat HC bonus)
 }
 
 export interface SpecialItem {
@@ -21,10 +21,10 @@ export interface SpecialItem {
   name: string
   effect?: string
   hcBonus?: number
-  hcBonusPermanent?: boolean  // if true, bonus applies even when not equipped
+  hcBonusPermanent?: boolean // if true, bonus applies even when not equipped
   peBonus?: number
-  peBonusPermanent?: boolean  // if true, bonus applies even when not equipped
-  equipped?: boolean   // undefined = équipé (rétrocompat sauvegardes existantes)
+  peBonusPermanent?: boolean // if true, bonus applies even when not equipped
+  equipped?: boolean // undefined = équipé (rétrocompat sauvegardes existantes)
 }
 
 // Snapshot of the whole inventory while it is confiscated (prison, capture...).
