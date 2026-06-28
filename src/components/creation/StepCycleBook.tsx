@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { BookOpen } from 'lucide-react'
 import type { Cycle } from '@/types/game'
 import { BOOKS_BY_CYCLE } from '@/data/books'
 
@@ -51,7 +52,8 @@ export function StepCycleBook({ initialCycle, initialBook, onNext }: Props) {
 
   return (
     <div className="flex flex-col gap-6">
-      <h2 className="text-xl font-serif font-semibold text-amber-100">
+      <h2 className="flex items-center gap-2 text-xl font-serif font-semibold text-amber-100">
+        <BookOpen size={18} />
         {t('creation.chooseCycle')}
       </h2>
 

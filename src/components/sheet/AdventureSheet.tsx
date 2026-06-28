@@ -1,7 +1,18 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Swords, ChevronLeft, Save, BookCheck } from 'lucide-react'
+import {
+  Swords,
+  ChevronLeft,
+  Save,
+  BookCheck,
+  Shield,
+  BookOpen,
+  Package,
+  Coins,
+  FileText,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { useCharacterStore } from '@/store/characterStore'
 import type { NewOrderCharacter } from '@/types/character'
 import { useSavesStore } from '@/store/savesStore'
@@ -69,12 +80,12 @@ export function AdventureSheet() {
   const currentBook = BOOKS.find((b) => b.id === character.currentBook)
   const isLastBookOfCycle = character.currentBook === CYCLE_LAST_BOOK[character.cycle]
 
-  const sections: { id: SectionId; label: string }[] = [
-    { id: 'stats', label: t('sheet.stats') },
-    { id: 'disciplines', label: t('sheet.disciplines') },
-    { id: 'equipment', label: t('sheet.equipment') },
-    { id: 'gold', label: t('sheet.gold') },
-    { id: 'notes', label: t('sheet.notes') },
+  const sections: { id: SectionId; label: string; icon: LucideIcon }[] = [
+    { id: 'stats', label: t('sheet.stats'), icon: Shield },
+    { id: 'disciplines', label: t('sheet.disciplines'), icon: BookOpen },
+    { id: 'equipment', label: t('sheet.equipment'), icon: Package },
+    { id: 'gold', label: t('sheet.gold'), icon: Coins },
+    { id: 'notes', label: t('sheet.notes'), icon: FileText },
   ]
 
   function handleCompleteBook() {
@@ -228,13 +239,14 @@ export function AdventureSheet() {
           <button
             key={s.id}
             onClick={() => setActiveSection(s.id)}
-            className={`shrink-0 px-4 py-2 text-sm rounded-t-lg transition-colors whitespace-nowrap
+            className={`shrink-0 flex items-center gap-1.5 px-4 py-2 text-sm rounded-t-lg transition-colors whitespace-nowrap
               ${
                 activeSection === s.id
                   ? 'bg-amber-950/40 text-amber-300 border border-b-0 border-amber-800/50'
                   : 'text-slate-400 hover:text-amber-200/70 hover:bg-amber-950/10'
               }`}
           >
+            <s.icon size={14} />
             {s.label}
           </button>
         ))}
