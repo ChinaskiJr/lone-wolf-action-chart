@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Plus, Gem } from 'lucide-react'
+import { Plus, Gem, BookOpen } from 'lucide-react'
 import { DisciplineGrid } from '@/components/disciplines/DisciplineGrid'
 import { WeaponmasterySelector } from '@/components/disciplines/WeaponmasterySelector'
 import { useCharacterStore } from '@/store/characterStore'
@@ -64,7 +64,10 @@ export function DisciplinesPanel() {
       {/* Main disciplines list */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-slate-200">{t('sheet.disciplines')}</h3>
+          <h3 className="flex items-center gap-1.5 text-sm font-semibold text-slate-200">
+            <BookOpen size={15} />
+            {t('sheet.disciplines')}
+          </h3>
           <span
             className={`text-xs px-2 py-0.5 rounded-full ${canAdd ? 'text-amber-400 bg-amber-950/40 border border-amber-800/50' : 'text-slate-500'}`}
           >
@@ -132,7 +135,10 @@ export function DisciplinesPanel() {
       {/* Lore circles (Magnakai) */}
       {character.cycle === 'magnakai' && (
         <div>
-          <h3 className="text-sm font-semibold text-slate-200 mb-3">{t('sheet.loreCircles')}</h3>
+          <h3 className="flex items-center gap-1.5 text-sm font-semibold text-slate-200 mb-3">
+            <Gem size={15} />
+            {t('sheet.loreCircles')}
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {LORE_CIRCLES.map((circle) => {
               const isComplete = completedCircles.some((c) => c.id === circle.id)
@@ -166,7 +172,10 @@ export function DisciplinesPanel() {
       {/* Lorestones (Magnakai) */}
       {character.cycle === 'magnakai' && (
         <div>
-          <h3 className="text-sm font-semibold text-slate-200 mb-3">{t('sheet.lorestones')}</h3>
+          <h3 className="flex items-center gap-1.5 text-sm font-semibold text-slate-200 mb-3">
+            <Gem size={15} />
+            {t('sheet.lorestones')}
+          </h3>
           <div className="flex gap-2">
             {[1, 2, 3, 4, 5, 6, 7].map((n) => {
               const owned = n <= character.currentBook - 6

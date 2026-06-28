@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Minus, Plus } from 'lucide-react'
+import { Minus, Plus, Swords, HeartPulse } from 'lucide-react'
 import { useCharacterStore } from '@/store/characterStore'
 import {
   getTotalCS,
@@ -57,7 +57,10 @@ export function StatsPanel() {
 
       {/* Combat Skill */}
       <div className="bg-slate-800/50 border border-amber-900/25 rounded-xl p-5">
-        <p className="text-sm font-semibold text-slate-300 mb-4">{t('sheet.combatSkill')}</p>
+        <p className="flex items-center gap-1.5 text-sm font-semibold text-slate-300 mb-4">
+          <Swords size={15} />
+          {t('sheet.combatSkill')}
+        </p>
         <div className="grid grid-cols-3 gap-3 text-center">
           <div className="bg-slate-900/60 rounded-lg p-3 flex flex-col items-center justify-center">
             <div className="text-3xl md:text-5xl font-bold text-slate-200 tabular-nums">
@@ -122,7 +125,10 @@ export function StatsPanel() {
 
       {/* Endurance Points — display only; ±1 controls live in the persistent bar */}
       <div className="bg-slate-800/50 border border-amber-900/25 rounded-xl p-5">
-        <p className="text-sm font-semibold text-slate-300 mb-4">{t('sheet.endurance')}</p>
+        <p className="flex items-center gap-1.5 text-sm font-semibold text-slate-300 mb-4">
+          <HeartPulse size={15} />
+          {t('sheet.endurance')}
+        </p>
         <div className="flex items-end justify-between mb-3">
           <span className={`text-5xl font-bold tabular-nums leading-none ${epTextColor}`}>
             {character.endurance.current}

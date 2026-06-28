@@ -79,7 +79,10 @@ export function StepStats({ character, onNext, onBack }: Props) {
 
   return (
     <div className="flex flex-col gap-6">
-      <h2 className="text-xl font-serif font-semibold text-amber-100">{t('creation.step2')}</h2>
+      <h2 className="flex items-center gap-2 text-xl font-serif font-semibold text-amber-100">
+        <Dices size={18} />
+        {t('creation.step2')}
+      </h2>
 
       {/* Character name */}
       <div>

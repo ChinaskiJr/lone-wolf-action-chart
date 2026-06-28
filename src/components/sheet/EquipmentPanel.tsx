@@ -7,6 +7,7 @@ import {
   Utensils,
   Lock,
   PackageOpen,
+  Package,
   Wallet,
   Pencil,
   Check,
@@ -356,7 +357,10 @@ function BackpackSection({
   return (
     <div>
       <div className="flex items-center justify-between mb-2.5">
-        <div className="text-sm font-semibold text-slate-200">{t('sheet.backpack')}</div>
+        <div className="flex items-center gap-1.5 text-sm font-semibold text-slate-200">
+          <Package size={15} />
+          {t('sheet.backpack')}
+        </div>
         <span className={`text-xs ${isFull ? 'text-red-400' : 'text-slate-500'}`}>
           {t('sheet.slotsUsed', { used: slotsUsed, max })}
         </span>

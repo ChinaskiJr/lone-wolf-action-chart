@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check } from 'lucide-react'
+import { Check, BookOpen } from 'lucide-react'
 import type { Character } from '@/types/character'
 import { KAI_WEAPONS, getDisciplineMap } from '@/data/disciplines'
 import { WeaponmasterySelector } from '@/components/disciplines/WeaponmasterySelector'
@@ -61,7 +61,8 @@ export function StepDisciplines({ character, onNext, onBack }: Props) {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-serif font-semibold text-amber-100">
+        <h2 className="flex items-center gap-2 text-xl font-serif font-semibold text-amber-100">
+          <BookOpen size={18} />
           {t('creation.chooseDisciplines')}
         </h2>
         <span

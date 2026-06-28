@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { X, Wallet } from 'lucide-react'
+import { X, Wallet, Package } from 'lucide-react'
 import type { Character } from '@/types/character'
 import type { BackpackItem, SpecialItem, Weapon } from '@/types/game'
 import { D10Roll } from '@/components/sheet/D10Roll'
@@ -62,7 +62,10 @@ export function StepEquipment({ character, onFinish, onBack }: Props) {
 
   return (
     <div className="flex flex-col gap-5">
-      <h2 className="text-xl font-serif font-semibold text-amber-100">{t('creation.step4')}</h2>
+      <h2 className="flex items-center gap-2 text-xl font-serif font-semibold text-amber-100">
+        <Package size={18} />
+        {t('creation.step4')}
+      </h2>
 
       {/* D10 */}
       <D10Roll />

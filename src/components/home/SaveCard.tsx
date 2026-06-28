@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Play, Download, Trash2, BookOpen } from 'lucide-react'
+import { Play, Download, Trash2, BookOpen, Clock } from 'lucide-react'
 import type { Character, NewOrderCharacter } from '@/types/character'
 import { BOOKS } from '@/data/books'
 import { KAI_RANKS, MAGNAKAI_RANKS, GRAND_MASTER_RANKS, NEW_ORDER_RANKS } from '@/data/ranks'
@@ -103,7 +103,8 @@ export function SaveCard({ character, onContinue, onExport, onDelete }: Props) {
         </div>
       </div>
 
-      <div className="text-xs text-slate-500">
+      <div className="flex items-center gap-1.5 text-xs text-slate-500">
+        <Clock size={12} />
         {t('home.lastPlayed')} : {updatedDate}
       </div>
 
