@@ -25,6 +25,7 @@ export interface SpecialItem {
   peBonus?: number
   peBonusPermanent?: boolean // if true, bonus applies even when not equipped
   equipped?: boolean // undefined = équipé (rétrocompat sauvegardes existantes)
+  weightless?: boolean // if true, item has no encumbrance
 }
 
 // Snapshot of the whole inventory while it is confiscated (prison, capture...).
