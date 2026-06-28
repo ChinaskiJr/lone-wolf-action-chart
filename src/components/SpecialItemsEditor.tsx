@@ -272,7 +272,9 @@ export function SpecialItemsEditor({
                   </div>
                 )}
                 {item.weightless && (
-                  <div className={`text-xs text-slate-500 mt-0.5 transition-opacity ${isEquipped ? '' : 'opacity-50'}`}>
+                  <div
+                    className={`text-xs text-slate-500 mt-0.5 transition-opacity ${isEquipped ? '' : 'opacity-50'}`}
+                  >
                     {t('sheet.weightlessItem')}
                   </div>
                 )}

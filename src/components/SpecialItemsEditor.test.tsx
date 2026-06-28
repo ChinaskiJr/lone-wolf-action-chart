@@ -34,7 +34,7 @@ describe('SpecialItemsEditor — weightless', () => {
       <SpecialItemsEditor
         {...defaultProps}
         items={[{ id: '1', name: 'Anneau de Pierre', weightless: true }, ...fillers]}
-      />,
+      />
     )
     expect(screen.getByText('sheet.weightlessItem')).toBeInTheDocument()
   })
@@ -72,7 +72,7 @@ describe('SpecialItemsEditor — weightless', () => {
 
     expect(defaultProps.onAdd).toHaveBeenCalledOnce()
     expect(defaultProps.onAdd).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'Talisman de Valour', weightless: true }),
+      expect.objectContaining({ name: 'Talisman de Valour', weightless: true })
     )
   })
 
@@ -95,7 +95,7 @@ describe('SpecialItemsEditor — weightless', () => {
       <SpecialItemsEditor
         {...defaultProps}
         items={[{ id: '1', name: 'Anneau de Pierre', weightless: true }]}
-      />,
+      />
     )
 
     const editButton = screen.getByRole('button', { name: 'sheet.editItem' })
@@ -103,25 +103,20 @@ describe('SpecialItemsEditor — weightless', () => {
 
     const checkboxes = screen.getAllByRole('checkbox')
     const weightlessCheckbox = checkboxes.find((cb) =>
-      cb.closest('label')?.textContent?.includes('sheet.weightlessItem'),
+      cb.closest('label')?.textContent?.includes('sheet.weightlessItem')
     ) as HTMLInputElement
     expect(weightlessCheckbox.checked).toBe(true)
   })
 
   it('edit form calls onUpdate with weightless: true', () => {
-    render(
-      <SpecialItemsEditor
-        {...defaultProps}
-        items={[{ id: '1', name: 'Anneau de Pierre' }]}
-      />,
-    )
+    render(<SpecialItemsEditor {...defaultProps} items={[{ id: '1', name: 'Anneau de Pierre' }]} />)
 
     const editButton = screen.getByRole('button', { name: 'sheet.editItem' })
     fireEvent.click(editButton)
 
     const checkboxes = screen.getAllByRole('checkbox')
     const weightlessCheckbox = checkboxes.find((cb) =>
-      cb.closest('label')?.textContent?.includes('sheet.weightlessItem'),
+      cb.closest('label')?.textContent?.includes('sheet.weightlessItem')
     ) as HTMLInputElement
     fireEvent.click(weightlessCheckbox)
 
@@ -130,7 +125,7 @@ describe('SpecialItemsEditor — weightless', () => {
 
     expect(defaultProps.onUpdate).toHaveBeenCalledWith(
       '1',
-      expect.objectContaining({ weightless: true }),
+      expect.objectContaining({ weightless: true })
     )
   })
 })
