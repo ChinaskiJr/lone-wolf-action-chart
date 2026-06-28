@@ -42,6 +42,8 @@ export function SpecialItemsEditor({
   const [editHcPermanent, setEditHcPermanent] = useState(false)
   const [editPeBonus, setEditPeBonus] = useState('')
   const [editPePermanent, setEditPePermanent] = useState(false)
+  const [weightless, setWeightless] = useState(false)
+  const [editWeightless, setEditWeightless] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState<
     { type: 'item'; id: string; name: string } | { type: 'herbPouch' } | null
   >(null)
@@ -60,6 +62,7 @@ export function SpecialItemsEditor({
       hcBonusPermanent: hc != null ? hcPermanent || undefined : undefined,
       peBonus: pe,
       peBonusPermanent: pe != null ? pePermanent || undefined : undefined,
+      weightless: weightless || undefined,
     })
     setInput('')
     setEffect('')
@@ -67,6 +70,7 @@ export function SpecialItemsEditor({
     setHcPermanent(false)
     setPeBonus('')
     setPePermanent(false)
+    setWeightless(false)
   }
 
   function startEdit(item: SpecialItem) {
@@ -77,6 +81,7 @@ export function SpecialItemsEditor({
     setEditHcPermanent(item.hcBonusPermanent ?? false)
     setEditPeBonus(item.peBonus != null ? String(item.peBonus) : '')
     setEditPePermanent(item.peBonusPermanent ?? false)
+    setEditWeightless(item.weightless ?? false)
   }
 
   function confirmEdit(item: SpecialItem) {
@@ -90,6 +95,7 @@ export function SpecialItemsEditor({
       hcBonusPermanent: hc != null ? editHcPermanent || undefined : undefined,
       peBonus: pe,
       peBonusPermanent: pe != null ? editPePermanent || undefined : undefined,
+      weightless: editWeightless || undefined,
     })
     setEditingId(null)
   }
@@ -207,6 +213,15 @@ export function SpecialItemsEditor({
                     </label>
                   </div>
                 </div>
+                <label className="flex items-center gap-1.5 cursor-pointer select-none px-1">
+                  <input
+                    type="checkbox"
+                    checked={editWeightless}
+                    onChange={(e) => setEditWeightless(e.target.checked)}
+                    className="accent-slate-500 w-3 h-3"
+                  />
+                  <span className="text-xs text-slate-500">{t('sheet.weightlessItem')}</span>
+                </label>
               </div>
             )
           return (
@@ -254,6 +269,11 @@ export function SpecialItemsEditor({
                     className={`text-xs text-slate-400 mt-0.5 transition-opacity ${isEquipped ? '' : 'opacity-50'}`}
                   >
                     {item.effect}
+                  </div>
+                )}
+                {item.weightless && (
+                  <div className={`text-xs text-slate-500 mt-0.5 transition-opacity ${isEquipped ? '' : 'opacity-50'}`}>
+                    {t('sheet.weightlessItem')}
                   </div>
                 )}
               </div>
@@ -369,13 +389,24 @@ export function SpecialItemsEditor({
                 <span className="text-xs text-slate-500">{t('sheet.permanentBonus')}</span>
               </label>
             </div>
-            <button
-              onClick={add}
-              aria-label={t('sheet.addSpecialItem')}
-              className="self-end relative p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors before:absolute before:inset-[-6px]"
-            >
-              <Plus size={16} />
-            </button>
+            <div className="flex flex-col justify-between gap-1.5">
+              <label className="flex-1 flex items-center gap-1.5 cursor-pointer select-none bg-slate-800/60 border border-slate-700/40 rounded-lg px-2 py-1">
+                <input
+                  type="checkbox"
+                  checked={weightless}
+                  onChange={(e) => setWeightless(e.target.checked)}
+                  className="accent-slate-500 w-3 h-3 shrink-0"
+                />
+                <span className="text-xs text-slate-500">{t('sheet.weightlessItem')}</span>
+              </label>
+              <button
+                onClick={add}
+                aria-label={t('sheet.addSpecialItem')}
+                className="relative p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors before:absolute before:inset-[-6px]"
+              >
+                <Plus size={16} />
+              </button>
+            </div>
           </div>
         </div>
       )}
