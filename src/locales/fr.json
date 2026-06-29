@@ -122,6 +122,9 @@
     "herbPouchOpen": "Ouvrir la poche",
     "herbPouchSlots": "{{used}}/6 herbes",
     "addHerb": "Ajouter une herbe",
+    "doses": "doses",
+    "consumeDose": "Consommer une dose",
+    "maxDoses": "Doses max.",
     "itemNotes": "Description (optionnel)",
     "confiscation": {
       "button": "Équipement confisqué",
