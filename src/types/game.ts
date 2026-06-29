@@ -14,6 +14,7 @@ export interface BackpackItem {
   slots?: number // defaults to 1; set to 2 for bulky items (rope, etc.)
   epRestore?: number // if set, item is an EP potion
   csBonus?: number // if set, item is a combat potion (one-combat HC bonus)
+  maxDoses?: number // optional dose counter; auto-removed when it reaches 0
 }
 
 export interface SpecialItem {

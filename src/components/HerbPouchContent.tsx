@@ -25,6 +25,7 @@ export function HerbPouchContent({
   const { t } = useTranslation()
   const [input, setInput] = useState('')
   const [inputNotes, setInputNotes] = useState('')
+  const [inputMaxDoses, setInputMaxDoses] = useState('')
   const [addingPotion, setAddingPotion] = useState(false)
   const [addingCombatPotion, setAddingCombatPotion] = useState(false)
   const [combatPotionConfirm, setCombatPotionConfirm] = useState<string | null>(null)
@@ -33,6 +34,7 @@ export function HerbPouchContent({
   const [editName, setEditName] = useState('')
   const [editNotes, setEditNotes] = useState('')
   const [editValue, setEditValue] = useState(0)
+  const [editMaxDoses, setEditMaxDoses] = useState('')
 
   const isFull = herbPouch.length >= 6
 
@@ -41,16 +43,20 @@ export function HerbPouchContent({
     setEditName(item.name)
     setEditNotes(item.notes ?? '')
     setEditValue(item.epRestore ?? item.csBonus ?? 0)
+    setEditMaxDoses(item.maxDoses != null ? String(item.maxDoses) : '')
   }
 
   function confirmEdit(item: BackpackItem) {
     const name = editName.trim() || item.name
+    const maxDoses =
+      editMaxDoses.trim() !== '' ? Math.max(1, parseInt(editMaxDoses, 10)) : undefined
     if (item.epRestore != null) {
       onUpdate(item.id, {
         ...item,
         name,
         epRestore: Math.max(1, editValue),
         notes: editNotes.trim() || undefined,
+        maxDoses,
       })
     } else if (item.csBonus != null) {
       onUpdate(item.id, {
@@ -58,9 +64,10 @@ export function HerbPouchContent({
         name,
         csBonus: Math.max(1, editValue),
         notes: editNotes.trim() || undefined,
+        maxDoses,
       })
     } else {
-      onUpdate(item.id, { ...item, name, notes: editNotes.trim() || undefined })
+      onUpdate(item.id, { ...item, name, notes: editNotes.trim() || undefined, maxDoses })
     }
     setEditingId(null)
   }
@@ -71,9 +78,21 @@ export function HerbPouchContent({
 
   function addItem() {
     if (!input.trim() || isFull) return
-    onAdd({ id: uuidv4(), name: input.trim(), notes: inputNotes.trim() || undefined })
+    const maxDoses =
+      inputMaxDoses.trim() !== '' ? Math.max(1, parseInt(inputMaxDoses, 10)) : undefined
+    onAdd({ id: uuidv4(), name: input.trim(), notes: inputNotes.trim() || undefined, maxDoses })
     setInput('')
     setInputNotes('')
+    setInputMaxDoses('')
+  }
+
+  function consumeDose(item: BackpackItem) {
+    if (item.maxDoses == null) return
+    if (item.maxDoses <= 1) {
+      onRemove(item.id)
+    } else {
+      onUpdate(item.id, { ...item, maxDoses: item.maxDoses - 1 })
+    }
   }
 
   return (
@@ -131,16 +150,31 @@ export function HerbPouchContent({
                     <X size={12} />
                   </button>
                 </div>
-                <input
-                  value={editNotes}
-                  onChange={(e) => setEditNotes(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') confirmEdit(item)
-                    if (e.key === 'Escape') cancelEdit()
-                  }}
-                  placeholder={t('sheet.itemDescription')}
-                  className="w-full bg-slate-900/60 border border-slate-700 rounded px-2 py-1 text-xs text-slate-400 focus:outline-none focus:border-amber-600/60"
-                />
+                <div className="flex items-center gap-2">
+                  <input
+                    value={editNotes}
+                    onChange={(e) => setEditNotes(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') confirmEdit(item)
+                      if (e.key === 'Escape') cancelEdit()
+                    }}
+                    placeholder={t('sheet.itemDescription')}
+                    className="flex-1 bg-slate-900/60 border border-slate-700 rounded px-2 py-1 text-xs text-slate-400 focus:outline-none focus:border-amber-600/60"
+                  />
+                  <input
+                    type="number"
+                    value={editMaxDoses}
+                    onChange={(e) => setEditMaxDoses(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') confirmEdit(item)
+                      if (e.key === 'Escape') cancelEdit()
+                    }}
+                    min={1}
+                    placeholder="–"
+                    title={t('sheet.maxDoses')}
+                    className="w-14 bg-slate-900/60 border border-slate-700 rounded px-2 py-1 text-xs text-amber-400 text-center focus:outline-none focus:border-amber-600"
+                  />
+                </div>
               </div>
             )
           if (item.epRestore)
@@ -155,6 +189,20 @@ export function HerbPouchContent({
                   <span className="text-xs text-green-400 font-medium shrink-0">
                     +{item.epRestore} PE
                   </span>
+                  {item.maxDoses != null && (
+                    <>
+                      <span className="text-xs text-amber-400 font-medium shrink-0 tabular-nums">
+                        {item.maxDoses} {t('sheet.doses')}
+                      </span>
+                      <button
+                        onClick={() => consumeDose(item)}
+                        aria-label={t('sheet.consumeDose')}
+                        className="relative w-5 h-5 rounded bg-amber-900/40 border border-amber-800/60 hover:bg-amber-800/60 active:bg-amber-700/60 text-amber-300 font-bold text-sm transition-colors shrink-0 flex items-center justify-center before:absolute before:inset-[-10px]"
+                      >
+                        −
+                      </button>
+                    </>
+                  )}
                   {onUsePotion && (
                     <button
                       onClick={() => onUsePotion(item.id)}
@@ -197,6 +245,20 @@ export function HerbPouchContent({
                   <span className="text-xs text-violet-400 font-medium shrink-0">
                     +{item.csBonus} HC
                   </span>
+                  {item.maxDoses != null && (
+                    <>
+                      <span className="text-xs text-amber-400 font-medium shrink-0 tabular-nums">
+                        {item.maxDoses} {t('sheet.doses')}
+                      </span>
+                      <button
+                        onClick={() => consumeDose(item)}
+                        aria-label={t('sheet.consumeDose')}
+                        className="relative w-5 h-5 rounded bg-amber-900/40 border border-amber-800/60 hover:bg-amber-800/60 active:bg-amber-700/60 text-amber-300 font-bold text-sm transition-colors shrink-0 flex items-center justify-center before:absolute before:inset-[-10px]"
+                      >
+                        −
+                      </button>
+                    </>
+                  )}
                   {onUseCombatPotion && (
                     <button
                       onClick={() => setCombatPotionConfirm(item.id)}
@@ -235,6 +297,20 @@ export function HerbPouchContent({
               <div className="flex items-center gap-2">
                 <span className="shrink-0">🌿</span>
                 <span className="flex-1 text-sm text-green-100 truncate">{item.name}</span>
+                {item.maxDoses != null && (
+                  <>
+                    <span className="text-xs text-amber-400 font-medium shrink-0 tabular-nums">
+                      {item.maxDoses} {t('sheet.doses')}
+                    </span>
+                    <button
+                      onClick={() => consumeDose(item)}
+                      aria-label={t('sheet.consumeDose')}
+                      className="relative w-5 h-5 rounded bg-amber-900/40 border border-amber-800/60 hover:bg-amber-800/60 active:bg-amber-700/60 text-amber-300 font-bold text-sm transition-colors shrink-0 flex items-center justify-center before:absolute before:inset-[-10px]"
+                    >
+                      −
+                    </button>
+                  </>
+                )}
                 <button
                   onClick={() => startEdit(item)}
                   aria-label={t('sheet.editItem')}
@@ -265,8 +341,9 @@ export function HerbPouchContent({
         <PotionAddForm
           variant="potion"
           withNotes
-          onConfirm={({ name, value, notes }) => {
-            onAdd({ id: uuidv4(), name, epRestore: value, notes })
+          withMaxDoses
+          onConfirm={({ name, value, notes, maxDoses }) => {
+            onAdd({ id: uuidv4(), name, epRestore: value, notes, maxDoses })
             setAddingPotion(false)
           }}
           onCancel={() => setAddingPotion(false)}
@@ -277,8 +354,9 @@ export function HerbPouchContent({
         <PotionAddForm
           variant="combat"
           withNotes
-          onConfirm={({ name, value, notes }) => {
-            onAdd({ id: uuidv4(), name, csBonus: value, notes })
+          withMaxDoses
+          onConfirm={({ name, value, notes, maxDoses }) => {
+            onAdd({ id: uuidv4(), name, csBonus: value, notes, maxDoses })
             setAddingCombatPotion(false)
           }}
           onCancel={() => setAddingCombatPotion(false)}
@@ -319,13 +397,25 @@ export function HerbPouchContent({
               <Plus size={16} />
             </button>
           </div>
-          <input
-            value={inputNotes}
-            onChange={(e) => setInputNotes(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addItem()}
-            placeholder={t('sheet.itemNotes')}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-400 focus:outline-none focus:border-green-700 placeholder:text-slate-600"
-          />
+          <div className="flex items-center gap-2">
+            <input
+              value={inputNotes}
+              onChange={(e) => setInputNotes(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addItem()}
+              placeholder={t('sheet.itemNotes')}
+              className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-400 focus:outline-none focus:border-green-700 placeholder:text-slate-600"
+            />
+            <input
+              type="number"
+              value={inputMaxDoses}
+              onChange={(e) => setInputMaxDoses(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addItem()}
+              min={1}
+              placeholder="–"
+              title={t('sheet.maxDoses')}
+              className="w-14 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-amber-400 text-center focus:outline-none focus:border-amber-600 placeholder:text-slate-600"
+            />
+          </div>
         </div>
       )}
 

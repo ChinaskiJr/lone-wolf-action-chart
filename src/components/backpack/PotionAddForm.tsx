@@ -6,6 +6,7 @@ export interface PotionFormResult {
   name: string
   value: number
   notes?: string
+  maxDoses?: number
 }
 
 interface Props {
@@ -13,6 +14,8 @@ interface Props {
   variant: 'potion' | 'combat'
   /** Show an extra notes field (used by the herb pouch). */
   withNotes?: boolean
+  /** Show an optional max doses field alongside notes. */
+  withMaxDoses?: boolean
   onConfirm: (result: PotionFormResult) => void
   onCancel: () => void
 }
@@ -41,18 +44,28 @@ const VARIANTS = {
 } as const
 
 /** Inline form for adding a potion (EP restore) or combat potion (CS bonus) to a container. */
-export function PotionAddForm({ variant, withNotes = false, onConfirm, onCancel }: Props) {
+export function PotionAddForm({
+  variant,
+  withNotes = false,
+  withMaxDoses = false,
+  onConfirm,
+  onCancel,
+}: Props) {
   const { t } = useTranslation()
   const cfg = VARIANTS[variant]
   const [name, setName] = useState('')
   const [value, setValue] = useState<number>(cfg.defaultValue)
   const [notes, setNotes] = useState('')
+  const [maxDosesStr, setMaxDosesStr] = useState('')
 
   function confirm() {
+    const maxDoses =
+      withMaxDoses && maxDosesStr.trim() !== '' ? Math.max(1, parseInt(maxDosesStr, 10)) : undefined
     onConfirm({
       name: name.trim() || t(cfg.nameKey),
       value,
       notes: withNotes ? notes.trim() || undefined : undefined,
+      maxDoses,
     })
   }
 
@@ -95,12 +108,26 @@ export function PotionAddForm({ variant, withNotes = false, onConfirm, onCancel 
         </button>
       </div>
       {withNotes && (
-        <input
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder={t('sheet.itemNotes')}
-          className={`w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-slate-400 focus:outline-none ${cfg.focus} placeholder:text-slate-600`}
-        />
+        <div className="flex items-center gap-2">
+          <input
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder={t('sheet.itemNotes')}
+            className={`flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-slate-400 focus:outline-none ${cfg.focus} placeholder:text-slate-600`}
+          />
+          {withMaxDoses && (
+            <input
+              type="number"
+              value={maxDosesStr}
+              onChange={(e) => setMaxDosesStr(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && confirm()}
+              min={1}
+              placeholder="–"
+              title={t('sheet.maxDoses')}
+              className="w-14 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-amber-400 text-center focus:outline-none focus:border-amber-600 placeholder:text-slate-600"
+            />
+          )}
+        </div>
       )}
     </div>
   )
