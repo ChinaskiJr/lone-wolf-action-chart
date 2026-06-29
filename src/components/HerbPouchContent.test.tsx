@@ -41,17 +41,13 @@ describe('HerbPouchContent — dose counter display', () => {
   })
 
   it('shows dose badge on EP potion with maxDoses', () => {
-    render(
-      <HerbPouchContent {...defaultProps} herbPouch={[herb({ epRestore: 5, maxDoses: 2 })]} />
-    )
+    render(<HerbPouchContent {...defaultProps} herbPouch={[herb({ epRestore: 5, maxDoses: 2 })]} />)
     expect(screen.getByText(/sheet\.doses/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'sheet.consumeDose' })).toBeInTheDocument()
   })
 
   it('shows dose badge on combat potion with maxDoses', () => {
-    render(
-      <HerbPouchContent {...defaultProps} herbPouch={[herb({ csBonus: 2, maxDoses: 1 })]} />
-    )
+    render(<HerbPouchContent {...defaultProps} herbPouch={[herb({ csBonus: 2, maxDoses: 1 })]} />)
     expect(screen.getByText(/sheet\.doses/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'sheet.consumeDose' })).toBeInTheDocument()
   })

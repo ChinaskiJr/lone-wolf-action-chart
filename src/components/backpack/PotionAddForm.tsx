@@ -60,9 +60,7 @@ export function PotionAddForm({
 
   function confirm() {
     const maxDoses =
-      withMaxDoses && maxDosesStr.trim() !== ''
-        ? Math.max(1, parseInt(maxDosesStr, 10))
-        : undefined
+      withMaxDoses && maxDosesStr.trim() !== '' ? Math.max(1, parseInt(maxDosesStr, 10)) : undefined
     onConfirm({
       name: name.trim() || t(cfg.nameKey),
       value,
