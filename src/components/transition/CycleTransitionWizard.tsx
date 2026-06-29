@@ -144,6 +144,7 @@ export function CycleTransitionWizard() {
       // Restore to full EP including bonuses from carried-over equipped special items.
       return {
         ...withItems,
+        otherCurrencies: source!.otherCurrencies ?? [],
         endurance: { ...withItems.endurance, current: getTotalEPMax(withItems) },
         monastery,
       }
@@ -158,6 +159,7 @@ export function CycleTransitionWizard() {
         ...char,
         disciplines: selectedDisciplines as GrandMasterDiscipline[],
         specialItems: kept,
+        otherCurrencies: source!.otherCurrencies ?? [],
         monastery,
       } as any) as Character
       /* eslint-enable @typescript-eslint/no-explicit-any */

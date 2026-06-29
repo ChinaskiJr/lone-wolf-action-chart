@@ -255,6 +255,7 @@ describe('confiscateEquipment', () => {
     expect(c.confiscated).toEqual({
       weapons: [{ name: 'Sword' }],
       goldCrowns: 20,
+      otherCurrencies: [],
       meals: 2,
       backpack: [expect.objectContaining({ id: 'a' })],
       specialItems: [expect.objectContaining({ id: 's1' })],

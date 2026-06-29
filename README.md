@@ -20,7 +20,8 @@ A web-based adventure sheet for **Lone Wolf** gamebooks by Joe Dever, republishe
 - **Characteristics**: Combat Skill (base + bonus + total) and Endurance Points
 - **Disciplines**: filtered list by cycle, displayed effects, Magnakai lore circles, lorestones
 - **Equipment**: weapons (max 2), backpack (8 or 10 slots), special items (max 12)
-- **Gold & Rations**: counter with quick ±1/±5/±10 controls
+- **Gold & Currency**: Gold Crowns plus the other Magnamund currencies (Lune, Kika, Noble, Ren, Ain, or custom), a shared 50-slot Belt Pouch gauge (4 Lune / 10 Kika / 10 Ren = 1 slot), and a currency converter at the official exchange rates
+- **Rations**: counter with quick ±1/±5/±10 controls
 - **Notes**: free text area for section numbers and annotations
 
 ### Saves
