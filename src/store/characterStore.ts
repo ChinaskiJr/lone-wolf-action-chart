@@ -8,10 +8,13 @@ import type {
 import type {
   BackpackItem,
   ConfiscatedEquipment,
+  CurrencyHolding,
   MonasteryStorage,
   SpecialItem,
   Weapon,
 } from '@/types/game'
+import { BELT_POUCH_CAPACITY, resolveCurrency } from '@/data/currencies'
+import { getBeltPouchSpaceUsed, convertCurrency } from '@/utils/character'
 import { useSavesStore } from './savesStore'
 
 interface CharacterState {
@@ -62,6 +65,7 @@ interface CharacterState {
     newInventory: {
       weapons: Weapon[]
       goldCrowns: number
+      otherCurrencies?: CurrencyHolding[]
       backpack: BackpackItem[]
       specialItems: SpecialItem[]
       meals: number
@@ -69,8 +73,12 @@ interface CharacterState {
     newMonastery: MonasteryStorage
   ) => void
 
-  // Gold
+  // Gold & other currencies (shared Belt Pouch capacity)
   setGold: (amount: number) => void
+  addCurrency: (holding: CurrencyHolding) => void
+  setCurrencyAmount: (id: string, amount: number) => void
+  removeCurrency: (id: string) => void
+  convertCurrencyAction: (fromId: string, toId: string, amount: number) => void
 
   // Meals
   setMeals: (count: number) => void
@@ -324,6 +332,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
           confiscated: {
             weapons: c.weapons,
             goldCrowns: c.goldCrowns,
+            otherCurrencies: c.otherCurrencies ?? [],
             meals: c.meals,
             backpack: c.backpack,
             specialItems: c.specialItems,
@@ -332,6 +341,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
           },
           weapons: [],
           goldCrowns: 0,
+          otherCurrencies: [],
           meals: 0,
           backpack: [],
           specialItems: [],
@@ -350,10 +360,14 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
         const selBpIds = new Set(selection.backpack.map((i) => i.id))
         const selSpecIds = new Set(selection.specialItems.map((i) => i.id))
         const selWeaponNames = new Set(selection.weapons.map((w) => w.name))
+        const seizedById = new Map((selection.otherCurrencies ?? []).map((h) => [h.id, h.amount]))
         return {
           confiscated: { ...selection },
           weapons: c.weapons.filter((w) => !selWeaponNames.has(w.name)),
           goldCrowns: c.goldCrowns - selection.goldCrowns,
+          otherCurrencies: (c.otherCurrencies ?? [])
+            .map((h) => ({ ...h, amount: h.amount - (seizedById.get(h.id) ?? 0) }))
+            .filter((h) => h.amount > 0),
           meals: c.meals - selection.meals,
           backpack: c.backpack.filter((i) => !selBpIds.has(i.id)),
           specialItems: c.specialItems.filter((i) => !selSpecIds.has(i.id)),
@@ -369,7 +383,11 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
         const peDelta = equippedPeBonus(selection.specialItems) - equippedPeBonus(c.specialItems)
         return {
           weapons: selection.weapons,
-          goldCrowns: Math.max(0, Math.min(50, selection.goldCrowns)),
+          goldCrowns: Math.max(0, Math.min(BELT_POUCH_CAPACITY, selection.goldCrowns)),
+          // Currencies move wholesale: restore from the snapshot (full seize) or keep
+          // what stayed on the character (selective seize). Never silently dropped.
+          otherCurrencies:
+            selection.otherCurrencies ?? c.confiscated?.otherCurrencies ?? c.otherCurrencies ?? [],
           meals: Math.max(0, selection.meals),
           backpack: selection.backpack,
           specialItems: selection.specialItems,
@@ -387,7 +405,8 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
         const peDelta = equippedPeBonus(newInventory.specialItems) - equippedPeBonus(c.specialItems)
         return {
           weapons: newInventory.weapons,
-          goldCrowns: Math.max(0, Math.min(50, newInventory.goldCrowns)),
+          goldCrowns: Math.max(0, Math.min(BELT_POUCH_CAPACITY, newInventory.goldCrowns)),
+          otherCurrencies: newInventory.otherCurrencies ?? c.otherCurrencies ?? [],
           meals: Math.max(0, newInventory.meals),
           backpack: newInventory.backpack,
           specialItems: newInventory.specialItems,
@@ -398,7 +417,92 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     ),
 
   setGold: (amount) =>
-    set(updateChar(get, (_c) => ({ goldCrowns: Math.max(0, Math.min(50, amount)) }))),
+    set(
+      updateChar(get, (c) => {
+        // Gold shares the 50-slot Belt Pouch with every other currency (1 GC = 1 slot).
+        const othersSpace = getBeltPouchSpaceUsed({
+          goldCrowns: 0,
+          otherCurrencies: c.otherCurrencies,
+        })
+        const maxGold = Math.max(0, Math.floor(BELT_POUCH_CAPACITY - othersSpace))
+        return { goldCrowns: Math.max(0, Math.min(maxGold, amount)) }
+      })
+    ),
+
+  addCurrency: (holding) =>
+    set(
+      updateChar(get, (c) => {
+        const holdings = c.otherCurrencies ?? []
+        if (holdings.some((h) => h.id === holding.id)) return {}
+        return {
+          otherCurrencies: [...holdings, { ...holding, amount: Math.max(0, holding.amount || 0) }],
+        }
+      })
+    ),
+
+  setCurrencyAmount: (id, amount) =>
+    set(
+      updateChar(get, (c) => {
+        const holdings = c.otherCurrencies ?? []
+        const holding = holdings.find((h) => h.id === id)
+        if (!holding) return {}
+        const { coinsPerSlot } = resolveCurrency(holding)
+        const usedExcept = getBeltPouchSpaceUsed({
+          goldCrowns: c.goldCrowns,
+          otherCurrencies: holdings.filter((h) => h.id !== id),
+        })
+        const freeSlots = Math.max(0, BELT_POUCH_CAPACITY - usedExcept)
+        const maxAmount = Math.floor(freeSlots * (coinsPerSlot || 1))
+        const clamped = Math.max(0, Math.min(amount, maxAmount))
+        return {
+          otherCurrencies: holdings.map((h) => (h.id === id ? { ...h, amount: clamped } : h)),
+        }
+      })
+    ),
+
+  removeCurrency: (id) =>
+    set(
+      updateChar(get, (c) => ({
+        otherCurrencies: (c.otherCurrencies ?? []).filter((h) => h.id !== id),
+      }))
+    ),
+
+  convertCurrencyAction: (fromId, toId, amount) =>
+    set(
+      updateChar(get, (c) => {
+        if (fromId === toId || amount <= 0) return {}
+        const holdings = c.otherCurrencies ?? []
+        // Source/target must already exist (Gold Crowns always do).
+        const info = (id: string) => {
+          if (id === 'crown') return { valueInCrowns: 1, amount: c.goldCrowns }
+          const h = holdings.find((x) => x.id === id)
+          if (!h) return null
+          return { valueInCrowns: resolveCurrency(h).valueInCrowns, amount: h.amount }
+        }
+        const from = info(fromId)
+        const to = info(toId)
+        if (!from || !to) return {}
+        const usable = Math.min(amount, from.amount)
+        if (usable <= 0) return {}
+        const { converted, remainder } = convertCurrency(
+          usable,
+          from.valueInCrowns,
+          to.valueInCrowns
+        )
+        if (converted <= 0) return {}
+        const spent = usable - remainder // source coins actually exchanged
+
+        let goldCrowns = c.goldCrowns
+        let next = holdings.map((h) => ({ ...h }))
+        const apply = (id: string, value: number) => {
+          if (id === 'crown') goldCrowns = value
+          else next = next.map((h) => (h.id === id ? { ...h, amount: value } : h))
+        }
+        apply(fromId, from.amount - spent)
+        apply(toId, to.amount + converted)
+        return { goldCrowns, otherCurrencies: next }
+      })
+    ),
 
   setMeals: (count) => set(updateChar(get, (_c) => ({ meals: Math.max(0, count) }))),
 

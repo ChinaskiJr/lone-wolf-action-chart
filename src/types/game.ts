@@ -29,10 +29,27 @@ export interface SpecialItem {
   weightless?: boolean // if true, item has no encumbrance
 }
 
+// --- Currency (Belt Pouch) ---
+// Gold Crowns are the base currency, stored on the character as `goldCrowns` for
+// backward compatibility. Every other Magnamund currency is a CurrencyHolding in
+// `otherCurrencies`. All currencies share the Belt Pouch's 50-slot capacity:
+// `coinsPerSlot` coins occupy the space of a single Gold Crown (1 GC = 1 slot).
+export type KnownCurrencyId = 'crown' | 'lune' | 'kika' | 'noble' | 'ren' | 'ain'
+
+export interface CurrencyHolding {
+  id: string // KnownCurrencyId (except 'crown', carried by goldCrowns) or a custom uuid
+  amount: number
+  // Set only for a custom (player-defined) currency; predefined ones resolve from data.
+  name?: string
+  valueInCrowns?: number // exchange value of one coin in Gold Crowns (e.g. Lune = 0.25)
+  coinsPerSlot?: number // coins that fill one Belt Pouch slot (default 1)
+}
+
 // Snapshot of the whole inventory while it is confiscated (prison, capture...).
 export interface ConfiscatedEquipment {
   weapons: Weapon[]
   goldCrowns: number
+  otherCurrencies?: CurrencyHolding[]
   meals: number
   backpack: BackpackItem[]
   specialItems: SpecialItem[]
@@ -44,6 +61,7 @@ export interface ConfiscatedEquipment {
 export interface MonasteryStorage {
   weapons: Weapon[]
   goldCrowns: number
+  otherCurrencies?: CurrencyHolding[]
   backpack: BackpackItem[]
   specialItems: SpecialItem[]
   hasQuiver?: boolean

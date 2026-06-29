@@ -1,6 +1,7 @@
 import type {
   BackpackItem,
   ConfiscatedEquipment,
+  CurrencyHolding,
   GrandMasterDiscipline,
   GrandMasterRank,
   KaiDiscipline,
@@ -25,6 +26,9 @@ interface BaseCharacter {
   endurance: { current: number; max: number }
   weapons: Weapon[]
   goldCrowns: number
+  // Non-Gold-Crown currencies (Lune, Kika, Noble, Ren, Ain, or custom). Optional
+  // for backward compatibility with saves predating the multi-currency system.
+  otherCurrencies?: CurrencyHolding[]
   meals: number
   notes: string
   hasQuiver?: boolean

@@ -6,6 +6,7 @@ import type {
   NewOrderCharacter,
 } from '@/types/character'
 import type {
+  CurrencyHolding,
   Cycle,
   GrandMasterDiscipline,
   KaiDiscipline,
@@ -13,6 +14,7 @@ import type {
   NewOrderDiscipline,
   SpecialItem,
 } from '@/types/game'
+import { BELT_POUCH_CAPACITY, holdingSpace } from '@/data/currencies'
 import type { CombatModifier } from '@/data/combatModifiers'
 import {
   computeGrandMasterRank,
@@ -415,5 +417,41 @@ export function getSpecialItemsMax(_char: Character): number {
 }
 
 export function getGoldMax(_char: Character): number {
-  return 50
+  return BELT_POUCH_CAPACITY
+}
+
+// Belt Pouch slots used by Gold Crowns + every other currency. Coins of lesser
+// value pack several to a slot (4 Lune / 10 Kika / 10 Ren = 1 slot).
+export function getBeltPouchSpaceUsed(char: {
+  goldCrowns: number
+  otherCurrencies?: CurrencyHolding[]
+}): number {
+  const others = (char.otherCurrencies ?? []).reduce((sum, h) => sum + holdingSpace(h), 0)
+  return char.goldCrowns + others
+}
+
+// Free Belt Pouch slots (never negative).
+export function getBeltPouchFree(char: {
+  goldCrowns: number
+  otherCurrencies?: CurrencyHolding[]
+}): number {
+  return Math.max(0, BELT_POUCH_CAPACITY - getBeltPouchSpaceUsed(char))
+}
+
+// Converts `amount` coins of one currency into another at the fixed Topical Guide
+// rates. Returns the whole number of target coins obtained plus the source coins
+// left over (value that could not be exchanged into a whole target coin).
+export function convertCurrency(
+  amount: number,
+  fromValueInCrowns: number,
+  toValueInCrowns: number
+): { converted: number; remainder: number } {
+  if (amount <= 0 || fromValueInCrowns <= 0 || toValueInCrowns <= 0) {
+    return { converted: 0, remainder: Math.max(0, amount) }
+  }
+  const crowns = amount * fromValueInCrowns
+  const converted = Math.floor(crowns / toValueInCrowns)
+  const crownsSpent = converted * toValueInCrowns
+  const remainder = Math.round((amount - crownsSpent / fromValueInCrowns) * 1e6) / 1e6
+  return { converted, remainder }
 }
