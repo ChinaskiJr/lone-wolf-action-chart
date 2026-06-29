@@ -364,12 +364,12 @@ export function HerbPouchContent({
       )}
 
       {!isFull && (
-        <div className="space-y-1.5">
-          <div className="flex gap-2">
+        <div className="space-y-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
             <button
               onClick={() => setAddingPotion((v) => !v)}
               aria-pressed={addingPotion}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium transition-colors shrink-0 ${addingPotion ? 'border-blue-700 bg-blue-900/30 text-blue-300' : 'border-blue-900/50 text-blue-500 hover:bg-blue-950/30 hover:text-blue-400'}`}
+              className={`flex h-10 items-center justify-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors shrink-0 ${addingPotion ? 'border-blue-700 bg-blue-900/30 text-blue-300' : 'border-blue-900/50 text-blue-500 hover:bg-blue-950/30 hover:text-blue-400'}`}
             >
               <Plus size={12} />
               🧪
@@ -377,7 +377,7 @@ export function HerbPouchContent({
             <button
               onClick={() => setAddingCombatPotion((v) => !v)}
               aria-pressed={addingCombatPotion}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium transition-colors shrink-0 ${addingCombatPotion ? 'border-orange-700 bg-orange-900/30 text-orange-300' : 'border-orange-900/50 text-orange-500 hover:bg-orange-950/30 hover:text-orange-400'}`}
+              className={`flex h-10 items-center justify-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors shrink-0 ${addingCombatPotion ? 'border-orange-700 bg-orange-900/30 text-orange-300' : 'border-orange-900/50 text-orange-500 hover:bg-orange-950/30 hover:text-orange-400'}`}
             >
               <Plus size={12} />
               ⚗️
@@ -387,23 +387,23 @@ export function HerbPouchContent({
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && addItem()}
               placeholder={t('sheet.addHerb')}
-              className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-green-700"
+              className="min-w-0 flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-green-700"
             />
             <button
               onClick={addItem}
               aria-label={t('sheet.addHerb')}
-              className="relative p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors before:absolute before:inset-[-6px]"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-700 bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors shrink-0"
             >
               <Plus size={16} />
             </button>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <input
               value={inputNotes}
               onChange={(e) => setInputNotes(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && addItem()}
               placeholder={t('sheet.itemNotes')}
-              className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-400 focus:outline-none focus:border-green-700 placeholder:text-slate-600"
+              className="min-w-0 flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-400 focus:outline-none focus:border-green-700 placeholder:text-slate-600"
             />
             <input
               type="number"
@@ -413,7 +413,7 @@ export function HerbPouchContent({
               min={1}
               placeholder="–"
               title={t('sheet.maxDoses')}
-              className="w-14 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-amber-400 text-center focus:outline-none focus:border-amber-600 placeholder:text-slate-600"
+              className="w-24 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-amber-400 text-center focus:outline-none focus:border-amber-600 placeholder:text-slate-600"
             />
           </div>
         </div>
