@@ -53,6 +53,7 @@ export function CombatCalculator({ onClose }: Props) {
   const [bowActive, setBowActive] = useState(false)
   const [igniteActive, setIgniteActive] = useState(false)
   const [enemyDmgMult, setEnemyDmgMult] = useState<'x2' | 'half' | null>(null)
+  const [playerDmgMult, setPlayerDmgMult] = useState<'x2' | 'half' | null>(null)
   const [autoFighting, setAutoFighting] = useState(false)
   const [roundCount, setRoundCount] = useState(0)
   const autoFightRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -170,7 +171,7 @@ export function CombatCalculator({ onClose }: Props) {
       const mod = COMBAT_MODIFIERS.find((m) => m.id === id)
       return sum + (mod ? getEffectiveModifier(character!, mod).epCostPerRound : 0)
     }, 0)
-    const playerLoss = currentHeroImmune ? 0 : lastRound.playerLoss
+    const playerLoss = currentHeroImmune ? 0 : computePlayerLoss(lastRound)
     const newPlayerEP = lastRound.playerKilled
       ? 0
       : Math.max(0, character!.endurance.current - playerLoss - epCostModifiers - psychicHeroDmg)
@@ -217,6 +218,7 @@ export function CombatCalculator({ onClose }: Props) {
     setBowActive(false)
     setIgniteActive(false)
     setEnemyDmgMult(null)
+    setPlayerDmgMult(null)
     setRoundCount(0)
     setSurprisedParty(null)
     setSurpriseRoundsTotal(1)
@@ -273,6 +275,7 @@ export function CombatCalculator({ onClose }: Props) {
     const capturedIgnite = igniteActive
     const capturedIgnitePossible = ignitePossible
     const capturedDmgMult = enemyDmgMult
+    const capturedPlayerDmgMult = playerDmgMult
     const capturedSurprisedParty = surprisedParty
     let surpriseLeft = surpriseRoundsLeft
     const capturedPsychicTarget = psychicTarget
@@ -306,7 +309,12 @@ export function CombatCalculator({ onClose }: Props) {
         setPsychicRoundsLeft(psychicLeft)
       }
 
-      const effectivePlayerLoss = heroImmune ? 0 : round.playerLoss
+      let effectivePlayerLoss = heroImmune ? 0 : round.playerLoss
+      if (!heroImmune && !round.playerKilled && effectivePlayerLoss > 0) {
+        if (capturedPlayerDmgMult === 'x2') effectivePlayerLoss *= 2
+        else if (capturedPlayerDmgMult === 'half')
+          effectivePlayerLoss = Math.floor(effectivePlayerLoss / 2)
+      }
       const newPlayerEP = round.playerKilled
         ? 0
         : Math.max(0, currentPlayerEP - effectivePlayerLoss - epCostPerRound - psychicHeroDmg)
@@ -350,6 +358,14 @@ export function CombatCalculator({ onClose }: Props) {
     const base = round.enemyLoss + ignite
     if (enemyDmgMult === 'x2') return base * 2
     if (enemyDmgMult === 'half') return Math.floor(base / 2)
+    return base
+  }
+
+  function computePlayerLoss(round: CombatRound): number {
+    if (round.playerKilled) return 0
+    const base = round.playerLoss
+    if (playerDmgMult === 'x2') return base * 2
+    if (playerDmgMult === 'half') return Math.floor(base / 2)
     return base
   }
 
@@ -625,44 +641,88 @@ export function CombatCalculator({ onClose }: Props) {
                 </div>
               </div>
               {/* Damage multiplier */}
-              <div className="border-t border-slate-700/50 pt-3 mt-1 flex flex-col gap-2">
-                <div className="text-xs font-medium text-slate-400/80 uppercase tracking-wide">
-                  {t('combat.dmgMultiplier')}
+              <div className="border-t border-slate-700/50 pt-3 mt-1 flex flex-col gap-3">
+                {/* Damage dealt to enemy */}
+                <div className="flex flex-col gap-2">
+                  <div className="text-xs font-medium text-slate-400/80 uppercase tracking-wide">
+                    {t('combat.dmgDealt')}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setEnemyDmgMult(null)}
+                      aria-pressed={enemyDmgMult === null}
+                      className={`flex-1 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                        enemyDmgMult === null
+                          ? 'border-slate-500 bg-slate-700/60 text-slate-200'
+                          : 'border-slate-700 text-slate-500 hover:text-slate-300'
+                      }`}
+                    >
+                      {t('combat.dmgNormal')}
+                    </button>
+                    <button
+                      onClick={() => setEnemyDmgMult((v) => (v === 'x2' ? null : 'x2'))}
+                      aria-pressed={enemyDmgMult === 'x2'}
+                      className={`flex-1 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                        enemyDmgMult === 'x2'
+                          ? 'border-emerald-700 bg-emerald-900/30 text-emerald-200'
+                          : 'border-slate-700 text-slate-500 hover:text-slate-300'
+                      }`}
+                    >
+                      {t('combat.dmgX2')}
+                    </button>
+                    <button
+                      onClick={() => setEnemyDmgMult((v) => (v === 'half' ? null : 'half'))}
+                      aria-pressed={enemyDmgMult === 'half'}
+                      className={`flex-1 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                        enemyDmgMult === 'half'
+                          ? 'border-violet-700 bg-violet-900/30 text-violet-200'
+                          : 'border-slate-700 text-slate-500 hover:text-slate-300'
+                      }`}
+                    >
+                      {t('combat.dmgHalf')}
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => setEnemyDmgMult(null)}
-                    aria-pressed={enemyDmgMult === null}
-                    className={`flex-1 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
-                      enemyDmgMult === null
-                        ? 'border-slate-500 bg-slate-700/60 text-slate-200'
-                        : 'border-slate-700 text-slate-500 hover:text-slate-300'
-                    }`}
-                  >
-                    {t('combat.dmgNormal')}
-                  </button>
-                  <button
-                    onClick={() => setEnemyDmgMult((v) => (v === 'x2' ? null : 'x2'))}
-                    aria-pressed={enemyDmgMult === 'x2'}
-                    className={`flex-1 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
-                      enemyDmgMult === 'x2'
-                        ? 'border-emerald-700 bg-emerald-900/30 text-emerald-200'
-                        : 'border-slate-700 text-slate-500 hover:text-slate-300'
-                    }`}
-                  >
-                    {t('combat.dmgX2')}
-                  </button>
-                  <button
-                    onClick={() => setEnemyDmgMult((v) => (v === 'half' ? null : 'half'))}
-                    aria-pressed={enemyDmgMult === 'half'}
-                    className={`flex-1 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
-                      enemyDmgMult === 'half'
-                        ? 'border-violet-700 bg-violet-900/30 text-violet-200'
-                        : 'border-slate-700 text-slate-500 hover:text-slate-300'
-                    }`}
-                  >
-                    {t('combat.dmgHalf')}
-                  </button>
+                {/* Damage received by hero */}
+                <div className="flex flex-col gap-2">
+                  <div className="text-xs font-medium text-slate-400/80 uppercase tracking-wide">
+                    {t('combat.dmgReceived')}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setPlayerDmgMult(null)}
+                      aria-pressed={playerDmgMult === null}
+                      className={`flex-1 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                        playerDmgMult === null
+                          ? 'border-slate-500 bg-slate-700/60 text-slate-200'
+                          : 'border-slate-700 text-slate-500 hover:text-slate-300'
+                      }`}
+                    >
+                      {t('combat.dmgNormal')}
+                    </button>
+                    <button
+                      onClick={() => setPlayerDmgMult((v) => (v === 'x2' ? null : 'x2'))}
+                      aria-pressed={playerDmgMult === 'x2'}
+                      className={`flex-1 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                        playerDmgMult === 'x2'
+                          ? 'border-emerald-700 bg-emerald-900/30 text-emerald-200'
+                          : 'border-slate-700 text-slate-500 hover:text-slate-300'
+                      }`}
+                    >
+                      {t('combat.dmgX2')}
+                    </button>
+                    <button
+                      onClick={() => setPlayerDmgMult((v) => (v === 'half' ? null : 'half'))}
+                      aria-pressed={playerDmgMult === 'half'}
+                      className={`flex-1 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                        playerDmgMult === 'half'
+                          ? 'border-violet-700 bg-violet-900/30 text-violet-200'
+                          : 'border-slate-700 text-slate-500 hover:text-slate-300'
+                      }`}
+                    >
+                      {t('combat.dmgHalf')}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -716,7 +776,7 @@ export function CombatCalculator({ onClose }: Props) {
               )}
               {enemyDmgMult === 'x2' && (
                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-emerald-700/50 bg-emerald-900/20 text-emerald-400 text-xs">
-                  <span>{t('combat.dmgX2')}</span>
+                  <span>{t('combat.dmgDealtX2')}</span>
                   <button
                     onClick={() => setEnemyDmgMult(null)}
                     className="text-emerald-500 hover:text-emerald-300 ml-1 transition-colors"
@@ -728,9 +788,33 @@ export function CombatCalculator({ onClose }: Props) {
               )}
               {enemyDmgMult === 'half' && (
                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-violet-700/50 bg-violet-900/20 text-violet-400 text-xs">
-                  <span>{t('combat.dmgHalf')}</span>
+                  <span>{t('combat.dmgDealtHalf')}</span>
                   <button
                     onClick={() => setEnemyDmgMult(null)}
+                    className="text-violet-500 hover:text-violet-300 ml-1 transition-colors"
+                    aria-label={t('common.close')}
+                  >
+                    <X size={10} />
+                  </button>
+                </div>
+              )}
+              {playerDmgMult === 'x2' && (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-emerald-700/50 bg-emerald-900/20 text-emerald-400 text-xs">
+                  <span>{t('combat.dmgReceivedX2')}</span>
+                  <button
+                    onClick={() => setPlayerDmgMult(null)}
+                    className="text-emerald-500 hover:text-emerald-300 ml-1 transition-colors"
+                    aria-label={t('common.close')}
+                  >
+                    <X size={10} />
+                  </button>
+                </div>
+              )}
+              {playerDmgMult === 'half' && (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-violet-700/50 bg-violet-900/20 text-violet-400 text-xs">
+                  <span>{t('combat.dmgReceivedHalf')}</span>
+                  <button
+                    onClick={() => setPlayerDmgMult(null)}
                     className="text-violet-500 hover:text-violet-300 ml-1 transition-colors"
                     aria-label={t('common.close')}
                   >
@@ -1029,7 +1113,13 @@ export function CombatCalculator({ onClose }: Props) {
                     <div
                       className={`text-2xl font-bold ${lastRound.playerLoss > 0 ? 'text-red-400' : 'text-green-400'}`}
                     >
-                      -{lastRound.playerLoss}
+                      -{computePlayerLoss(lastRound)}
+                      {playerDmgMult === 'x2' && lastRound.playerLoss > 0 && (
+                        <span className="text-xs text-emerald-400 ml-1">(×2)</span>
+                      )}
+                      {playerDmgMult === 'half' && lastRound.playerLoss > 0 && (
+                        <span className="text-xs text-cyan-400 ml-1">(÷2)</span>
+                      )}
                     </div>
                   )}
                   {pendingPsychicHeroDmg > 0 && (
@@ -1046,7 +1136,7 @@ export function CombatCalculator({ onClose }: Props) {
                         : Math.max(
                             0,
                             character.endurance.current -
-                              lastRound.playerLoss -
+                              computePlayerLoss(lastRound) -
                               pendingPsychicHeroDmg
                           )}
                   </div>
